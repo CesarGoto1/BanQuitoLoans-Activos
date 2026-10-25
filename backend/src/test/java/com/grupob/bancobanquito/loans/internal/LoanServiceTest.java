@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.grupob.bancobanquito.loans.DisbursementPreview;
 import com.grupob.bancobanquito.loans.DisbursementResult;
 import com.grupob.bancobanquito.loans.LoanService;
-import com.grupob.bancobanquito.loans.PortfolioStatus;
+import com.grupob.bancobanquito.loans.EstadoCartera;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ class LoanServiceTest {
         assertThat(result.netAmount()).isEqualByComparingTo("4975.00");
 
         Loan loan = loanRepository.findByLoanNumber(result.loanNumber()).orElseThrow();
-        assertThat(loan.getPortfolioStatus()).isEqualTo(PortfolioStatus.CURRENT);
+        assertThat(loan.getPortfolioStatus()).isEqualTo(EstadoCartera.POR_VENCER);
         assertThat(loan.getDisbursementInstructionStatus()).isEqualTo(DisbursementInstructionStatus.DELIVERED);
         assertThat(installmentRepository.countByLoanId(loan.getId())).isEqualTo(12);
 
