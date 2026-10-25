@@ -6,11 +6,11 @@ const percentage = new Intl.NumberFormat('es-EC', { style: 'percent', minimumFra
 const amortizationMethods = { FRENCH: 'Francés', GERMAN: 'Alemán' }
 
 const portfolioStatuses = {
-  CURRENT: { label: 'Por vencer', className: 'bq-estado-info' },
-  PAST_DUE: { label: 'Vencida', className: 'bq-estado-aviso' },
-  IN_LITIGATION: { label: 'En litigio', className: 'bq-estado-peligro' },
-  WRITTEN_OFF: { label: 'Castigada', className: 'bq-estado-peligro' },
-  PAID_OFF: { label: 'Cancelada', className: 'bq-estado-neutro' },
+  POR_VENCER: { label: 'Por vencer', className: 'bq-estado-info' },
+  VENCIDA: { label: 'Vencida', className: 'bq-estado-aviso' },
+  EN_LITIGIO: { label: 'En litigio', className: 'bq-estado-peligro' },
+  CASTIGADA: { label: 'Castigada', className: 'bq-estado-peligro' },
+  CANCELADA: { label: 'Cancelada', className: 'bq-estado-neutro' },
 }
 
 const installmentStatuses = {
@@ -74,23 +74,23 @@ export default function MyLoansPage({ customer }) {
         <>
           <div className="bq-rejilla">
             {loans.content.map((loan) => (
-              <article className="bq-tarjeta" key={loan.loanNumber}>
+              <article className="bq-tarjeta" key={loan.numeroOperacion}>
                 <div className="bq-encabezado-tarjeta">
-                  <span className="bq-titulo-tarjeta bq-mono">{loan.loanNumber}</span>
-                  <PortfolioStatusBadge status={loan.portfolioStatus} />
+                  <span className="bq-titulo-tarjeta bq-mono">{loan.numeroOperacion}</span>
+                  <PortfolioStatusBadge status={loan.estadoCartera} />
                 </div>
                 <div className="bq-fila">
                   <div className="bq-campo">
                     <span className="bq-label">Saldo de capital</span>
-                    <strong>{dollars.format(loan.principalBalance)}</strong>
+                    <strong>{dollars.format(loan.saldoCapital)}</strong>
                   </div>
                   <div className="bq-campo">
                     <span className="bq-label">Monto aprobado</span>
-                    <span>{dollars.format(loan.approvedAmount)}</span>
+                    <span>{dollars.format(loan.montoAprobado)}</span>
                   </div>
                   <div className="bq-campo">
                     <span className="bq-label">Días de mora</span>
-                    <span>{loan.daysPastDue}</span>
+                    <span>{loan.diasMora}</span>
                   </div>
                 </div>
                 <div className="bq-acciones">
@@ -116,15 +116,15 @@ function LoanDetail({ loan, onBack }) {
   useEffect(() => {
     let current = true
     setError('')
-    findLoanInstallments(loan.loanNumber, page)
+    findLoanInstallments(loan.numeroOperacion, page)
       .then((data) => current && setInstallments(data))
       .catch((e) => current && setError(e.message))
     return () => {
       current = false
     }
-  }, [loan.loanNumber, page])
+  }, [loan.numeroOperacion, page])
 
-  const next = installments?.content.find((installment) => installment.status !== 'PAID')
+  const next = installments?.content.find((installment) => installment.estadoCuota !== 'PAID')
 
   return (
     <main className="bq-pagina">
@@ -137,44 +137,44 @@ function LoanDetail({ loan, onBack }) {
       <div className="bq-tarjeta">
         <div className="bq-encabezado-tarjeta">
           <span className="bq-titulo-tarjeta">
-            Operación <span className="bq-mono">{loan.loanNumber}</span>
+            Operación <span className="bq-mono">{loan.numeroOperacion}</span>
           </span>
-          <PortfolioStatusBadge status={loan.portfolioStatus} />
+          <PortfolioStatusBadge status={loan.estadoCartera} />
         </div>
         <div className="bq-fila">
           <div className="bq-campo">
             <span className="bq-label">Saldo de capital</span>
-            <strong>{dollars.format(loan.principalBalance)}</strong>
+            <strong>{dollars.format(loan.saldoCapital)}</strong>
           </div>
           <div className="bq-campo">
             <span className="bq-label">Próximo vencimiento</span>
-            <span>{next ? `Cuota ${next.installmentNumber} · ${formatDate(next.dueDate)}` : '—'}</span>
+            <span>{next ? `Cuota ${next.numeroCuota} · ${formatDate(next.fechaVencimiento)}` : '—'}</span>
           </div>
           <div className="bq-campo">
             <span className="bq-label">Valor a pagar</span>
-            <strong>{next ? dollars.format(next.totalAmount) : '—'}</strong>
+            <strong>{next ? dollars.format(next.valorCuota) : '—'}</strong>
           </div>
           <div className="bq-campo">
             <span className="bq-label">Días de mora</span>
-            <span>{loan.daysPastDue}</span>
+            <span>{loan.diasMora}</span>
           </div>
         </div>
         <div className="bq-fila">
           <div className="bq-campo">
             <span className="bq-label">Monto aprobado</span>
-            <span>{dollars.format(loan.approvedAmount)}</span>
+            <span>{dollars.format(loan.montoAprobado)}</span>
           </div>
           <div className="bq-campo">
             <span className="bq-label">Tasa efectiva anual</span>
-            <span>{percentage.format(loan.effectiveAnnualRate)}</span>
+            <span>{percentage.format(loan.tasaEfectivaAnual)}</span>
           </div>
           <div className="bq-campo">
             <span className="bq-label">Plazo</span>
-            <span>{loan.termMonths} meses · {amortizationMethods[loan.amortizationMethod]}</span>
+            <span>{loan.plazoMeses} meses · {amortizationMethods[loan.sistemaAmortizacion]}</span>
           </div>
           <div className="bq-campo">
             <span className="bq-label">Desembolso</span>
-            <span>{formatDate(loan.disbursementDate)}</span>
+            <span>{formatDate(loan.fechaDesembolso)}</span>
           </div>
         </div>
       </div>
@@ -205,17 +205,17 @@ function LoanDetail({ loan, onBack }) {
               </thead>
               <tbody>
                 {installments.content.map((installment) => (
-                  <tr key={installment.installmentNumber}>
-                    <td className="bq-num">{installment.installmentNumber}</td>
-                    <td>{formatDate(installment.dueDate)}</td>
-                    <td className="bq-num">{dollars.format(installment.principalAmount)}</td>
-                    <td className="bq-num">{dollars.format(installment.interestAmount)}</td>
-                    <td className="bq-num">{dollars.format(installment.insuranceAmount)}</td>
-                    <td className="bq-num">{dollars.format(installment.totalAmount)}</td>
-                    <td className="bq-num">{dollars.format(installment.remainingPrincipalBalance)}</td>
+                  <tr key={installment.numeroCuota}>
+                    <td className="bq-num">{installment.numeroCuota}</td>
+                    <td>{formatDate(installment.fechaVencimiento)}</td>
+                    <td className="bq-num">{dollars.format(installment.valorCapital)}</td>
+                    <td className="bq-num">{dollars.format(installment.valorInteres)}</td>
+                    <td className="bq-num">{dollars.format(installment.valorSeguro)}</td>
+                    <td className="bq-num">{dollars.format(installment.valorCuota)}</td>
+                    <td className="bq-num">{dollars.format(installment.saldoCapitalPendiente)}</td>
                     <td>
-                      <span className={`bq-estado ${installmentStatuses[installment.status]?.className ?? 'bq-estado-neutro'}`}>
-                        {installmentStatuses[installment.status]?.label ?? installment.status}
+                      <span className={`bq-estado ${installmentStatuses[installment.estadoCuota]?.className ?? 'bq-estado-neutro'}`}>
+                        {installmentStatuses[installment.estadoCuota]?.label ?? installment.estadoCuota}
                       </span>
                     </td>
                   </tr>
