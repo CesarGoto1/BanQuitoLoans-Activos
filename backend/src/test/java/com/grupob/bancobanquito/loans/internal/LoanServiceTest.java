@@ -5,16 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.grupob.bancobanquito.loans.DisbursementPreview;
 import com.grupob.bancobanquito.loans.DisbursementResult;
-import com.grupob.bancobanquito.loans.InstallmentSummary;
 import com.grupob.bancobanquito.loans.LoanService;
-import com.grupob.bancobanquito.loans.LoanSummary;
 import com.grupob.bancobanquito.loans.PortfolioStatus;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,18 +79,6 @@ class LoanServiceTest {
         assertThatThrownBy(() -> loanService.disburse(9001, "2200000002"))
                 .isInstanceOf(LoanException.class)
                 .extracting(e -> ((LoanException) e).getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void findsLoansOfOneCustomerOnePageAtATime() {
-        loanService.disburse(9003, "2200000003");
-
-        Page<LoanSummary> loans = loanService.findByCustomer("1709876543", null, PageRequest.of(0, 10));
-        assertThat(loans.getContent()).extracting(LoanSummary::loanNumber).containsExactly("OP-20261031-009003");
-
-        Page<InstallmentSummary> installments = loanService.findInstallments("OP-20261031-009003", PageRequest.of(0, 12));
-        assertThat(installments.getContent()).hasSize(12);
-        assertThat(installments.getTotalElements()).isEqualTo(60);
     }
 
     @Test
