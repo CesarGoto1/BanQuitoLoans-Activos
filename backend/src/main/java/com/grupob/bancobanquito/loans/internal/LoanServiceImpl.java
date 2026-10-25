@@ -8,9 +8,7 @@ import com.grupob.bancobanquito.liabilities.DisbursementInstruction;
 import com.grupob.bancobanquito.liabilities.LiabilitiesService;
 import com.grupob.bancobanquito.loans.DisbursementPreview;
 import com.grupob.bancobanquito.loans.DisbursementResult;
-import com.grupob.bancobanquito.loans.InstallmentSummary;
 import com.grupob.bancobanquito.loans.LoanService;
-import com.grupob.bancobanquito.loans.LoanSummary;
 import com.grupob.bancobanquito.loans.PortfolioStatus;
 import com.grupob.bancobanquito.origination.ApprovedLoanApplication;
 import com.grupob.bancobanquito.origination.LoanApplicationService;
@@ -24,8 +22,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -142,31 +138,6 @@ class LoanServiceImpl implements LoanService {
     @Transactional(readOnly = true)
     public Optional<DisbursementResult> findDisbursement(Integer applicationId) {
         return loanRepository.findByApplicationId(applicationId).map(this::result);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<LoanSummary> findByCustomer(String customerNationalId, PortfolioStatus portfolioStatus,
-                                            Pageable pageable) {
-        Page<Loan> loans = portfolioStatus == null
-                ? loanRepository.findByCustomerNationalId(customerNationalId, pageable)
-                : loanRepository.findByCustomerNationalIdAndPortfolioStatus(customerNationalId, portfolioStatus, pageable);
-        return loans.map(loan -> new LoanSummary(loan.getLoanNumber(), loan.getApplicationId(),
-                loan.getCustomerNationalId(), loan.getApprovedAmount(), loan.getEffectiveAnnualRate(),
-                loan.getTermMonths(), loan.getAmortizationMethod(), loan.getDisbursementDate(),
-                loan.getPrincipalBalance(), loan.getDaysPastDue(), loan.getPortfolioStatus()));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<InstallmentSummary> findInstallments(String loanNumber, Pageable pageable) {
-        Loan loan = loanRepository.findByLoanNumber(loanNumber)
-                .orElseThrow(() -> new LoanException(HttpStatus.NOT_FOUND, "La operación " + loanNumber + " no existe."));
-        return installmentRepository.findByLoanId(loan.getId(), pageable)
-                .map(installment -> new InstallmentSummary(installment.getInstallmentNumber(),
-                        installment.getDueDate(), installment.getPrincipalAmount(), installment.getInterestAmount(),
-                        installment.getInsuranceAmount(), installment.getTotalAmount(),
-                        installment.getRemainingPrincipalBalance(), installment.getStatus().name()));
     }
 
     private ApprovedLoanApplication pendingApplication(Integer applicationId) {
