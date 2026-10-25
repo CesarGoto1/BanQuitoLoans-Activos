@@ -1,3 +1,9 @@
+import LoanManagementPage from './online-banking/pages/LoanManagementPage.jsx'
+import PortalPage from './portal/pages/PortalPage.jsx'
+
 export default function App() {
-  return <h1>BanQuitoLoans</h1>
+  if (window.location.pathname.startsWith('/banca-web')) {
+    return <LoanManagementPage />
+  }
+  return <PortalPage />
 }

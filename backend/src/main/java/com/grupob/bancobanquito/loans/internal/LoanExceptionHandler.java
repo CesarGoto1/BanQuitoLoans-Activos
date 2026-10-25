@@ -1,5 +1,6 @@
 package com.grupob.bancobanquito.loans.internal;
 
+import com.grupob.bancobanquito.liabilities.LiabilitiesUnavailableException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,11 @@ class LoanExceptionHandler {
     @ExceptionHandler(LoanException.class)
     ProblemDetail loan(LoanException e) {
         return problem(e.getStatus(), "No se pudo procesar", e.getMessage());
+    }
+
+    @ExceptionHandler(LiabilitiesUnavailableException.class)
+    ProblemDetail liabilitiesUnavailable(LiabilitiesUnavailableException e) {
+        return problem(HttpStatus.SERVICE_UNAVAILABLE, "Core de Pasivos no disponible", e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -7,9 +7,11 @@ import com.grupob.bancobanquito.liabilities.LiabilitiesService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
+@Profile("simulated")
 class SimulatedLiabilitiesService implements LiabilitiesService {
 
     static final String FAILING_ACCOUNT = "9999999999";
