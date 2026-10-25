@@ -66,7 +66,7 @@ export default function BandejaPagina({ onSeleccionarSolicitud }) {
         <div className="bq-tarjeta">
           <p className="bq-texto-2">Cargando solicitudes pendientes...</p>
         </div>
-      ) : solicitudes.length === 0 ? (
+      ) : error ? null : solicitudes.length === 0 ? (
         <div className="bq-tarjeta">
           <div className="bq-alerta bq-alerta-info">
             <strong>Bandeja al día</strong>

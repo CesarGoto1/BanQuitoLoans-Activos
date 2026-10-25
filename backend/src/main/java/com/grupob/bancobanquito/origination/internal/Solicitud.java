@@ -26,12 +26,12 @@ public class Solicitud {
     private Integer idSolicitud;
 
     @NotNull
-    @Column(name = "idCliente")
+    @Column(name = "idCliente", nullable = false)
     private Integer idCliente;
 
     @NotNull
     @Size(max = 7)
-    @Column(name = "sistemaAmortizacion")
+    @Column(name = "sistemaAmortizacion", nullable = false, length = 7)
     private String sistemaAmortizacion;
 
     @Column(name = "idAnalista")
@@ -40,74 +40,74 @@ public class Solicitud {
     @NotNull
     @Positive
     @Digits(integer = 8, fraction = 2)
-    @Column(name = "montoSolicitado")
+    @Column(name = "montoSolicitado", nullable = false, precision = 10, scale = 2)
     private BigDecimal montoSolicitado;
 
     @NotNull
     @Positive
-    @Column(name = "plazoMeses")
+    @Column(name = "plazoMeses", nullable = false)
     private Integer plazoMeses;
 
     @NotNull
     @Size(max = 20)
-    @Column(name = "destinoCredito")
+    @Column(name = "destinoCredito", nullable = false, length = 20)
     private String destinoCredito;
 
     @NotNull
     @Digits(integer = 8, fraction = 2)
-    @Column(name = "ingresosMensuales")
+    @Column(name = "ingresosMensuales", nullable = false, precision = 10, scale = 2)
     private BigDecimal ingresosMensuales;
 
     @NotNull
     @Digits(integer = 8, fraction = 2)
-    @Column(name = "gastosMensuales")
+    @Column(name = "gastosMensuales", nullable = false, precision = 10, scale = 2)
     private BigDecimal gastosMensuales;
 
     @NotNull
-    @Column(name = "fechaSolicitud")
+    @Column(name = "fechaSolicitud", nullable = false)
     private LocalDate fechaSolicitud;
 
     @NotNull
-    @Column(name = "fechaHoraRegistro")
+    @Column(name = "fechaHoraRegistro", nullable = false)
     private LocalDateTime fechaHoraRegistro;
 
     @NotNull
     @Positive
     @Digits(integer = 8, fraction = 2)
-    @Column(name = "cuotaEvaluacionReferencial")
+    @Column(name = "cuotaEvaluacionReferencial", nullable = false, precision = 10, scale = 2)
     private BigDecimal cuotaEvaluacionReferencial;
 
     @Digits(integer = 1, fraction = 4)
-    @Column(name = "teaAsignada")
+    @Column(name = "teaAsignada", precision = 5, scale = 4)
     private BigDecimal teaAsignada;
 
     @Digits(integer = 8, fraction = 2)
-    @Column(name = "cuotaEvaluacionDefinitiva")
+    @Column(name = "cuotaEvaluacionDefinitiva", precision = 10, scale = 2)
     private BigDecimal cuotaEvaluacionDefinitiva;
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "estadoSolicitud")
+    @Column(name = "estadoSolicitud", nullable = false, length = 20)
     private EstadoSolicitud estadoSolicitud;
 
     @Column(name = "fechaResolucion")
     private LocalDate fechaResolucion;
 
     @Size(max = 200)
-    @Column(name = "motivoRechazo")
+    @Column(name = "motivoRechazo", length = 200)
     private String motivoRechazo;
 
     @NotNull
     @Size(max = 50)
-    @Column(name = "usuarioCreacion", updatable = false)
+    @Column(name = "usuarioCreacion", nullable = false, length = 50, updatable = false)
     private String usuarioCreacion;
 
     @NotNull
-    @Column(name = "fechaCreacion", updatable = false)
+    @Column(name = "fechaCreacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
     @Size(max = 50)
-    @Column(name = "usuarioModificacion")
+    @Column(name = "usuarioModificacion", length = 50)
     private String usuarioModificacion;
 
     @Column(name = "fechaModificacion")

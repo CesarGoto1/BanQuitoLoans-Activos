@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { obtenerDetalleSolicitud } from '../servicios/prestamosApi.js';
+import LoanDecisionPanel from '../components/LoanDecisionPanel.jsx';
 
 export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
   const [detalle, setDetalle] = useState(null);
@@ -141,11 +142,11 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
           </div>
 
           <div className="bq-tarjeta">
-            <span className="bq-etiqueta-seccion">Análisis Regulatorio de Capacidad de Pago</span>
+            <span className="bq-etiqueta-seccion">Análisis referencial de capacidad de pago</span>
 
             {detalle.capacidadPagoValida ? (
               <div className="bq-alerta bq-alerta-exito">
-                <strong>Capacidad de Pago Aprobada</strong>
+                <strong>Evaluación referencial favorable</strong>
                 <p>{detalle.mensajeCapacidadPago}</p>
               </div>
             ) : (
@@ -172,7 +173,7 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
                     <td className="bq-num bq-monto">{formatearDinero(detalle.cuotaMaximaAdmisible)}</td>
                     <td>
                       {detalle.capacidadPagoValida ? (
-                        <span className="bq-estado bq-estado-exito">Apta para Aprobación</span>
+                        <span className="bq-estado bq-estado-exito">Requiere evaluación definitiva</span>
                       ) : (
                         <span className="bq-estado bq-estado-peligro">No Cumple Capacidad</span>
                       )}
@@ -183,23 +184,8 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
             </div>
           </div>
 
-          <div id="contenedor-resolucion-p6" className="bq-tarjeta">
-            <div className="bq-titulo-pagina">
-              <div>
-                <span className="bq-etiqueta-seccion">Punto de Integración RF-05</span>
-                <h3>Resolución del Analista (Aprobación / Rechazo)</h3>
-                <p className="bq-pequeno bq-texto-2">
-                  Espacio asignado a Micha (P6) para incrustar los formularios de asignación de TEA y motivo de rechazo.
-                </p>
-              </div>
-            </div>
-            <div className="bq-alerta bq-alerta-info">
-              <strong>Contenedor listo para componentes de P6</strong>
-              <p>
-                Al integrar RF-05, aquí se presentará el formulario para aprobar la solicitud asignando la TEA definitiva o rechazarla con el motivo correspondiente.
-              </p>
-            </div>
-          </div>
+          <LoanDecisionPanel key={detalle.idSolicitud} application={detalle}
+            onResolved={(result) => setDetalle((current) => ({ ...current, ...result }))} />
         </>
       ) : null}
     </div>

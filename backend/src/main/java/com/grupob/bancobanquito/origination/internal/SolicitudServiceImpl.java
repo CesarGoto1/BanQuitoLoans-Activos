@@ -104,7 +104,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                     .multiply(BigDecimal.valueOf(100))
                     .setScale(2, RoundingMode.HALF_UP);
 
-            capacidadValida = porcentajeImpacto.compareTo(limiteImpactoMaximo) <= 0;
+            capacidadValida = cuotaReferencial.compareTo(cuotaMaximaAdmisible) <= 0;
 
             if (capacidadValida) {
                 mensajeCapacidad = "La cuota referencial representa el " + porcentajeImpacto

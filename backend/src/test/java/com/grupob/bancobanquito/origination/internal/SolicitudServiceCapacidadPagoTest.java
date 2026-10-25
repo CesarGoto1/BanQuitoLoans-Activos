@@ -105,6 +105,19 @@ class SolicitudServiceCapacidadPagoTest {
     }
 
     @Test
+    void rejectsOneCentOverCapacityEvenWhenDisplayedPercentageIsForty() {
+        Solicitud application = crearSolicitudBase(20, new BigDecimal("1500.00"),
+                new BigDecimal("500.00"), new BigDecimal("400.01"));
+        when(solicitudRepository.findById(20)).thenReturn(Optional.of(application));
+        when(parameterService.getValue("PAR-09")).thenReturn(new BigDecimal("0.4000"));
+
+        SolicitudDetalleResponse detail = solicitudService.obtenerDetalleParaEvaluacion(20);
+
+        assertThat(detail.porcentajeImpactoCuota()).isEqualByComparingTo("40.00");
+        assertThat(detail.capacidadPagoValida()).isFalse();
+    }
+
+    @Test
     @DisplayName("Debe lanzar SolicitudNoEncontradaException cuando el ID no existe")
     void debeLanzarExcepcionCuandoNoExiste() {
         when(solicitudRepository.findById(999)).thenReturn(Optional.empty());

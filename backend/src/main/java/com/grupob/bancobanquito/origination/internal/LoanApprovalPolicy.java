@@ -9,7 +9,6 @@ import java.math.RoundingMode;
 @Component
 public class LoanApprovalPolicy {
 
-    // Verify that the application can still be resolved.
     public void ensureRegistered(String applicationStatus) {
 
         if (!"REGISTRADA".equals(applicationStatus)) {
@@ -19,7 +18,6 @@ public class LoanApprovalPolicy {
         }
     }
 
-    // Verify the assigned annual effective interest rate.
     public void validateAnnualEffectiveRate(
             BigDecimal annualEffectiveRate,
             BigDecimal maximumAnnualEffectiveRate
@@ -50,7 +48,6 @@ public class LoanApprovalPolicy {
         }
     }
 
-    // Validate the projected installment against payment capacity.
     public BigDecimal validatePaymentCapacity(
             BigDecimal monthlyIncome,
             BigDecimal monthlyExpenses,
