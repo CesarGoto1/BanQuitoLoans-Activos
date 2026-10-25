@@ -1,2 +1,29 @@
-@org.springframework.modulith.ApplicationModule(displayName = "loans")
+﻿@org.springframework.modulith.ApplicationModule(displayName = "Loans", allowedDependencies = {"access"})
 package com.grupob.bancobanquito.loans;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

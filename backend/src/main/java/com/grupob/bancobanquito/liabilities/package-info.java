@@ -1,2 +1,29 @@
-@org.springframework.modulith.ApplicationModule(displayName = "liabilities")
+﻿@org.springframework.modulith.ApplicationModule(displayName = "Liabilities")
 package com.grupob.bancobanquito.liabilities;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
