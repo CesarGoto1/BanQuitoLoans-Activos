@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BanQuito · Guía de estilo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../src/styles/banquito.css">
+<style>
+  .g-contenido { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 48px; }
+  .g-seccion { display: flex; flex-direction: column; gap: 16px; }
+  .g-seccion > header p { margin-top: 6px; color: var(--bq-texto-2); max-width: 760px; font-size: var(--bq-t-md); }
+  .g-muestra { border: 1px dashed var(--bq-borde); border-radius: var(--bq-radio-lg); padding: 24px; background: var(--bq-fondo); display: flex; flex-direction: column; gap: 16px; }
+  .g-marco { border: 1px solid var(--bq-borde); border-radius: var(--bq-radio-lg); overflow: hidden; background: var(--bq-fondo); }
+  .g-fila { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .g-colores { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .g-color { border-radius: 14px; overflow: hidden; background: var(--bq-superficie); box-shadow: var(--bq-sombra); }
+  .g-color > div { height: 64px; }
+  .g-color > p { padding: 10px 12px; font-size: var(--bq-t-xs); display: flex; flex-direction: column; gap: 2px; }
+  .g-codigo { margin: 0; padding: 16px; border-radius: var(--bq-radio); background: #0b1621; color: #e6edf3; font-family: var(--bq-fuente-mono); font-size: 13px; overflow-x: auto; white-space: pre; }
+  .g-tipos { display: flex; flex-direction: column; gap: 14px; }
+  .g-tipos > div { display: flex; gap: 24px; align-items: baseline; }
+  .g-tipos code { width: 140px; flex: none; color: var(--bq-texto-2); font-family: var(--bq-fuente-mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<header class="bq-cabecera">
+  <div class="bq-marca">
+    <img class="bq-logo" src="../public/logo-bq.png" alt="">
+    <span class="bq-marca-nombre">BanQuito</span>
+    <span class="bq-marca-app">Guía de estilo</span>
+  </div>
+  <div class="bq-cabecera-usuario"><span class="bq-texto-2">Borrador de pantallas en Figma · paleta Océano y sol</span></div>
+</header>
+<nav class="bq-menu">
+  <a class="bq-menu-item bq-activo" href="#colores">Colores</a>
+  <a class="bq-menu-item" href="#estructura">Estructura</a>
+  <a class="bq-menu-item" href="#botones">Botones</a>
+  <a class="bq-menu-item" href="#formularios">Formularios</a>
+  <a class="bq-menu-item" href="#tablas">Tablas</a>
+  <a class="bq-menu-item" href="#estados">Estados y alertas</a>
+  <a class="bq-menu-item" href="#uso">Uso</a>
+</nav>
+
+<main class="g-contenido">
+
+  <section class="g-seccion" id="colores">
+    <header><h1>Colores</h1><p>Azul océano para la marca, la cabecera de los resúmenes y los enlaces. Amarillo sol solo para el botón principal, la pestaña activa y la barra de avance. Verde, ámbar, rojo y celeste comunican estado, nunca decoran.</p></header>
+    <div class="g-colores" id="paleta"></div>
+  </section>
+
+  <section class="g-seccion" id="tipografia">
+    <header><h2>Tipografía</h2><p>DM Sans en todo el sistema (se carga desde Google Fonts en index.html). Cinco tamaños y no más. Los montos usan números de ancho fijo para que las columnas cuadren.</p></header>
+    <div class="g-muestra g-tipos">
+      <div><code>h1 · 26 · 700</code><h1>Simula tu préstamo</h1></div>
+      <div><code>h2 · 20 · 600</code><h2>Tabla de amortización proyectada</h2></div>
+      <div><code>h3 · 16 · 600</code><h3>Simular un préstamo</h3></div>
+      <div><code>texto · 14 · 400</code><p>Calcula tu cuota sin registrar ninguna solicitud.</p></div>
+      <div><code>ayuda · 12 · 400</code><p class="bq-ayuda">Entre $ 500,00 y $ 30.000,00</p></div>
+      <div><code>etiqueta · 12 · 600</code><p class="bq-etiqueta-seccion">Resultado de la simulación</p></div>
+    </div>
+  </section>
+
+  <section class="g-seccion" id="estructura">
+    <header><h2>Estructura de pantalla</h2><p>Todas las pantallas, de la Banca Web y del Portal, tienen la misma estructura: cabecera blanca con logo, nombre de la aplicación, fecha de negocio y usuario; menú de pestañas con la activa subrayada en amarillo; y la página con su título y el contenido en tarjetas.</p></header>
+    <div class="g-marco">
+      <header class="bq-cabecera">
+        <div class="bq-marca">
+          <img class="bq-logo" src="../public/logo-bq.png" alt="">
+          <span class="bq-marca-nombre">BanQuito</span>
+          <span class="bq-marca-app">Banca Web</span>
+        </div>
+        <div class="bq-cabecera-usuario">
+          <span class="bq-fecha-negocio">Fecha de negocio <strong>15/12/2026</strong></span>
+          <span>María Fernanda Ruiz · 1712345678</span>
+          <button class="bq-btn bq-btn-texto bq-btn-sm">Salir</button>
+        </div>
+      </header>
+      <nav class="bq-menu">
+        <a class="bq-menu-item bq-activo" href="#estructura">Inicio</a>
+        <a class="bq-menu-item" href="#estructura">Simular</a>
+        <a class="bq-menu-item" href="#estructura">Solicitar préstamo</a>
+        <a class="bq-menu-item" href="#estructura">Mis préstamos</a>
+      </nav>
+      <div class="bq-pagina">
+        <div class="bq-fila">
+          <div class="bq-tarjeta-destacada">
+            <div class="bq-encabezado-tarjeta">
+              <div><h1>Hola, María Fernanda</h1><p>Este es el resumen de tu préstamo al 15/12/2026.</p></div>
+              <span class="bq-etiqueta bq-etiqueta-clara">Al día</span>
+            </div>
+            <div class="bq-encabezado-tarjeta">
+              <div><p>Saldo de capital</p><p class="bq-monto-grande">$ 9.224,59</p></div>
+              <div><p>Préstamo educación</p><p><strong>12 meses · francés · TEA 16,77 %</strong></p></div>
+            </div>
+            <div>
+              <div class="bq-progreso"><span style="width: 8%"></span></div>
+              <p class="bq-pequeno" style="margin-top: 8px">Pagaste 1 de 12 cuotas · $ 775,41 de capital</p>
+            </div>
+          </div>
+          <div class="bq-tarjeta bq-lateral">
+            <span class="bq-etiqueta-seccion">Próximo pago</span>
+            <div><p class="bq-monto-grande">$ 911,44</p><p class="bq-texto-2">Cuota 2 de 12 · vence el 31/12/2026</p></div>
+            <span class="bq-etiqueta">Faltan 16 días</span>
+            <div class="bq-datos">
+              <div class="bq-dato"><span>Capital</span><span>$ 785,49</span></div>
+              <div class="bq-dato"><span>Interés</span><span>$ 119,95</span></div>
+              <div class="bq-dato"><span>Seguro de desgravamen</span><span>$ 6,00</span></div>
+            </div>
+            <div class="bq-acciones"><button class="bq-btn bq-btn-secundario">Ver tabla y pagos</button></div>
+          </div>
+        </div>
+        <h2>¿Qué quieres hacer?</h2>
+        <div class="bq-rejilla">
+          <a class="bq-tarjeta bq-tarjeta-compacta" href="#estructura"><span class="bq-icono">$</span><div><h3>Simular un préstamo</h3><p class="bq-texto-2">Calcula tu cuota sin registrar nada.</p></div></a>
+          <a class="bq-tarjeta bq-tarjeta-compacta" href="#estructura"><span class="bq-icono">+</span><div><h3>Solicitar préstamo</h3><p class="bq-texto-2">Evaluación inmediata de tu capacidad de pago.</p></div></a>
+          <a class="bq-tarjeta bq-tarjeta-compacta" href="#estructura"><span class="bq-icono">≡</span><div><h3>Mis préstamos</h3><p class="bq-texto-2">Operaciones activas y solicitudes.</p></div></a>
+          <a class="bq-tarjeta bq-tarjeta-compacta" href="#estructura"><span class="bq-icono">%</span><div><h3>Tabla de amortización</h3><p class="bq-texto-2">Cuotas, pagos aplicados y mora.</p></div></a>
+        </div>
+        <div class="bq-fila">
+          <div class="bq-tarjeta">
+            <div class="bq-encabezado-tarjeta"><h2>Actividad reciente</h2><a href="#estructura">Ver todo</a></div>
+            <div class="bq-lista">
+              <div class="bq-lista-item"><span class="bq-icono bq-icono-sm bq-exito">↓</span><div class="bq-lista-texto"><span>Pago cuota 1 · débito en cuenta</span><span>10/12/2026 · incluye mora de $ 3,33</span></div><span class="bq-monto">$ 914,77</span></div>
+              <div class="bq-lista-item"><span class="bq-icono bq-icono-sm">↑</span><div class="bq-lista-texto"><span>Desembolso a tu cuenta de ahorros</span><span>31/10/2026 · neto tras SOLCA de $ 50,00</span></div><span class="bq-monto">$ 9.950,00</span></div>
+              <div class="bq-lista-item"><span class="bq-icono bq-icono-sm bq-info">✓</span><div class="bq-lista-texto"><span>Solicitud SOL-000123 aprobada</span><span>31/10/2026 · tasa asignada TEA 16,77 %</span></div><span class="bq-monto">—</span></div>
+            </div>
+          </div>
+          <div class="bq-lateral" style="display: flex; flex-direction: column; gap: 16px">
+            <div class="bq-alerta bq-alerta-aviso"><strong>Tu cuota 1 se pagó con 3 días de atraso</strong><p>Se cobró interés de mora de $ 3,33. Paga antes del vencimiento para evitarlo.</p></div>
+            <div class="bq-alerta bq-alerta-info"><strong>¿Cómo se paga?</strong><p>El valor de la cuota se debita de tu cuenta de ahorros en la fecha de vencimiento.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="bq-texto-2">En el Portal cambia solo el texto de la cabecera (<strong>Portal de Gestión</strong>, «Analista · cédula») y las pestañas: Solicitudes, Operaciones, Recaudaciones, Cierre del día, Reportes y Parámetros.</p>
+    <pre class="g-codigo">&lt;header className="bq-cabecera"&gt;
+  &lt;div className="bq-marca"&gt;
+    &lt;img className="bq-logo" src="/logo-bq.png" alt="" /&gt;
+    &lt;span className="bq-marca-nombre"&gt;BanQuito&lt;/span&gt;
+    &lt;span className="bq-marca-app"&gt;Banca Web&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div className="bq-cabecera-usuario"&gt;
+    &lt;span className="bq-fecha-negocio"&gt;Fecha de negocio &lt;strong&gt;{fecha}&lt;/strong&gt;&lt;/span&gt;
+    &lt;span&gt;{nombre} · {cedula}&lt;/span&gt;
+    &lt;button className="bq-btn bq-btn-texto bq-btn-sm"&gt;Salir&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+&lt;nav className="bq-menu"&gt;
+  &lt;a className="bq-menu-item bq-activo"&gt;Inicio&lt;/a&gt;
+  &lt;a className="bq-menu-item"&gt;Simular&lt;/a&gt;
+&lt;/nav&gt;
+&lt;main className="bq-pagina"&gt;
+  &lt;div className="bq-titulo-pagina"&gt;&lt;div&gt;&lt;h1&gt;Simula tu préstamo&lt;/h1&gt;&lt;p&gt;Calcula tu cuota sin registrar ninguna solicitud.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div className="bq-tarjeta"&gt;...&lt;/div&gt;
+&lt;/main&gt;</pre>
+  </section>
+
+  <section class="g-seccion" id="ingreso">
+    <header><h2>Pantalla de ingreso</h2><p>Panel azul a la izquierda con el mensaje de la aplicación y formulario a la derecha. Es la misma para la Banca Web (cédula) y el Portal (usuario del analista).</p></header>
+    <div class="g-marco">
+      <div class="bq-ingreso" style="min-height: 460px">
+        <div class="bq-ingreso-panel">
+          <div class="bq-marca"><img class="bq-logo" src="../public/logo-bq.png" alt=""><span class="bq-marca-nombre">BanQuito</span></div>
+          <div><h1>Tu préstamo de consumo, claro y a tiempo.</h1><p style="margin-top: 8px">Simula, solicita y sigue tus pagos desde un solo lugar.</p></div>
+          <ul class="bq-ingreso-lista"><li>Simula tu cuota sin compromiso, en francés o alemán.</li><li>Respuesta inmediata sobre tu capacidad de pago.</li><li>Consulta tu tabla de amortización y cada pago aplicado.</li></ul>
+        </div>
+        <div class="bq-ingreso-formulario">
+          <form class="bq-formulario" onsubmit="return false">
+            <div><h2>Ingresa a tu Banca Web</h2><p class="bq-texto-2" style="margin-top: 6px">Escribe tu cédula para ver tus préstamos.</p></div>
+            <div class="bq-campo"><label class="bq-label" for="g-cedula">Cédula <span class="bq-obligatorio">*</span></label><input class="bq-input" id="g-cedula" value="1712345678"><span class="bq-ayuda">10 dígitos, sin guiones</span></div>
+            <div class="bq-acciones"><button class="bq-btn bq-btn-primario">Ingresar</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="g-seccion" id="botones">
+    <header><h2>Botones</h2><p>Todos en píldora. Un solo primario (amarillo) por pantalla, para la acción principal. El resto son secundarios (borde azul) o de texto. Peligro solo para acciones que no se deshacen, como rechazar una solicitud.</p></header>
+    <div class="g-muestra">
+      <div class="g-fila">
+        <button class="bq-btn bq-btn-primario">Solicitar este préstamo</button>
+        <button class="bq-btn bq-btn-secundario">Simular cuota</button>
+        <button class="bq-btn bq-btn-texto">Cancelar</button>
+        <button class="bq-btn bq-btn-peligro">Rechazar solicitud</button>
+      </div>
+      <div class="g-fila">
+        <button class="bq-btn bq-btn-primario bq-btn-sm">Aprobar</button>
+        <button class="bq-btn bq-btn-secundario bq-btn-sm">Revisar</button>
+        <button class="bq-btn bq-btn-texto bq-btn-sm">Salir</button>
+        <button class="bq-btn bq-btn-peligro bq-btn-sm">Rechazar</button>
+        <button class="bq-btn bq-btn-primario" disabled>Deshabilitado</button>
+      </div>
+    </div>
+    <pre class="g-codigo">&lt;button className="bq-btn bq-btn-primario"&gt;Solicitar este préstamo&lt;/button&gt;
+&lt;button className="bq-btn bq-btn-secundario bq-btn-sm"&gt;Revisar&lt;/button&gt;</pre>
+  </section>
+
+  <section class="g-seccion" id="formularios">
+    <header><h2>Formularios</h2><p>Etiqueta arriba en gris, campo relleno sin borde y la ayuda debajo. Los montos y números se alinean a la derecha. Para elegir entre dos o tres opciones se usa el selector segmentado.</p></header>
+    <div class="bq-fila">
+      <div class="bq-tarjeta" style="flex: 0 1 400px">
+        <div class="bq-titulo-tarjeta"><span class="bq-icono" style="width: 40px; height: 40px">$</span><h2>Datos del préstamo</h2></div>
+        <div class="bq-campo"><label class="bq-label" for="g-monto">Monto <span class="bq-obligatorio">*</span></label><input class="bq-input bq-monto" id="g-monto" value="10.000,00"><span class="bq-ayuda">Entre $ 500,00 y $ 30.000,00</span></div>
+        <div class="bq-campo bq-error"><label class="bq-label" for="g-plazo">Plazo en meses <span class="bq-obligatorio">*</span></label><input class="bq-input bq-num" id="g-plazo" value="72"><span class="bq-ayuda">El plazo debe estar entre 6 y 60 meses.</span></div>
+        <div class="bq-campo"><span class="bq-label">Sistema de amortización <span class="bq-obligatorio">*</span></span>
+          <div class="bq-segmentado" id="g-segmentado"><button type="button" class="bq-activo">Francés (cuota fija)</button><button type="button">Alemán (capital fijo)</button></div>
+        </div>
+        <div class="bq-acciones"><button class="bq-btn bq-btn-secundario">Simular cuota</button></div>
+      </div>
+      <div class="bq-tarjeta">
+        <span class="bq-etiqueta-seccion">Resultado de la simulación</span>
+        <div class="bq-cifras">
+          <div class="bq-cifra bq-cifra-destacada"><span>Cuota mensual</span><strong>$ 911,44</strong></div>
+          <div class="bq-cifra"><span>Monto neto a recibir</span><strong>$ 9.950,00</strong></div>
+          <div class="bq-cifra"><span>Total de intereses</span><strong>$ 865,23</strong></div>
+        </div>
+        <div class="bq-datos">
+          <div class="bq-dato"><span>TEA referencial</span><span>16,77 %</span></div>
+          <div class="bq-dato"><span>Seguro de desgravamen mensual</span><span>$ 6,00</span></div>
+          <div class="bq-dato"><span>Contribución SOLCA (se retiene al desembolsar)</span><span>$ 50,00</span></div>
+        </div>
+        <div class="bq-acciones"><button class="bq-btn bq-btn-primario">Solicitar este préstamo</button></div>
+      </div>
+    </div>
+    <div class="g-fila"><input class="bq-input bq-buscador" style="flex: 1" placeholder="Buscar por número de solicitud o cédula"><button class="bq-btn bq-btn-secundario">Buscar</button></div>
+    <pre class="g-codigo">&lt;div className="bq-campo"&gt;
+  &lt;label className="bq-label" htmlFor="monto"&gt;Monto &lt;span className="bq-obligatorio"&gt;*&lt;/span&gt;&lt;/label&gt;
+  &lt;input className="bq-input bq-monto" id="monto" inputMode="decimal" /&gt;
+  &lt;span className="bq-ayuda"&gt;Entre $ 500,00 y $ 30.000,00&lt;/span&gt;
+&lt;/div&gt;
+&lt;div className="bq-segmentado"&gt;
+  &lt;button type="button" aria-pressed={sistema === 'FRANCES'}&gt;Francés (cuota fija)&lt;/button&gt;
+  &lt;button type="button" aria-pressed={sistema === 'ALEMAN'}&gt;Alemán (capital fijo)&lt;/button&gt;
+&lt;/div&gt;</pre>
+  </section>
+
+  <section class="g-seccion" id="tablas">
+    <header><h2>Tablas</h2><p>La tabla va dentro de <code class="bq-mono">bq-tabla-contenedor</code>, que es la tarjeta blanca y permite desplazarla en celular. Números a la derecha con <code class="bq-mono">bq-num</code>. La fila de totales va en <code class="bq-mono">tfoot</code>.</p></header>
+    <div class="bq-tabla-contenedor">
+      <table class="bq-tabla">
+        <thead><tr><th class="bq-num">N.º</th><th>Vencimiento</th><th class="bq-num">Capital</th><th class="bq-num">Interés</th><th class="bq-num">Seguro</th><th class="bq-num">Cuota total</th><th class="bq-num">Saldo</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td class="bq-num">1</td><td>30/11/2026</td><td class="bq-num">775,41</td><td class="bq-num">130,03</td><td class="bq-num">6,00</td><td class="bq-num">911,44</td><td class="bq-num">9.224,59</td><td><span class="bq-estado bq-estado-exito">Pagada</span></td></tr>
+          <tr><td class="bq-num">2</td><td>31/12/2026</td><td class="bq-num">785,49</td><td class="bq-num">119,95</td><td class="bq-num">6,00</td><td class="bq-num">911,44</td><td class="bq-num">8.439,10</td><td><span class="bq-estado bq-estado-neutro">Pendiente</span></td></tr>
+          <tr><td class="bq-num">3</td><td>31/01/2027</td><td class="bq-num">795,70</td><td class="bq-num">109,74</td><td class="bq-num">6,00</td><td class="bq-num">911,44</td><td class="bq-num">7.643,40</td><td><span class="bq-estado bq-estado-neutro">Pendiente</span></td></tr>
+        </tbody>
+        <tfoot><tr><td></td><td>Total</td><td class="bq-num">10.000,00</td><td class="bq-num">865,23</td><td class="bq-num">72,00</td><td class="bq-num">10.937,23</td><td></td><td></td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="g-seccion" id="estados">
+    <header><h2>Estados y alertas</h2><p>Cada estado del modelo tiene un color fijo, igual en la Banca Web y en el Portal.</p></header>
+    <div class="g-muestra">
+      <div class="g-fila">
+        <span class="bq-estado bq-estado-info">Registrada</span>
+        <span class="bq-estado bq-estado-exito">Aprobada</span>
+        <span class="bq-estado bq-estado-peligro">Rechazada</span>
+        <span class="bq-estado bq-estado-info">Por vencer</span>
+        <span class="bq-estado bq-estado-aviso">Vencida</span>
+        <span class="bq-estado bq-estado-peligro">En litigio</span>
+        <span class="bq-estado bq-estado-peligro">Castigada</span>
+        <span class="bq-estado bq-estado-neutro">Cancelada</span>
+        <span class="bq-estado bq-estado-neutro">Pendiente</span>
+        <span class="bq-estado bq-estado-aviso">Pago parcial</span>
+        <span class="bq-estado bq-estado-exito">Pagada</span>
+      </div>
+    </div>
+    <pre class="g-codigo">export const claseEstado = {
+  REGISTRADA: 'bq-estado-info', APROBADA: 'bq-estado-exito', RECHAZADA: 'bq-estado-peligro',
+  POR_VENCER: 'bq-estado-info', VENCIDA: 'bq-estado-aviso', EN_LITIGIO: 'bq-estado-peligro',
+  CASTIGADA: 'bq-estado-peligro', CANCELADA: 'bq-estado-neutro',
+  PENDIENTE: 'bq-estado-neutro', PAGO_PARCIAL: 'bq-estado-aviso', PAGADA: 'bq-estado-exito',
+}</pre>
+    <div class="bq-rejilla">
+      <div class="bq-alerta bq-alerta-exito"><strong>Solicitud aprobada</strong><p>Se creó la operación y el cronograma de 12 cuotas.</p></div>
+      <div class="bq-alerta bq-alerta-info"><strong>¿Cómo se paga?</strong><p>El valor de la cuota se debita de tu cuenta de ahorros.</p></div>
+      <div class="bq-alerta bq-alerta-aviso"><strong>Cuota pagada con atraso</strong><p>Se cobró interés de mora de $ 3,33.</p></div>
+      <div class="bq-alerta bq-alerta-peligro"><strong>No se pudo desembolsar</strong><p>El Core de Pasivos no respondió. Intenta de nuevo.</p></div>
+    </div>
+  </section>
+
+  <section class="g-seccion" id="uso">
+    <header><h2>Cómo usarlo</h2><p>El CSS ya está importado en <code class="bq-mono">main.jsx</code> y la fuente DM Sans en <code class="bq-mono">index.html</code>, así que las clases funcionan en cualquier componente. El logo está en <code class="bq-mono">public/logo-bq.png</code>. No se escriben colores ni tamaños a mano: si hace falta un color en un CSS propio, se usa la variable.</p></header>
+    <pre class="g-codigo">import './styles/banquito.css'
+
+.mi-resumen { border-color: var(--bq-borde); color: var(--bq-primario); }</pre>
+  </section>
+</main>
+<script>
+  const colores = [
+    ['--bq-primario', 'Primario · marca'], ['--bq-primario-hover', 'Primario oscuro'], ['--bq-primario-suave', 'Primario suave'],
+    ['--bq-acento', 'Acento · sol'], ['--bq-fondo', 'Fondo'], ['--bq-superficie-2', 'Superficie 2'],
+    ['--bq-borde', 'Borde'], ['--bq-texto', 'Texto'], ['--bq-texto-2', 'Texto secundario'],
+    ['--bq-exito', 'Éxito'], ['--bq-aviso', 'Aviso'], ['--bq-peligro', 'Peligro'], ['--bq-info', 'Información'],
+  ]
+  const estilo = getComputedStyle(document.documentElement)
+  document.getElementById('paleta').innerHTML = colores.map(([variable, nombre]) => {
+    const valor = estilo.getPropertyValue(variable).trim()
+    return `<div class="g-color"><div style="background: var(${variable})"></div><p><strong>${nombre}</strong><span class="bq-mono">${variable}</span><span class="bq-mono bq-texto-2">${valor}</span></p></div>`
+  }).join('')
+  document.querySelectorAll('#g-segmentado button').forEach((boton, _, todos) => boton.addEventListener('click', () => {
+    todos.forEach((b) => b.classList.toggle('bq-activo', b === boton))
+  }))
+</script>
+</body>
+</html>
