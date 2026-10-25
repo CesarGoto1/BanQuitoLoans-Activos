@@ -2,7 +2,10 @@ package com.grupob.bancobanquito.origination.internal;
 
 import com.grupob.bancobanquito.origination.ApprovedLoanApplication;
 import com.grupob.bancobanquito.origination.LoanApplicationService;
+import com.grupob.bancobanquito.origination.PendingDisbursementApplication;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,5 +25,14 @@ class LoanApplicationServiceImpl implements LoanApplicationService {
                 .map(application -> new ApprovedLoanApplication(application.getId(), application.getCustomerId(),
                         application.getRequestedAmount(), application.getAssignedRate(), application.getTermMonths(),
                         application.getAmortizationMethod()));
+    }
+
+    @Override
+    public Page<PendingDisbursementApplication> findPendingDisbursement(Pageable pageable) {
+        return loanApplicationRepository.findWithoutLoan(LoanApplicationStatus.APPROVED, pageable)
+                .map(application -> new PendingDisbursementApplication(application.getId(),
+                        application.getCustomerId(), application.getRequestedAmount(), application.getAssignedRate(),
+                        application.getTermMonths(), application.getAmortizationMethod(),
+                        application.getResolutionDate()));
     }
 }

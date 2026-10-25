@@ -3,10 +3,14 @@ package com.grupob.bancobanquito.loans.internal;
 import com.grupob.bancobanquito.loans.DisbursementPreview;
 import com.grupob.bancobanquito.loans.DisbursementResult;
 import com.grupob.bancobanquito.loans.LoanService;
+import com.grupob.bancobanquito.loans.PendingDisbursement;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +29,13 @@ class DisbursementController {
 
     DisbursementController(LoanService loanService) {
         this.loanService = loanService;
+    }
+
+    @GetMapping("/pending-disbursements")
+    @Operation(summary = "Lists approved loan applications that have not been disbursed yet, oldest resolution first")
+    Page<PendingDisbursement> findPending(
+            @PageableDefault(size = 10, sort = "resolutionDate") Pageable pageable) {
+        return loanService.findPendingDisbursements(pageable);
     }
 
     @GetMapping("/disbursement-previews/{applicationId}")

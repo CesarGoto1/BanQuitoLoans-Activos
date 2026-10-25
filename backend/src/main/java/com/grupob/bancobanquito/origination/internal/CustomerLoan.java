@@ -15,6 +15,9 @@ class CustomerLoan {
     @Column(name = "idOperacion")
     private Integer id;
 
+    @Column(name = "idSolicitud")
+    private Integer applicationId;
+
     @Column(name = "idCliente")
     private Integer customerId;
 

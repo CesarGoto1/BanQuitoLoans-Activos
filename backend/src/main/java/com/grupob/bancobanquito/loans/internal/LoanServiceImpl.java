@@ -9,9 +9,11 @@ import com.grupob.bancobanquito.liabilities.LiabilitiesService;
 import com.grupob.bancobanquito.loans.DisbursementPreview;
 import com.grupob.bancobanquito.loans.DisbursementResult;
 import com.grupob.bancobanquito.loans.LoanService;
+import com.grupob.bancobanquito.loans.PendingDisbursement;
 import com.grupob.bancobanquito.loans.EstadoCartera;
 import com.grupob.bancobanquito.origination.ApprovedLoanApplication;
 import com.grupob.bancobanquito.origination.LoanApplicationService;
+import com.grupob.bancobanquito.origination.PendingDisbursementApplication;
 import com.grupob.bancobanquito.parameters.BusinessDateService;
 import com.grupob.bancobanquito.parameters.ParameterService;
 import java.math.BigDecimal;
@@ -22,6 +24,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,6 +142,21 @@ class LoanServiceImpl implements LoanService {
     @Transactional(readOnly = true)
     public Optional<DisbursementResult> findDisbursement(Integer applicationId) {
         return loanRepository.findByApplicationId(applicationId).map(this::result);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PendingDisbursement> findPendingDisbursements(Pageable pageable) {
+        return loanApplicationService.findPendingDisbursement(pageable).map(this::pendingDisbursement);
+    }
+
+    private PendingDisbursement pendingDisbursement(PendingDisbursementApplication application) {
+        Optional<Customer> customer = liabilitiesService.findCustomer(application.customerId());
+        return new PendingDisbursement(application.applicationId(), application.customerId(),
+                customer.map(Customer::nationalId).orElse(null),
+                customer.map(found -> found.firstNames() + " " + found.lastNames()).orElse(null),
+                application.approvedAmount(), application.effectiveAnnualRate(), application.termMonths(),
+                application.amortizationMethod(), application.resolutionDate());
     }
 
     private ApprovedLoanApplication pendingApplication(Integer applicationId) {

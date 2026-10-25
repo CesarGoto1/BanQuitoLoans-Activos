@@ -30,6 +30,29 @@ const samplePreview = {
   ],
 }
 
+export async function findPendingDisbursements(page) {
+  if (USE_SAMPLE_DATA) {
+    return {
+      content: [
+        {
+          applicationId: samplePreview.applicationId,
+          customerId: 1,
+          customerNationalId: samplePreview.customerNationalId,
+          customerName: samplePreview.customerName,
+          approvedAmount: samplePreview.approvedAmount,
+          effectiveAnnualRate: samplePreview.effectiveAnnualRate,
+          termMonths: samplePreview.termMonths,
+          amortizationMethod: samplePreview.amortizationMethod,
+          resolutionDate: '2026-10-30',
+        },
+      ],
+      page: { size: 10, number: 0, totalElements: 1, totalPages: 1 },
+    }
+  }
+  const response = await fetch(`${API}/pending-disbursements?page=${page}`, { headers })
+  return readResponse(response)
+}
+
 export async function getDisbursementPreview(applicationId) {
   if (USE_SAMPLE_DATA) {
     return { ...samplePreview, applicationId }
