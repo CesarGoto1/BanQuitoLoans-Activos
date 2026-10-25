@@ -10,24 +10,43 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+        "spring.datasource.url=jdbc:h2:mem:simulacion;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
+        "spring.datasource.username=sa", "spring.datasource.password=",
+        "spring.datasource.driver-class-name=org.h2.Driver", "spring.jpa.hibernate.ddl-auto=create-drop"
+})
 @Transactional
 class ParameterServiceTest {
 
     private static final LocalDate FIRST_DAY = LocalDate.of(2026, 10, 31);
 
-    @Autowired
-    ParameterService parameterService;
+    private final ParameterService parameterService;
+
+    private final BusinessDateService businessDateService;
+
+    private final ParameterRepository parameterRepository;
+
+    private final EntityManager entities;
 
     @Autowired
-    BusinessDateService businessDateService;
+    ParameterServiceTest(ParameterService parameterService, BusinessDateService businessDateService,
+            ParameterRepository parameterRepository, EntityManager entities) {
+        this.parameterService = parameterService;
+        this.businessDateService = businessDateService;
+        this.parameterRepository = parameterRepository;
+        this.entities = entities;
+    }
 
-    @Autowired
-    ParameterRepository parameterRepository;
+    @BeforeEach
+    void prepareIsolatedData() {
+        ParameterTestData.load(entities, parameterRepository);
+    }
 
     @Test
     void currentBusinessDateIsTheOpenDay() {
