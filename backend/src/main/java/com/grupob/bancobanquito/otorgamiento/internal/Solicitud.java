@@ -120,8 +120,6 @@ public class Solicitud {
         this.idSolicitud = idSolicitud;
     }
 
-    // Getters y Setters explícitos (sin Lombok)
-
     public Integer getIdSolicitud() {
         return idSolicitud;
     }

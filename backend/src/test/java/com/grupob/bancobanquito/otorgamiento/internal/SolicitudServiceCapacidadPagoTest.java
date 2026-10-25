@@ -2,7 +2,7 @@ package com.grupob.bancobanquito.otorgamiento.internal;
 
 import com.grupob.bancobanquito.otorgamiento.SolicitudBandejaResponse;
 import com.grupob.bancobanquito.otorgamiento.SolicitudDetalleResponse;
-import com.grupob.bancobanquito.parametrizacion.ParametroService;
+import com.grupob.bancobanquito.parameters.ParameterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,27 +27,24 @@ class SolicitudServiceCapacidadPagoTest {
     private SolicitudRepository solicitudRepository;
 
     @Mock
-    private ParametroService parametroService;
+    private ParameterService parameterService;
 
     private SolicitudServiceImpl solicitudService;
 
     @BeforeEach
     void setUp() {
-        this.solicitudService = new SolicitudServiceImpl(solicitudRepository, parametroService);
+        this.solicitudService = new SolicitudServiceImpl(solicitudRepository, parameterService);
     }
 
     @Test
     @DisplayName("Debe aprobar capacidad de pago cuando la cuota referencial representa <= 40% del remanente")
     void debeAprobarCapacidadDePagoDentroDelLimite() {
-        // Arrange: Ingresos 1500, Gastos 500 => Remanente 1000. Cuota referencial 300 => 30% <= 40%
         Solicitud solicitud = crearSolicitudBase(1, new BigDecimal("1500.00"), new BigDecimal("500.00"), new BigDecimal("300.00"));
         when(solicitudRepository.findById(1)).thenReturn(Optional.of(solicitud));
-        when(parametroService.valor("PAR-09")).thenReturn(new BigDecimal("0.4000"));
+        when(parameterService.getValue("PAR-09")).thenReturn(new BigDecimal("0.4000"));
 
-        // Act
         SolicitudDetalleResponse detalle = solicitudService.obtenerDetalleParaEvaluacion(1);
 
-        // Assert
         assertThat(detalle.ingresoRemanente()).isEqualByComparingTo(new BigDecimal("1000.00"));
         assertThat(detalle.cuotaEvaluacionReferencial()).isEqualByComparingTo(new BigDecimal("300.00"));
         assertThat(detalle.porcentajeImpactoCuota()).isEqualByComparingTo(new BigDecimal("30.00"));
@@ -61,15 +57,12 @@ class SolicitudServiceCapacidadPagoTest {
     @Test
     @DisplayName("Debe reprobar capacidad de pago cuando la cuota supera el 40% del remanente (RN-09)")
     void debeReprobarCapacidadDePagoCuandoSuperaCuarentaPorCiento() {
-        // Arrange: Ingresos 1200, Gastos 400 => Remanente 800. Cuota referencial 400 => 50% > 40%
         Solicitud solicitud = crearSolicitudBase(2, new BigDecimal("1200.00"), new BigDecimal("400.00"), new BigDecimal("400.00"));
         when(solicitudRepository.findById(2)).thenReturn(Optional.of(solicitud));
-        when(parametroService.valor("PAR-09")).thenReturn(new BigDecimal("0.4000"));
+        when(parameterService.getValue("PAR-09")).thenReturn(new BigDecimal("0.4000"));
 
-        // Act
         SolicitudDetalleResponse detalle = solicitudService.obtenerDetalleParaEvaluacion(2);
 
-        // Assert
         assertThat(detalle.ingresoRemanente()).isEqualByComparingTo(new BigDecimal("800.00"));
         assertThat(detalle.cuotaEvaluacionReferencial()).isEqualByComparingTo(new BigDecimal("400.00"));
         assertThat(detalle.porcentajeImpactoCuota()).isEqualByComparingTo(new BigDecimal("50.00"));
@@ -81,15 +74,12 @@ class SolicitudServiceCapacidadPagoTest {
     @Test
     @DisplayName("Debe reprobar capacidad de pago si el remanente mensual es cero o negativo (RN-10)")
     void debeReprobarCuandoRemanenteEsNegativo() {
-        // Arrange: Ingresos 800, Gastos 1000 => Remanente -200
         Solicitud solicitud = crearSolicitudBase(3, new BigDecimal("800.00"), new BigDecimal("1000.00"), new BigDecimal("150.00"));
         when(solicitudRepository.findById(3)).thenReturn(Optional.of(solicitud));
-        when(parametroService.valor("PAR-09")).thenReturn(new BigDecimal("0.4000"));
+        when(parameterService.getValue("PAR-09")).thenReturn(new BigDecimal("0.4000"));
 
-        // Act
         SolicitudDetalleResponse detalle = solicitudService.obtenerDetalleParaEvaluacion(3);
 
-        // Assert
         assertThat(detalle.ingresoRemanente()).isEqualByComparingTo(new BigDecimal("-200.00"));
         assertThat(detalle.capacidadPagoValida()).isFalse();
         assertThat(detalle.mensajeCapacidadPago()).contains("no dispone de remanente mensual positivo (RN-10)");
@@ -98,7 +88,6 @@ class SolicitudServiceCapacidadPagoTest {
     @Test
     @DisplayName("Debe listar bandeja de solicitudes ordenadas por antigüedad ascendente (RF-04)")
     void debeListarBandejaPorAntiguedad() {
-        // Arrange: Dos solicitudes con fechas distintas
         Solicitud sol1 = crearSolicitudBase(10, new BigDecimal("2000.00"), new BigDecimal("800.00"), new BigDecimal("250.00"));
         sol1.setFechaHoraRegistro(LocalDateTime.of(2026, 10, 20, 9, 0));
 
@@ -108,10 +97,8 @@ class SolicitudServiceCapacidadPagoTest {
         when(solicitudRepository.findByEstadoSolicitudOrderByFechaHoraRegistroAsc(EstadoSolicitud.REGISTRADA))
                 .thenReturn(List.of(sol1, sol2));
 
-        // Act
         List<SolicitudBandejaResponse> bandeja = solicitudService.listarBandejaAnalista("REGISTRADA");
 
-        // Assert
         assertThat(bandeja).hasSize(2);
         assertThat(bandeja.get(0).idSolicitud()).isEqualTo(10);
         assertThat(bandeja.get(1).idSolicitud()).isEqualTo(11);

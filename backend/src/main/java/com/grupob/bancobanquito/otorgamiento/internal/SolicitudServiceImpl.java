@@ -3,7 +3,7 @@ package com.grupob.bancobanquito.otorgamiento.internal;
 import com.grupob.bancobanquito.otorgamiento.SolicitudBandejaResponse;
 import com.grupob.bancobanquito.otorgamiento.SolicitudDetalleResponse;
 import com.grupob.bancobanquito.otorgamiento.SolicitudService;
-import com.grupob.bancobanquito.parametrizacion.ParametroService;
+import com.grupob.bancobanquito.parameters.ParameterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,12 +20,12 @@ public class SolicitudServiceImpl implements SolicitudService {
     private static final Logger log = LoggerFactory.getLogger(SolicitudServiceImpl.class);
 
     private final SolicitudRepository solicitudRepository;
-    private final ParametroService parametroService;
+    private final ParameterService parameterService;
 
     public SolicitudServiceImpl(SolicitudRepository solicitudRepository,
-                                ParametroService parametroService) {
+                                ParameterService parameterService) {
         this.solicitudRepository = solicitudRepository;
-        this.parametroService = parametroService;
+        this.parameterService = parameterService;
     }
 
     @Override
@@ -84,8 +84,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         BigDecimal remanente = ingresos.subtract(gastos).setScale(2, RoundingMode.HALF_UP);
         BigDecimal cuotaReferencial = s.getCuotaEvaluacionReferencial().setScale(2, RoundingMode.HALF_UP);
 
-        // Consultar parámetro PAR-09 (Cuota máxima sobre ingreso remanente, ej. 0.4000)
-        BigDecimal factorPar09 = this.parametroService.valor("PAR-09");
+        BigDecimal factorPar09 = this.parameterService.getValue("PAR-09");
         BigDecimal limiteImpactoMaximo = factorPar09.multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.HALF_UP);
 
         BigDecimal porcentajeImpacto;
@@ -93,14 +92,12 @@ public class SolicitudServiceImpl implements SolicitudService {
         boolean capacidadValida;
         String mensajeCapacidad;
 
-        // Regla RN-10: Si el remanente mensual es cero o negativo, no cumple la evaluación
         if (remanente.compareTo(BigDecimal.ZERO) <= 0) {
             porcentajeImpacto = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
             cuotaMaximaAdmisible = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
             capacidadValida = false;
             mensajeCapacidad = "El solicitante no dispone de remanente mensual positivo (RN-10).";
         } else {
-            // Regla RN-09: La cuota referencial no puede superar el límite del remanente (PAR-09 = 40%)
             cuotaMaximaAdmisible = remanente.multiply(factorPar09).setScale(2, RoundingMode.HALF_UP);
             porcentajeImpacto = cuotaReferencial
                     .divide(remanente, 4, RoundingMode.HALF_UP)

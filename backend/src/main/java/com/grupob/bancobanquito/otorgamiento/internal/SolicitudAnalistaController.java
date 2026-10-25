@@ -29,10 +29,6 @@ public class SolicitudAnalistaController {
         this.solicitudService = solicitudService;
     }
 
-    /**
-     * Bandeja de solicitudes de crédito para el analista, filtradas por estado
-     * (por defecto REGISTRADA) y ordenadas por antigüedad ascendente (RF-04).
-     */
     @GetMapping
     public ResponseEntity<List<SolicitudBandejaResponse>> listarBandeja(
             @RequestParam(name = "estado", defaultValue = "REGISTRADA") String estado,
@@ -47,9 +43,6 @@ public class SolicitudAnalistaController {
         return ResponseEntity.ok(bandeja);
     }
 
-    /**
-     * Detalle financiero y evaluación de capacidad de pago de una solicitud (RF-04).
-     */
     @GetMapping("/{idSolicitud}")
     public ResponseEntity<SolicitudDetalleResponse> obtenerDetalle(
             @PathVariable("idSolicitud") Integer idSolicitud,
@@ -73,9 +66,6 @@ public class SolicitudAnalistaController {
         }
     }
 
-    /**
-     * Enmascara el número de cédula para preservación de privacidad según QA-12 (ej. 17******89).
-     */
     private String enmascararIdentificacion(String id) {
         if (id == null) {
             return "******";

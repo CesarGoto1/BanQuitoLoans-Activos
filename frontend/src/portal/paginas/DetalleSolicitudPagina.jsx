@@ -84,7 +84,6 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
             </span>
           </div>
 
-          {/* Tarjeta 1: Condiciones del Crédito */}
           <div className="bq-tarjeta">
             <div className="bq-titulo-pagina">
               <div>
@@ -119,7 +118,6 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
             </div>
           </div>
 
-          {/* Tarjeta 2: Capacidad Financiera Declarada y Remanente */}
           <div className="bq-tarjeta">
             <span className="bq-etiqueta-seccion">Situación Financiera Declarada</span>
             <div className="bq-tabla-contenedor">
@@ -142,7 +140,6 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
             </div>
           </div>
 
-          {/* Tarjeta 3: Evaluación de Capacidad de Pago (RF-04, RN-09, RN-10) */}
           <div className="bq-tarjeta">
             <span className="bq-etiqueta-seccion">Análisis Regulatorio de Capacidad de Pago</span>
 
@@ -186,9 +183,6 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
             </div>
           </div>
 
-          {/* ========================================================================= */}
-          {/* CONTENEDOR INTEGRACIÓN P6 (Micha) - RF-05: Aprobación y Rechazo          */}
-          {/* ========================================================================= */}
           <div id="contenedor-resolucion-p6" className="bq-tarjeta">
             <div className="bq-titulo-pagina">
               <div>

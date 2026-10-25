@@ -49,7 +49,6 @@ application-local.properties
 *.iws
 *.ipr
 out/
-build/
 
 .apt_generated
 .classpath

@@ -6,7 +6,6 @@ const CABECERAS_ANALISTA = {
   'X-Identificacion': '1710000001'
 };
 
-// Dataset simulado para desarrollo frontend cuando el backend Spring Boot no está encendido
 const SOLICITUDES_MOCK = [
   {
     idSolicitud: 1,
@@ -124,9 +123,6 @@ const DETALLES_MOCK = {
   }
 };
 
-/**
- * Consulta la bandeja de solicitudes de crédito filtradas por estado (RF-04).
- */
 export async function obtenerBandejaSolicitudes(estado = 'REGISTRADA') {
   const url = `${BASE_URL}/api/analista/solicitudes?estado=${encodeURIComponent(estado)}`;
   try {
@@ -140,7 +136,6 @@ export async function obtenerBandejaSolicitudes(estado = 'REGISTRADA') {
     }
     return await respuesta.json();
   } catch (error) {
-    // Si el backend no está disponible en localhost:8080, usamos datos de prueba para desarrollo (estándar sección 4)
     if (error.name === 'TypeError' || error.message.includes('fetch')) {
       console.warn('Backend Spring Boot no detectado en ' + BASE_URL + '. Utilizando datos simulados para desarrollo.');
       return SOLICITUDES_MOCK.filter(s => !estado || s.estadoSolicitud === estado);
@@ -149,9 +144,6 @@ export async function obtenerBandejaSolicitudes(estado = 'REGISTRADA') {
   }
 }
 
-/**
- * Consulta el detalle financiero y cálculo de capacidad de pago de una solicitud (RF-04).
- */
 export async function obtenerDetalleSolicitud(idSolicitud) {
   const url = `${BASE_URL}/api/analista/solicitudes/${idSolicitud}`;
   try {
