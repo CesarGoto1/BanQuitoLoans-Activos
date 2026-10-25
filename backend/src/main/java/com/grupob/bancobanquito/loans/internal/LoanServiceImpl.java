@@ -9,7 +9,7 @@ import com.grupob.bancobanquito.liabilities.LiabilitiesService;
 import com.grupob.bancobanquito.loans.DisbursementPreview;
 import com.grupob.bancobanquito.loans.DisbursementResult;
 import com.grupob.bancobanquito.loans.LoanService;
-import com.grupob.bancobanquito.loans.PortfolioStatus;
+import com.grupob.bancobanquito.loans.EstadoCartera;
 import com.grupob.bancobanquito.origination.ApprovedLoanApplication;
 import com.grupob.bancobanquito.origination.LoanApplicationService;
 import com.grupob.bancobanquito.parameters.BusinessDateService;
@@ -103,7 +103,7 @@ class LoanServiceImpl implements LoanService {
         loan.setDestinationAccount(destinationAccount);
         loan.setDisbursementDate(disbursementDate);
         loan.setDisbursementInstructionStatus(DisbursementInstructionStatus.PENDING);
-        loan.setPortfolioStatus(PortfolioStatus.CURRENT);
+        loan.setPortfolioStatus(EstadoCartera.POR_VENCER);
         loan.setPrincipalBalance(approvedAmount);
         loan.setDaysPastDue(0);
         loan.setCreatedBy(AUDIT_USER);
