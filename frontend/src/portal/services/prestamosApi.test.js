@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { approveLoanApplication, rejectLoanApplication, obtenerBandejaSolicitudes,
-  obtenerDetalleSolicitud, setAnalystIdentification } from './prestamosApi.js';
-
+  obtenerDetalleSolicitud} from './prestamosApi.js';
+import { saveAnalystSession } from './analystSession.js';
 const originalFetch = globalThis.fetch;
 
 beforeEach(() => {
@@ -11,7 +11,7 @@ beforeEach(() => {
     getItem: (key) => values.get(key) || null,
     setItem: (key, value) => values.set(key, value),
   };
-  setAnalystIdentification('1799999901');
+  saveAnalystSession({ analystId: 1, nationalId: '1799999901', name: 'Analista de prueba' });
 });
 
 afterEach(() => {

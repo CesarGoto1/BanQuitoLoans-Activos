@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { approveLoanApplication, rejectLoanApplication, obtenerDetalleSolicitud } from '../servicios/prestamosApi.js';
+import { approveLoanApplication, rejectLoanApplication, obtenerDetalleSolicitud } from '../services/prestamosApi.js';
 
 export default function LoanDecisionPanel({ application, onResolved }) {
   const [annualEffectiveRate, setAnnualEffectiveRate] = useState('');

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { obtenerBandejaSolicitudes } from '../servicios/prestamosApi.js';
+import { obtenerBandejaSolicitudes } from '../services/prestamosApi.js';
 
 export default function BandejaPagina({ onSeleccionarSolicitud }) {
   const [solicitudes, setSolicitudes] = useState([]);

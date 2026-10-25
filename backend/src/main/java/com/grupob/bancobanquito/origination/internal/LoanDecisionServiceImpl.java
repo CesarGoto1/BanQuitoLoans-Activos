@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.grupob.bancobanquito.access.AnalystService;
+import com.grupob.bancobanquito.access.AnalystSession;
 
 @Service
 @Transactional
@@ -23,17 +25,17 @@ class LoanDecisionServiceImpl implements LoanDecisionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoanDecisionServiceImpl.class);
     private final SolicitudRepository applicationRepository;
-    private final AnalystRepository analystRepository;
+    private final AnalystService analystService;
     private final LoanApprovalPolicy approvalPolicy;
     private final ParameterService parameterService;
     private final BusinessDateService businessDateService;
     private final AmortizacionService amortizationService;
 
-    LoanDecisionServiceImpl(SolicitudRepository applicationRepository, AnalystRepository analystRepository,
+    LoanDecisionServiceImpl(SolicitudRepository applicationRepository, AnalystService analystService,
             LoanApprovalPolicy approvalPolicy, ParameterService parameterService,
             BusinessDateService businessDateService, AmortizacionService amortizationService) {
         this.applicationRepository = applicationRepository;
-        this.analystRepository = analystRepository;
+        this.analystService = analystService;
         this.approvalPolicy = approvalPolicy;
         this.parameterService = parameterService;
         this.businessDateService = businessDateService;
@@ -81,7 +83,7 @@ class LoanDecisionServiceImpl implements LoanDecisionService {
         if (identification == null || !identification.matches("[0-9]{10}")) {
             throw new CabeceraFaltanteException("La identificación del analista debe contener 10 dígitos.");
         }
-        return analystRepository.findByIdentification(identification).map(Analyst::getId)
+        return analystService.findByNationalId(identification).map(AnalystSession::analystId)
                 .orElseThrow(() -> new AccesoDenegadoAnalistaException("El analista no está registrado en el sistema."));
     }
 

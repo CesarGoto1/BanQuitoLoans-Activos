@@ -1,15 +1,11 @@
+import { getAnalystSession } from './analystSession.js';
 const environment = import.meta.env || {};
 const API_ROOT = environment.VITE_API_PRESTAMOS
   ? `${environment.VITE_API_PRESTAMOS.replace(/\/$/, '')}/api`
   : (environment.VITE_API || '/api').replace(/\/$/, '');
-const SESSION_KEY = 'banquito.analystIdentification';
 
-export function getAnalystIdentification() {
-  return sessionStorage.getItem(SESSION_KEY) || '';
-}
-
-export function setAnalystIdentification(identification) {
-  sessionStorage.setItem(SESSION_KEY, identification.trim());
+function getAnalystIdentification() {
+  return getAnalystSession()?.nationalId ?? '';
 }
 
 async function request(path, { method = 'GET', body } = {}) {

@@ -11,6 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 class AnalystServiceImpl implements AnalystService {
 
+    @Override
+    public Optional<AnalystSession> findByNationalId(String nationalId) {
+        return analystRepository.findByNationalId(nationalId).map(this::session);
+    }
+
     private final AnalystRepository analystRepository;
 
     AnalystServiceImpl(AnalystRepository analystRepository) {

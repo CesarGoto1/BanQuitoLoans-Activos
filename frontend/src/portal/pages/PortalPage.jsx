@@ -2,9 +2,11 @@ import { useState } from 'react'
 import DisbursementStartPage from './DisbursementStartPage.jsx'
 import ConsultaOperacionPagina from './ConsultaOperacionPagina.jsx'
 import LoginPage from './LoginPage.jsx'
+import SolicitudesPagina from './SolicitudesPagina.jsx'
 import { clearAnalystSession, getAnalystSession } from '../services/analystSession.js'
 
 const SECTIONS = [
+  { id: 'applications', label: 'Solicitudes', page: SolicitudesPagina },
   { id: 'disbursement', label: 'Desembolsar', page: DisbursementStartPage },
   { id: 'inquiry', label: 'Consultar operaciones', page: ConsultaOperacionPagina },]
 

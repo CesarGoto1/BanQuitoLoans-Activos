@@ -17,11 +17,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import com.grupob.bancobanquito.access.AnalystService;
+import com.grupob.bancobanquito.access.AnalystSession;
 
 class LoanDecisionServiceTest {
 
     private final SolicitudRepository applications = mock(SolicitudRepository.class);
-    private final AnalystRepository analysts = mock(AnalystRepository.class);
+    private final AnalystService analysts = mock(AnalystService.class);
     private final ParameterService parameters = mock(ParameterService.class);
     private final BusinessDateService dates = mock(BusinessDateService.class);
     private final AmortizacionService amortization = mock(AmortizacionService.class);
@@ -32,9 +34,8 @@ class LoanDecisionServiceTest {
 
     @BeforeEach
     void setUp() {
-        Analyst analyst = mock(Analyst.class);
-        when(analyst.getId()).thenReturn(42);
-        when(analysts.findByIdentification("1710000001")).thenReturn(Optional.of(analyst));
+        when(analysts.findByNationalId("1710000001"))
+                .thenReturn(Optional.of(new AnalystSession(42, "1710000001", "Analista de pruebas")));
         application = new Solicitud(7);
         application.setEstadoSolicitud(EstadoSolicitud.REGISTRADA);
         application.setMontoSolicitado(new BigDecimal("10000.00"));

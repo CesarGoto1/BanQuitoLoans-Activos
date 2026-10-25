@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { obtenerDetalleSolicitud } from '../servicios/prestamosApi.js';
+import { obtenerDetalleSolicitud } from '../services/prestamosApi.js';
 import LoanDecisionPanel from '../components/LoanDecisionPanel.jsx';
 
 export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
