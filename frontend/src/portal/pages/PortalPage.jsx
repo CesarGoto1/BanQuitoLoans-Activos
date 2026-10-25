@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import DisbursementStartPage from './DisbursementStartPage.jsx'
-import LoanInquiryPage from './LoanInquiryPage.jsx'
+import ConsultaOperacionPagina from './ConsultaOperacionPagina.jsx'
 import LoginPage from './LoginPage.jsx'
 import { clearAnalystSession, getAnalystSession } from '../services/analystSession.js'
 
 const SECTIONS = [
   { id: 'disbursement', label: 'Desembolsar', page: DisbursementStartPage },
-  { id: 'inquiry', label: 'Consultar operaciones', page: LoanInquiryPage },
-]
+  { id: 'inquiry', label: 'Consultar operaciones', page: ConsultaOperacionPagina },]
 
 export default function PortalPage() {
   const [analyst, setAnalyst] = useState(getAnalystSession)
