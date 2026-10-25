@@ -33,6 +33,11 @@ class SimulatedLiabilitiesService implements LiabilitiesService {
     }
 
     @Override
+    public Optional<Customer> findCustomerByNationalId(String nationalId) {
+        return CUSTOMERS.values().stream().filter(customer -> customer.nationalId().equals(nationalId)).findFirst();
+    }
+
+    @Override
     public List<Account> findActiveAccounts(Integer customerId) {
         return ACCOUNTS.getOrDefault(customerId, List.of());
     }

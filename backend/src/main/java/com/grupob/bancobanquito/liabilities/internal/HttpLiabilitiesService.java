@@ -59,6 +59,26 @@ class HttpLiabilitiesService implements LiabilitiesService {
     }
 
     @Override
+    public Optional<Customer> findCustomerByNationalId(String nationalId) {
+        try {
+            LiabilitiesCustomer customer = restClient.get()
+                    .uri("/api/customers/{nationalId}", nationalId)
+                    .retrieve()
+                    .body(LiabilitiesCustomer.class);
+            return Optional.ofNullable(customer)
+                    .map(found -> new Customer(found.customerId(), found.identificationNumber(),
+                            found.firstNames(), found.lastNames()));
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            }
+            throw new LiabilitiesUnavailableException(e);
+        } catch (RestClientException e) {
+            throw new LiabilitiesUnavailableException(e);
+        }
+    }
+
+    @Override
     public List<Account> findActiveAccounts(Integer customerId) {
         Optional<Customer> customer = findCustomer(customerId);
         if (customer.isEmpty()) {

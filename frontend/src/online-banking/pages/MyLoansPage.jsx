@@ -33,7 +33,7 @@ export default function MyLoansPage({ customer }) {
   useEffect(() => {
     let current = true
     setError('')
-    findCustomerLoans(customer.nationalId, page)
+    findCustomerLoans(page)
       .then((data) => current && setLoans(data))
       .catch((e) => current && setError(e.message))
     return () => {

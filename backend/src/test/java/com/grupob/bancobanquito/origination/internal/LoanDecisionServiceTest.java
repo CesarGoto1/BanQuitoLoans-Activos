@@ -22,30 +22,30 @@ import com.grupob.bancobanquito.access.AnalystSession;
 
 class LoanDecisionServiceTest {
 
-    private final SolicitudRepository applications = mock(SolicitudRepository.class);
+    private final LoanApplicationRepository applications = mock(LoanApplicationRepository.class);
     private final AnalystService analysts = mock(AnalystService.class);
     private final ParameterService parameters = mock(ParameterService.class);
     private final BusinessDateService dates = mock(BusinessDateService.class);
-    private final AmortizacionService amortization = mock(AmortizacionService.class);
+    private final AmortizationService amortization = mock(AmortizationService.class);
     private final LocalDate businessDate = LocalDate.of(2026, 10, 31);
     private final LoanDecisionServiceImpl service = new LoanDecisionServiceImpl(applications, analysts,
             new LoanApprovalPolicy(), parameters, dates, amortization);
-    private Solicitud application;
+    private LoanApplication application;
 
     @BeforeEach
     void setUp() {
         when(analysts.findByNationalId("1710000001"))
                 .thenReturn(Optional.of(new AnalystSession(42, "1710000001", "Analista de pruebas")));
-        application = new Solicitud(7);
-        application.setEstadoSolicitud(EstadoSolicitud.REGISTRADA);
-        application.setMontoSolicitado(new BigDecimal("10000.00"));
-        application.setPlazoMeses(12);
-        application.setSistemaAmortizacion("FRANCES");
-        application.setIngresosMensuales(new BigDecimal("3500.00"));
-        application.setGastosMensuales(new BigDecimal("1200.00"));
-        application.setCuotaEvaluacionReferencial(new BigDecimal("100.00"));
-        application.setFechaCreacion(LocalDateTime.of(2026, 1, 1, 0, 0));
-        application.setUsuarioCreacion("customer");
+        application = new LoanApplication(7);
+        application.setStatus(LoanApplicationStatus.REGISTERED);
+        application.setRequestedAmount(new BigDecimal("10000.00"));
+        application.setTermMonths(12);
+        application.setAmortizationMethod(AmortizationMethod.FRENCH);
+        application.setMonthlyIncome(new BigDecimal("3500.00"));
+        application.setMonthlyExpenses(new BigDecimal("1200.00"));
+        application.setReferenceInstallment(new BigDecimal("100.00"));
+        application.setCreatedAt(LocalDateTime.of(2026, 1, 1, 0, 0));
+        application.setCreatedBy("customer");
         when(applications.findForDecision(7)).thenReturn(Optional.of(application));
         when(dates.getCurrentBusinessDate()).thenReturn(businessDate);
         when(parameters.getValue("PAR-05", businessDate)).thenReturn(new BigDecimal("0.1677"));
@@ -54,10 +54,10 @@ class LoanDecisionServiceTest {
     }
 
     private void schedule(String amount) {
-        var installment = new CuotaAmortizacion(1, businessDate.plusMonths(1), new BigDecimal("775.41"),
-                new BigDecimal("130.03"), new BigDecimal("6.00"), new BigDecimal(amount), new BigDecimal("9224.59"));
-        when(amortization.generarTabla(any())).thenReturn(new TablaAmortizacion(BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, List.of(installment)));
+        var installment = new CalculatedInstallment(1, businessDate.plusMonths(1),
+                new BigDecimal(amount).subtract(new BigDecimal("136.03")), new BigDecimal("130.03"),
+                new BigDecimal("9224.59"));
+        when(amortization.calculate(any(), any(), any(), any(), any())).thenReturn(List.of(installment));
     }
 
     @Test
@@ -69,11 +69,11 @@ class LoanDecisionServiceTest {
         assertThat(result.annualEffectiveRate()).isEqualByComparingTo("0.1677");
         assertThat(result.resolutionDate()).isEqualTo(businessDate);
         assertThat(result.analystId()).isEqualTo(42);
-        assertThat(application.getUsuarioModificacion()).isEqualTo("1710000001");
-        assertThat(application.getFechaModificacion()).isAfter(application.getFechaCreacion());
-        assertThat(application.getUsuarioCreacion()).isEqualTo("customer");
-        verify(amortization).generarTabla(new CondicionesAmortizacion(new BigDecimal("10000.00"), 12,
-                new BigDecimal("0.1677"), new BigDecimal("6.00"), businessDate, SistemaAmortizacion.FRANCES));
+        assertThat(application.getLastModifiedBy()).isEqualTo("1710000001");
+        assertThat(application.getLastModifiedAt()).isAfter(application.getCreatedAt());
+        assertThat(application.getCreatedBy()).isEqualTo("customer");
+        verify(amortization).calculate(new BigDecimal("10000.00"), new BigDecimal("0.1677"), 12,
+                AmortizationMethod.FRENCH, businessDate);
         verify(applications).saveAndFlush(application);
         verify(dates, times(1)).getCurrentBusinessDate();
     }
@@ -105,14 +105,14 @@ class LoanDecisionServiceTest {
         schedule("969.36");
         assertThatThrownBy(() -> service.approveApplication(7, "1710000001", new BigDecimal("0.1677")))
                 .isInstanceOf(LoanDecisionRuleException.class);
-        assertThat(application.getEstadoSolicitud()).isEqualTo(EstadoSolicitud.REGISTRADA);
+        assertThat(application.getStatus()).isEqualTo(LoanApplicationStatus.REGISTERED);
         verify(applications, never()).saveAndFlush(any());
     }
 
     @ParameterizedTest
-    @EnumSource(value = EstadoSolicitud.class, names = {"APROBADA", "RECHAZADA"})
-    void refusesBothDecisionsForResolvedApplications(EstadoSolicitud status) {
-        application.setEstadoSolicitud(status);
+    @EnumSource(value = LoanApplicationStatus.class, names = {"APPROVED", "REJECTED"})
+    void refusesBothDecisionsForResolvedApplications(LoanApplicationStatus status) {
+        application.setStatus(status);
         assertThatThrownBy(() -> service.approveApplication(7, "1710000001", new BigDecimal("0.16")))
                 .isInstanceOf(LoanDecisionRuleException.class);
         assertThatThrownBy(() -> service.rejectApplication(7, "1710000001", "Motivo válido"))

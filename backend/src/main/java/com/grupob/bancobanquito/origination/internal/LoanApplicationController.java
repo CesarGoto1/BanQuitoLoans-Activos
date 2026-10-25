@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -30,17 +31,20 @@ class LoanApplicationController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Registers a customer's loan application and evaluates the payment capacity with the reference rate")
-    LoanApplicationResponse register(@Valid @RequestBody LoanApplicationRequest request) {
-        return LoanApplicationResponse.from(customerApplicationService.register(request));
+    LoanApplicationResponse register(@RequestHeader("X-Identificacion") String nationalId,
+                                     @Valid @RequestBody LoanApplicationRequest request) {
+        return LoanApplicationResponse.from(customerApplicationService.register(
+                customerApplicationService.customerIdOf(nationalId), request));
     }
 
     @GetMapping
     @Operation(summary = "Loan applications of one customer, optionally filtered by status, one page at a time")
     Page<LoanApplicationResponse> findByCustomer(
-            @RequestParam Integer customerId,
+            @RequestHeader("X-Identificacion") String nationalId,
             @RequestParam(required = false) LoanApplicationStatus status,
             @PageableDefault(size = 10, sort = "registeredAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return customerApplicationService.findByCustomer(customerId, status, pageable)
+        return customerApplicationService.findByCustomer(customerApplicationService.customerIdOf(nationalId), status,
+                        pageable)
                 .map(LoanApplicationResponse::from);
     }
 }

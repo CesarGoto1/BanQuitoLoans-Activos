@@ -1,6 +1,16 @@
+import { getCustomerSession } from './customerSession.js'
+
 const API = import.meta.env.VITE_API ?? '/api'
 
 const headers = { 'Content-Type': 'application/json' }
+
+function customerHeaders() {
+  return {
+    ...headers,
+    'X-Rol': 'CLIENTE',
+    'X-Identificacion': getCustomerSession()?.nationalId ?? '',
+  }
+}
 
 async function readResponse(response) {
   const body = await response.json().catch(() => null)
@@ -13,18 +23,18 @@ async function readResponse(response) {
 export async function registerApplication(application) {
   const response = await fetch(`${API}/loan-applications`, {
     method: 'POST',
-    headers,
+    headers: customerHeaders(),
     body: JSON.stringify(application),
   })
   return readResponse(response)
 }
 
-export async function findApplications(customerId, status, page) {
-  const params = new URLSearchParams({ customerId, page })
+export async function findApplications(status, page) {
+  const params = new URLSearchParams({ page })
   if (status) {
     params.set('status', status)
   }
-  const response = await fetch(`${API}/loan-applications?${params}`, { headers })
+  const response = await fetch(`${API}/loan-applications?${params}`, { headers: customerHeaders() })
   return readResponse(response)
 }
 

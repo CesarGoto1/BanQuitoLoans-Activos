@@ -51,17 +51,17 @@ class CustomerApplicationService {
     }
 
     @Transactional
-    LoanApplication register(LoanApplicationRequest request) {
+    LoanApplication register(Integer customerId, LoanApplicationRequest request) {
         LocalDate businessDate = businessDateService.getCurrentBusinessDate();
         validateRanges(request.amount(), request.termMonths(), businessDate);
-        if (liabilitiesService.findCustomer(request.customerId()).isEmpty()) {
-            throw new OriginationException(HttpStatus.NOT_FOUND, "No existe el cliente " + request.customerId() + ".");
+        if (liabilitiesService.findCustomer(customerId).isEmpty()) {
+            throw new OriginationException(HttpStatus.NOT_FOUND, "No existe el cliente " + customerId + ".");
         }
-        if (customerLoanRepository.existsByCustomerIdAndDaysPastDueGreaterThan(request.customerId(), 0)) {
+        if (customerLoanRepository.existsByCustomerIdAndDaysPastDueGreaterThan(customerId, 0)) {
             throw new OriginationException(HttpStatus.UNPROCESSABLE_CONTENT,
                     "Tienes una operación con días de mora, por eso no puedes registrar una nueva solicitud.");
         }
-        if (loanApplicationRepository.existsByCustomerIdAndStatus(request.customerId(), LoanApplicationStatus.REGISTERED)) {
+        if (loanApplicationRepository.existsByCustomerIdAndStatus(customerId, LoanApplicationStatus.REGISTERED)) {
             throw new OriginationException(HttpStatus.UNPROCESSABLE_CONTENT,
                     "Ya tienes una solicitud pendiente de revisión.");
         }
@@ -72,7 +72,7 @@ class CustomerApplicationService {
         BigDecimal limit = parameterService.getValue(INSTALLMENT_LIMIT, businessDate);
 
         LoanApplication application = new LoanApplication();
-        application.setCustomerId(request.customerId());
+        application.setCustomerId(customerId);
         application.setAmortizationMethod(request.amortizationMethod());
         application.setRequestedAmount(request.amount());
         application.setTermMonths(request.termMonths());
@@ -98,6 +98,13 @@ class CustomerApplicationService {
             }
         }
         return loanApplicationRepository.save(application);
+    }
+
+    Integer customerIdOf(String nationalId) {
+        return liabilitiesService.findCustomerByNationalId(nationalId)
+                .map(customer -> customer.customerId())
+                .orElseThrow(() -> new OriginationException(HttpStatus.NOT_FOUND,
+                        "No existe un cliente con la cédula " + nationalId + "."));
     }
 
     @Transactional(readOnly = true)

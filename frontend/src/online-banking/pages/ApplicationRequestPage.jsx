@@ -57,7 +57,6 @@ export default function ApplicationRequestPage({ customer, simulatedLoan }) {
     try {
       setResult(
         await registerApplication({
-          customerId: customer.customerId,
           amount: Number(form.amount),
           termMonths: Number(form.termMonths),
           amortizationMethod: form.amortizationMethod,

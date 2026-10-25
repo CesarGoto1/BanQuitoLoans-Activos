@@ -1,8 +1,16 @@
+import { getAnalystSession } from './analystSession.js'
+
 const USE_SAMPLE_DATA = false
 
 const API = import.meta.env.VITE_API ?? '/api'
 
-const headers = { 'Content-Type': 'application/json' }
+function headers() {
+  return {
+    'Content-Type': 'application/json',
+    'X-Rol': 'ANALISTA',
+    'X-Identificacion': getAnalystSession()?.nationalId ?? '',
+  }
+}
 
 async function readResponse(response) {
   const body = await response.json().catch(() => null)
@@ -49,7 +57,7 @@ export async function findPendingDisbursements(page) {
       page: { size: 10, number: 0, totalElements: 1, totalPages: 1 },
     }
   }
-  const response = await fetch(`${API}/pending-disbursements?page=${page}`, { headers })
+  const response = await fetch(`${API}/pending-disbursements?page=${page}`, { headers: headers() })
   return readResponse(response)
 }
 
@@ -57,7 +65,7 @@ export async function getDisbursementPreview(applicationId) {
   if (USE_SAMPLE_DATA) {
     return { ...samplePreview, applicationId }
   }
-  const response = await fetch(`${API}/disbursement-previews/${applicationId}`, { headers })
+  const response = await fetch(`${API}/disbursement-previews/${applicationId}`, { headers: headers() })
   return readResponse(response)
 }
 
@@ -73,7 +81,7 @@ export async function disburse(applicationId, destinationAccount) {
   }
   const response = await fetch(`${API}/disbursements`, {
     method: 'POST',
-    headers,
+    headers: headers(),
     body: JSON.stringify({ applicationId, destinationAccount }),
   })
   return readResponse(response)

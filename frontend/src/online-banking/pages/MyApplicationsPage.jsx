@@ -33,7 +33,7 @@ export default function MyApplicationsPage({ customer }) {
   useEffect(() => {
     let current = true
     setError('')
-    findApplications(customer.customerId, status, page)
+    findApplications(status, page)
       .then((data) => current && setApplications(data))
       .catch((e) => current && setError(e.message))
     return () => {

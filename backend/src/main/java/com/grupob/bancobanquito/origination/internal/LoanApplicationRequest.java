@@ -8,8 +8,6 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 record LoanApplicationRequest(
-        @NotNull(message = "El cliente es obligatorio.")
-        Integer customerId,
         @NotNull(message = "Ingresa el monto que necesitas.")
         @Positive(message = "El monto debe ser mayor a cero.")
         @Digits(integer = 8, fraction = 2, message = "El monto admite hasta 2 decimales.")

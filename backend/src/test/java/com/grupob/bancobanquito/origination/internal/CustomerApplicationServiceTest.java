@@ -28,7 +28,7 @@ class CustomerApplicationServiceTest {
 
     @Test
     void registersAnApplicationThatPassesTheEvaluation() {
-        LoanApplication application = customerApplicationService.register(request(1, "10000.00", 12, AmortizationMethod.FRENCH));
+        LoanApplication application = customerApplicationService.register(1, request("10000.00", 12, AmortizationMethod.FRENCH));
 
         assertThat(application.getStatus()).isEqualTo(LoanApplicationStatus.REGISTERED);
         assertThat(application.getReferenceInstallment()).isLessThan(new BigDecimal("920.00"));
@@ -38,7 +38,7 @@ class CustomerApplicationServiceTest {
 
     @Test
     void rejectsAGermanApplicationWhoseFirstInstallmentExceedsTheLimit() {
-        LoanApplication application = customerApplicationService.register(request(1, "10000.00", 12, AmortizationMethod.GERMAN));
+        LoanApplication application = customerApplicationService.register(1, request("10000.00", 12, AmortizationMethod.GERMAN));
 
         assertThat(application.getStatus()).isEqualTo(LoanApplicationStatus.REJECTED);
         assertThat(application.getReferenceInstallment()).isGreaterThan(new BigDecimal("920.00"));
@@ -48,7 +48,7 @@ class CustomerApplicationServiceTest {
 
     @Test
     void doesNotRegisterAnAmountOutOfRange() {
-        assertThatThrownBy(() -> customerApplicationService.register(request(1, "40000.00", 12, AmortizationMethod.FRENCH)))
+        assertThatThrownBy(() -> customerApplicationService.register(1, request("40000.00", 12, AmortizationMethod.FRENCH)))
                 .isInstanceOf(OriginationException.class)
                 .hasMessageContaining("30.000,00")
                 .extracting(e -> ((OriginationException) e).getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
@@ -56,9 +56,9 @@ class CustomerApplicationServiceTest {
 
     @Test
     void doesNotRegisterASecondPendingApplication() {
-        customerApplicationService.register(request(2, "5000.00", 24, AmortizationMethod.FRENCH));
+        customerApplicationService.register(2, request("5000.00", 24, AmortizationMethod.FRENCH));
 
-        assertThatThrownBy(() -> customerApplicationService.register(request(2, "3000.00", 12, AmortizationMethod.FRENCH)))
+        assertThatThrownBy(() -> customerApplicationService.register(2, request("3000.00", 12, AmortizationMethod.FRENCH)))
                 .isInstanceOf(OriginationException.class)
                 .hasMessageContaining("pendiente");
     }
@@ -73,21 +73,21 @@ class CustomerApplicationServiceTest {
                 '2200000003', DATE '2026-10-31', 'ENTREGADA', 'VENCIDA', 30000.00, 5, 'pruebas');
             """)
     void doesNotRegisterWhenTheCustomerHasDaysPastDue() {
-        assertThatThrownBy(() -> customerApplicationService.register(request(3, "1000.00", 12, AmortizationMethod.FRENCH)))
+        assertThatThrownBy(() -> customerApplicationService.register(3, request("1000.00", 12, AmortizationMethod.FRENCH)))
                 .isInstanceOf(OriginationException.class)
                 .hasMessageContaining("mora");
     }
 
     @Test
     void doesNotRegisterForAnUnknownCustomer() {
-        assertThatThrownBy(() -> customerApplicationService.register(request(77, "1000.00", 12, AmortizationMethod.FRENCH)))
+        assertThatThrownBy(() -> customerApplicationService.register(77, request("1000.00", 12, AmortizationMethod.FRENCH)))
                 .isInstanceOf(OriginationException.class)
                 .extracting(e -> ((OriginationException) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void listsOnlyTheApplicationsOfTheCustomer() {
-        customerApplicationService.register(request(1, "10000.00", 12, AmortizationMethod.FRENCH));
+        customerApplicationService.register(1, request("10000.00", 12, AmortizationMethod.FRENCH));
 
         assertThat(customerApplicationService.findByCustomer(1, null, PageRequest.of(0, 10)))
                 .allMatch(application -> application.getCustomerId().equals(1))
@@ -98,7 +98,7 @@ class CustomerApplicationServiceTest {
 
     @Test
     void findsOnlyApprovedApplicationsForTheDisbursement() {
-        LoanApplication registered = customerApplicationService.register(request(1, "10000.00", 12, AmortizationMethod.FRENCH));
+        LoanApplication registered = customerApplicationService.register(1, request("10000.00", 12, AmortizationMethod.FRENCH));
 
         assertThat(loanApplicationService.findApproved(9001)).isPresent();
         assertThat(loanApplicationService.findApproved(registered.getId())).isEmpty();
@@ -139,8 +139,8 @@ class CustomerApplicationServiceTest {
         assertThat(limits.maxTermMonths()).isEqualTo(60);
     }
 
-    private LoanApplicationRequest request(Integer customerId, String amount, Integer termMonths, AmortizationMethod method) {
-        return new LoanApplicationRequest(customerId, new BigDecimal(amount), termMonths, method, CreditPurpose.HEALTH,
+    private LoanApplicationRequest request(String amount, Integer termMonths, AmortizationMethod method) {
+        return new LoanApplicationRequest(new BigDecimal(amount), termMonths, method, CreditPurpose.HEALTH,
                 new BigDecimal("3500.00"), new BigDecimal("1200.00"));
     }
 }
