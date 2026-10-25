@@ -2,11 +2,13 @@ import { useState } from 'react'
 import ApplicationRequestPage from './ApplicationRequestPage.jsx'
 import MyApplicationsPage from './MyApplicationsPage.jsx'
 import MyLoansPage from './MyLoansPage.jsx'
+import SimulationPage from './SimulationPage.jsx'
 import { clearCustomerSession, receiveCustomerFromUrl } from '../services/customerSession.js'
 
 const ONLINE_BANKING_URL = import.meta.env.VITE_URL_PASIVOS ?? 'http://localhost:5174'
 
 const SECTIONS = [
+  { id: 'simulation', label: 'Simular crédito', page: SimulationPage },
   { id: 'request', label: 'Solicitar crédito', page: ApplicationRequestPage },
   { id: 'applications', label: 'Mis solicitudes', page: MyApplicationsPage },
   { id: 'loans', label: 'Mis operaciones', page: MyLoansPage },
@@ -15,6 +17,17 @@ const SECTIONS = [
 export default function LoanManagementPage() {
   const [customer] = useState(receiveCustomerFromUrl)
   const [sectionId, setSectionId] = useState(SECTIONS[0].id)
+  const [simulatedLoan, setSimulatedLoan] = useState(null)
+
+  function openSection(id) {
+    setSimulatedLoan(null)
+    setSectionId(id)
+  }
+
+  function requestSimulatedLoan(loan) {
+    setSimulatedLoan(loan)
+    setSectionId('request')
+  }
 
   function backToAccount() {
     clearCustomerSession()
@@ -63,13 +76,18 @@ export default function LoanManagementPage() {
             type="button"
             className="bq-menu-item"
             aria-current={section.id === sectionId ? 'page' : undefined}
-            onClick={() => setSectionId(section.id)}
+            onClick={() => openSection(section.id)}
           >
             {section.label}
           </button>
         ))}
       </nav>
-      <Page customer={customer} />
+      <Page
+        key={`${sectionId}-${simulatedLoan ? 'simulated' : 'empty'}`}
+        customer={customer}
+        simulatedLoan={simulatedLoan}
+        onRequest={requestSimulatedLoan}
+      />
     </>
   )
 }
