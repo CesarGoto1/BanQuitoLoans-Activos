@@ -104,6 +104,31 @@ class CustomerApplicationServiceTest {
         assertThat(loanApplicationService.findApproved(registered.getId())).isEmpty();
     }
 
+    @Test
+    void simulatesALoanWithTheReferenceRateWithoutSavingIt() {
+        LoanSimulation simulation = customerApplicationService.simulate(
+                new LoanSimulationRequest(new BigDecimal("10000.00"), 12, AmortizationMethod.GERMAN));
+
+        assertThat(simulation.effectiveAnnualRate()).isEqualByComparingTo("0.1550");
+        assertThat(simulation.monthlyInsurance()).isEqualByComparingTo("6.00");
+        assertThat(simulation.solcaContribution()).isEqualByComparingTo("50.00");
+        assertThat(simulation.netAmount()).isEqualByComparingTo("9950.00");
+        assertThat(simulation.installments()).hasSize(12);
+        assertThat(simulation.firstInstallment()).isGreaterThan(simulation.lastInstallment());
+        assertThat(simulation.totalCost()).isEqualByComparingTo(
+                simulation.totalInterest().add(new BigDecimal("72.00")).add(new BigDecimal("50.00")));
+        assertThat(customerApplicationService.findByCustomer(1, LoanApplicationStatus.REGISTERED, PageRequest.of(0, 10)))
+                .isEmpty();
+    }
+
+    @Test
+    void doesNotSimulateATermOutOfRange() {
+        assertThatThrownBy(() -> customerApplicationService.simulate(
+                new LoanSimulationRequest(new BigDecimal("10000.00"), 3, AmortizationMethod.FRENCH)))
+                .isInstanceOf(OriginationException.class)
+                .hasMessageContaining("entre 6 y 60 meses");
+    }
+
     private LoanApplicationRequest request(Integer customerId, String amount, Integer termMonths, AmortizationMethod method) {
         return new LoanApplicationRequest(customerId, new BigDecimal(amount), termMonths, method, CreditPurpose.HEALTH,
                 new BigDecimal("3500.00"), new BigDecimal("1200.00"));

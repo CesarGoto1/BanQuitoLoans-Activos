@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-@RestControllerAdvice(assignableTypes = LoanApplicationController.class)
+@RestControllerAdvice(assignableTypes = {LoanApplicationController.class, LoanSimulationController.class})
 class OriginationExceptionHandler {
 
     @ExceptionHandler(OriginationException.class)
     ProblemDetail origination(OriginationException e) {
-        return problem(e.getStatus(), "No se pudo registrar", e.getMessage());
+        return problem(e.getStatus(), "No se pudo procesar", e.getMessage());
     }
 
     @ExceptionHandler(LiabilitiesUnavailableException.class)

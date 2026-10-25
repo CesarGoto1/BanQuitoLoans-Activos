@@ -8,4 +8,6 @@ public interface AmortizationService {
 
     List<CalculatedInstallment> calculate(BigDecimal amount, BigDecimal effectiveAnnualRate, Integer termMonths,
                                           AmortizationMethod method, LocalDate disbursementDate);
+
+    BigDecimal monthlyRate(BigDecimal effectiveAnnualRate);
 }

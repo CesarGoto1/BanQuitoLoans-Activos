@@ -27,3 +27,12 @@ export async function findApplications(customerId, status, page) {
   const response = await fetch(`${API}/loan-applications?${params}`, { headers })
   return readResponse(response)
 }
+
+export async function simulateLoan(simulation) {
+  const response = await fetch(`${API}/loan-simulations`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(simulation),
+  })
+  return readResponse(response)
+}

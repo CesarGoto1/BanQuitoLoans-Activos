@@ -2,11 +2,13 @@ import { useState } from 'react'
 import ApplicationRequestPage from './ApplicationRequestPage.jsx'
 import MyApplicationsPage from './MyApplicationsPage.jsx'
 import MyLoansPage from './MyLoansPage.jsx'
+import SimulationPage from './SimulationPage.jsx'
 import { clearCustomerSession, receiveCustomerFromUrl } from '../services/customerSession.js'
 
 const ONLINE_BANKING_URL = import.meta.env.VITE_URL_PASIVOS ?? 'http://localhost:5174'
 
 const SECTIONS = [
+  { id: 'simulation', label: 'Simular crédito', page: SimulationPage },
   { id: 'request', label: 'Solicitar crédito', page: ApplicationRequestPage },
   { id: 'applications', label: 'Mis solicitudes', page: MyApplicationsPage },
   { id: 'loans', label: 'Mis operaciones', page: MyLoansPage },
