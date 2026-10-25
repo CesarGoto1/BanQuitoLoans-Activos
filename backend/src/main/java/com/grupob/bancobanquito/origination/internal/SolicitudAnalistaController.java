@@ -1,8 +1,8 @@
-package com.grupob.bancobanquito.otorgamiento.internal;
+package com.grupob.bancobanquito.origination.internal;
 
-import com.grupob.bancobanquito.otorgamiento.SolicitudBandejaResponse;
-import com.grupob.bancobanquito.otorgamiento.SolicitudDetalleResponse;
-import com.grupob.bancobanquito.otorgamiento.SolicitudService;
+import com.grupob.bancobanquito.origination.SolicitudBandejaResponse;
+import com.grupob.bancobanquito.origination.SolicitudDetalleResponse;
+import com.grupob.bancobanquito.origination.SolicitudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;

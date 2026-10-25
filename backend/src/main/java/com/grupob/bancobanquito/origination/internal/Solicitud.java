@@ -1,4 +1,4 @@
-package com.grupob.bancobanquito.otorgamiento.internal;
+package com.grupob.bancobanquito.origination.internal;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

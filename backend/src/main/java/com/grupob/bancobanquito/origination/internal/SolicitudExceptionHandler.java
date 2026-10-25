@@ -1,4 +1,4 @@
-package com.grupob.bancobanquito.otorgamiento.internal;
+package com.grupob.bancobanquito.origination.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
 
-@RestControllerAdvice(basePackages = "com.grupob.bancobanquito.otorgamiento.internal")
+@RestControllerAdvice(basePackages = "com.grupob.bancobanquito.origination.internal")
 public class SolicitudExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(SolicitudExceptionHandler.class);

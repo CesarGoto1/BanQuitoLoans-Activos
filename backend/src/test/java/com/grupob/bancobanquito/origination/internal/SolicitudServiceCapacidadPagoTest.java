@@ -1,7 +1,7 @@
-package com.grupob.bancobanquito.otorgamiento.internal;
+package com.grupob.bancobanquito.origination.internal;
 
-import com.grupob.bancobanquito.otorgamiento.SolicitudBandejaResponse;
-import com.grupob.bancobanquito.otorgamiento.SolicitudDetalleResponse;
+import com.grupob.bancobanquito.origination.SolicitudBandejaResponse;
+import com.grupob.bancobanquito.origination.SolicitudDetalleResponse;
 import com.grupob.bancobanquito.parameters.ParameterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,4 +1,4 @@
-package com.grupob.bancobanquito.otorgamiento.internal;
+package com.grupob.bancobanquito.origination.internal;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package com.grupob.bancobanquito.otorgamiento;
+package com.grupob.bancobanquito.origination;
 
 import java.util.List;
 
