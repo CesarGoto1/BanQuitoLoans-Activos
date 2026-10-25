@@ -41,7 +41,6 @@ class LoanApplication {
         OTHER
     }
 
-    // Pasa al enum AmortizationSystem del módulo amortization cuando P1 lo publique.
     enum AmortizationSystem {
         FRENCH,
         GERMAN

@@ -38,8 +38,6 @@ class LoanApplicationServiceImplTest {
                 mock(BusinessDateService.class));
     }
 
-    // RN-09 con el caso de RF-02: ingresos 3.500, gastos 1.200, USD 10.000 a 12 meses, TEA referencial 15,50 %
-
     @Test
     void frenchInstallmentWithinTheLimitPasses() {
         Evaluation evaluation = service.evaluate(new BigDecimal("3500.00"), new BigDecimal("1200.00"), new BigDecimal("906.21"));
@@ -86,8 +84,6 @@ class LoanApplicationServiceImplTest {
         assertThat(evaluation.maxAllowedInstallment()).isEqualByComparingTo("0.00");
     }
 
-    // Rangos PAR-01..PAR-04
-
     @Test
     void amountAndTermOnTheBoundariesAreAccepted() {
         assertThatCode(() -> service.validateRanges(new BigDecimal("500.00"), 6)).doesNotThrowAnyException();
@@ -111,8 +107,6 @@ class LoanApplicationServiceImplTest {
         assertThatThrownBy(() -> service.validateRanges(new BigDecimal("10000.00"), 61))
                 .isInstanceOf(LoanApplicationExceptions.TermOutOfRange.class);
     }
-
-    // RN-35 (b)
 
     @Test
     void customerWithAPendingApplicationCannotRegisterAnother() {

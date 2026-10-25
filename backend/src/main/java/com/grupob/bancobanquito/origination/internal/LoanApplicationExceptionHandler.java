@@ -13,11 +13,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.exc.MismatchedInputException;
 
-/**
- * Errores de los controllers de origination como ProblemDetail en español.
- * basePackageClasses lo limita a este paquete: no afecta a los controllers de otros módulos.
- */
+
 @RestControllerAdvice(basePackageClasses = LoanApplicationExceptionHandler.class)
 class LoanApplicationExceptionHandler {
 
@@ -50,8 +48,13 @@ class LoanApplicationExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ProblemDetail unreadableBody(HttpMessageNotReadableException e) {
+        if (e.getCause() instanceof MismatchedInputException mismatch && !mismatch.getPath().isEmpty()) {
+            String field = mismatch.getPath().getLast().getPropertyName();
+            return problem(HttpStatus.BAD_REQUEST, "Datos de la solicitud inválidos",
+                    "Revise los campos: " + FIELD_LABELS.getOrDefault(field, field));
+        }
         return problem(HttpStatus.BAD_REQUEST, "Datos de la solicitud inválidos",
-                "El formato de la solicitud no es válido; revise el sistema de amortización y el destino del crédito");
+                "El cuerpo de la solicitud no es un JSON válido");
     }
 
     @ExceptionHandler({MissingRequestHeaderException.class, LoanApplicationExceptions.InvalidIdentification.class})

@@ -100,17 +100,14 @@ class LoanApplicationServiceImpl implements LoanApplicationService {
                       boolean passes, String rejectionReason) {
     }
 
-    // Pendiente P4: liabilities.CustomerService (cliente por cédula)
     private Integer customerIdByIdentification(String identification) {
         throw new UnsupportedOperationException("Pendiente: CustomerService del módulo liabilities (P4)");
     }
 
-    // Pendiente P7: loans.LoanService (operaciones con días de mora, RN-35)
     private void validateNoLoansInArrears(Integer customerId) {
         throw new UnsupportedOperationException("Pendiente: LoanService del módulo loans (P7)");
     }
 
-    // Pendiente P1: amortization.AmortizationService (cuota proyectada con la TEA referencial)
     private BigDecimal projectedInstallment(RegisterLoanApplicationRequest request, BigDecimal effectiveAnnualRate) {
         throw new UnsupportedOperationException("Pendiente: AmortizationService del módulo amortization (P1)");
     }

@@ -82,14 +82,28 @@ class CustomerLoanApplicationControllerTest {
     void unknownAmortizationSystemRespondsBadRequest() throws Exception {
         send(IDENTIFICATION, VALID_REQUEST.replace("FRENCH", "ITALIAN"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value(containsString("sistema de amortización")));
+                .andExpect(jsonPath("$.detail").value("Revise los campos: sistema de amortización"));
     }
 
     @Test
     void unknownCreditPurposeRespondsBadRequest() throws Exception {
         send(IDENTIFICATION, VALID_REQUEST.replace("DURABLE_GOODS", "CAR"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value(containsString("destino del crédito")));
+                .andExpect(jsonPath("$.detail").value("Revise los campos: destino del crédito"));
+    }
+
+    @Test
+    void wrongTypeRespondsBadRequestWithItsSpanishLabel() throws Exception {
+        send(IDENTIFICATION, VALID_REQUEST.replace("10000.00", "\"diez mil\""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Revise los campos: monto solicitado"));
+    }
+
+    @Test
+    void malformedJsonRespondsBadRequest() throws Exception {
+        send(IDENTIFICATION, "{\"requestedAmount\": 10000.00, \"termMonths\": 12")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("El cuerpo de la solicitud no es un JSON válido"));
     }
 
     @Test
