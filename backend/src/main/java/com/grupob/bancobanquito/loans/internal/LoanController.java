@@ -1,7 +1,7 @@
 package com.grupob.bancobanquito.loans.internal;
 
 import com.grupob.bancobanquito.loans.InstallmentSummary;
-import com.grupob.bancobanquito.loans.LoanService;
+import com.grupob.bancobanquito.loans.LoanInquiryService;
 import com.grupob.bancobanquito.loans.LoanSummary;
 import com.grupob.bancobanquito.loans.PortfolioStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,10 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Loans")
 class LoanController {
 
-    private final LoanService loanService;
+    private final LoanInquiryService loanInquiryService;
 
-    LoanController(LoanService loanService) {
-        this.loanService = loanService;
+    LoanController(LoanInquiryService loanInquiryService) {
+        this.loanInquiryService = loanInquiryService;
+    }
+
+    @GetMapping("/{loanNumber}")
+    @Operation(summary = "Loan found by its loan number, with its portfolio status, days past due and principal balance")
+    LoanSummary findByLoanNumber(@PathVariable String loanNumber) {
+        return loanInquiryService.findByLoanNumber(loanNumber);
     }
 
     @GetMapping
@@ -34,7 +40,7 @@ class LoanController {
             @RequestParam @Pattern(regexp = "\\d{10}", message = "La cédula debe tener 10 dígitos.") String customerNationalId,
             @RequestParam(required = false) PortfolioStatus portfolioStatus,
             @PageableDefault(size = 10, sort = "disbursementDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        return loanService.findByCustomer(customerNationalId, portfolioStatus, pageable);
+        return loanInquiryService.findByCustomer(customerNationalId, portfolioStatus, pageable);
     }
 
     @GetMapping("/{loanNumber}/installments")
@@ -42,6 +48,6 @@ class LoanController {
     Page<InstallmentSummary> findInstallments(
             @PathVariable String loanNumber,
             @PageableDefault(size = 12, sort = "installmentNumber") Pageable pageable) {
-        return loanService.findInstallments(loanNumber, pageable);
+        return loanInquiryService.findInstallments(loanNumber, pageable);
     }
 }
