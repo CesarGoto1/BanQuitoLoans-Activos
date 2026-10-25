@@ -34,10 +34,6 @@ function formatearFecha(iso) {
   return `${dia}/${mes}/${anio}`
 }
 
-function sumar(cuotas, campo) {
-  return cuotas.reduce((total, cuota) => total + Number(cuota[campo]), 0)
-}
-
 export default function ConsultaOperacionPagina() {
   const [modoBusqueda, setModoBusqueda] = useState('NUMERO_OPERACION')
   const [textoBusqueda, setTextoBusqueda] = useState('')
@@ -273,7 +269,6 @@ function DetallePrestamo({ prestamo }) {
 
 function TablaAmortizacion({ tabla, alCambiarPagina }) {
   const cuotas = tabla.content
-  const completa = tabla.page.totalPages <= 1
 
   return (
     <div className="bq-tarjeta">
@@ -310,20 +305,6 @@ function TablaAmortizacion({ tabla, alCambiarPagina }) {
               </tr>
             ))}
           </tbody>
-          {completa ? (
-            <tfoot>
-              <tr>
-                <td></td>
-                <td>Total</td>
-                <td className="bq-num">{numero.format(sumar(cuotas, 'valorCapital'))}</td>
-                <td className="bq-num">{numero.format(sumar(cuotas, 'valorInteres'))}</td>
-                <td className="bq-num">{numero.format(sumar(cuotas, 'valorSeguro'))}</td>
-                <td className="bq-num">{numero.format(sumar(cuotas, 'valorCuota'))}</td>
-                <td></td>
-                <td></td>
-              </tr>
-            </tfoot>
-          ) : null}
         </table>
       </div>
       <Paginacion pagina={tabla.page} alCambiarPagina={alCambiarPagina} />
@@ -371,9 +352,7 @@ function Dato({ etiqueta, valor, monto = false, destacado = false, mono = false 
   return (
     <div className="bq-campo">
       <span className="bq-label">{etiqueta}</span>
-      <span className={clase || undefined} style={destacado ? { fontWeight: 700 } : undefined}>
-        {valor}
-      </span>
+      {destacado ? <strong className={clase || undefined}>{valor}</strong> : <span className={clase || undefined}>{valor}</span>}
     </div>
   )
 }
