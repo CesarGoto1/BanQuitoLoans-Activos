@@ -114,18 +114,27 @@ class CustomerApplicationService {
                 : loanApplicationRepository.findByCustomerIdAndStatus(customerId, status, pageable);
     }
 
+    @Transactional(readOnly = true)
+    CreditLimits findCreditLimits() {
+        return creditLimits(businessDateService.getCurrentBusinessDate());
+    }
+
+    private CreditLimits creditLimits(LocalDate businessDate) {
+        return new CreditLimits(parameterService.getValue(MIN_AMOUNT, businessDate).setScale(2, RoundingMode.HALF_UP),
+                parameterService.getValue(MAX_AMOUNT, businessDate).setScale(2, RoundingMode.HALF_UP),
+                parameterService.getValue(MIN_TERM, businessDate).intValue(),
+                parameterService.getValue(MAX_TERM, businessDate).intValue());
+    }
+
     private void validateRanges(BigDecimal amount, Integer termMonths, LocalDate businessDate) {
-        BigDecimal minAmount = parameterService.getValue(MIN_AMOUNT, businessDate);
-        BigDecimal maxAmount = parameterService.getValue(MAX_AMOUNT, businessDate);
-        if (amount.compareTo(minAmount) < 0 || amount.compareTo(maxAmount) > 0) {
+        CreditLimits limits = creditLimits(businessDate);
+        if (amount.compareTo(limits.minAmount()) < 0 || amount.compareTo(limits.maxAmount()) > 0) {
             throw new OriginationException(HttpStatus.UNPROCESSABLE_CONTENT, "El monto debe estar entre USD "
-                    + money(minAmount) + " y USD " + money(maxAmount) + ".");
+                    + money(limits.minAmount()) + " y USD " + money(limits.maxAmount()) + ".");
         }
-        int minTerm = parameterService.getValue(MIN_TERM, businessDate).intValue();
-        int maxTerm = parameterService.getValue(MAX_TERM, businessDate).intValue();
-        if (termMonths < minTerm || termMonths > maxTerm) {
-            throw new OriginationException(HttpStatus.UNPROCESSABLE_CONTENT,
-                    "El plazo debe estar entre " + minTerm + " y " + maxTerm + " meses.");
+        if (termMonths < limits.minTermMonths() || termMonths > limits.maxTermMonths()) {
+            throw new OriginationException(HttpStatus.UNPROCESSABLE_CONTENT, "El plazo debe estar entre "
+                    + limits.minTermMonths() + " y " + limits.maxTermMonths() + " meses.");
         }
     }
 

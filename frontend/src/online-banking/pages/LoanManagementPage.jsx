@@ -17,6 +17,17 @@ const SECTIONS = [
 export default function LoanManagementPage() {
   const [customer] = useState(receiveCustomerFromUrl)
   const [sectionId, setSectionId] = useState(SECTIONS[0].id)
+  const [simulatedLoan, setSimulatedLoan] = useState(null)
+
+  function openSection(id) {
+    setSimulatedLoan(null)
+    setSectionId(id)
+  }
+
+  function requestSimulatedLoan(loan) {
+    setSimulatedLoan(loan)
+    setSectionId('request')
+  }
 
   function backToAccount() {
     clearCustomerSession()
@@ -65,13 +76,18 @@ export default function LoanManagementPage() {
             type="button"
             className="bq-menu-item"
             aria-current={section.id === sectionId ? 'page' : undefined}
-            onClick={() => setSectionId(section.id)}
+            onClick={() => openSection(section.id)}
           >
             {section.label}
           </button>
         ))}
       </nav>
-      <Page customer={customer} />
+      <Page
+        key={`${sectionId}-${simulatedLoan ? 'simulated' : 'empty'}`}
+        customer={customer}
+        simulatedLoan={simulatedLoan}
+        onRequest={requestSimulatedLoan}
+      />
     </>
   )
 }

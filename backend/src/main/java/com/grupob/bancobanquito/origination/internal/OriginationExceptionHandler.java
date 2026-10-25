@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-@RestControllerAdvice(assignableTypes = {LoanApplicationController.class, LoanSimulationController.class})
+@RestControllerAdvice(assignableTypes = {LoanApplicationController.class, LoanSimulationController.class,
+        CreditLimitsController.class})
 class OriginationExceptionHandler {
 
     @ExceptionHandler(OriginationException.class)

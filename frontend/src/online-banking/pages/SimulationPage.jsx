@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { simulateLoan } from '../services/loanApplicationsApi.js'
+import FormField from '../components/FormField.jsx'
+import { amountError, amountHelp, termError, termHelp, useCreditLimits } from '../components/creditRules.js'
 
 const dollars = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
 const percentage = new Intl.NumberFormat('es-EC', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 4 })
@@ -11,13 +13,16 @@ function formatDate(iso) {
   return `${day}/${month}/${year}`
 }
 
-export default function SimulationPage() {
+export default function SimulationPage({ onRequest }) {
   const [amount, setAmount] = useState('')
   const [termMonths, setTermMonths] = useState('')
   const [amortizationMethod, setAmortizationMethod] = useState('FRENCH')
   const [error, setError] = useState('')
   const [simulating, setSimulating] = useState(false)
   const [simulation, setSimulation] = useState(null)
+  const limits = useCreditLimits()
+  const errors = { amount: amountError(amount, limits), termMonths: termError(termMonths, limits) }
+  const invalid = Object.values(errors).some(Boolean)
 
   async function submit(event) {
     event.preventDefault()
@@ -51,38 +56,30 @@ export default function SimulationPage() {
         ) : null}
 
         <div className="bq-fila">
-          <div className="bq-campo">
-            <label className="bq-label" htmlFor="simulationAmount">
-              Monto (USD) <span className="bq-obligatorio">*</span>
-            </label>
-            <input
-              className="bq-input"
-              id="simulationAmount"
-              type="number"
-              min="0.01"
-              step="0.01"
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-            />
-          </div>
-          <div className="bq-campo">
-            <label className="bq-label" htmlFor="simulationTerm">
-              Plazo (meses) <span className="bq-obligatorio">*</span>
-            </label>
-            <input
-              className="bq-input"
-              id="simulationTerm"
-              type="number"
-              min="1"
-              step="1"
-              inputMode="numeric"
-              value={termMonths}
-              onChange={(e) => setTermMonths(e.target.value)}
-              required
-            />
-          </div>
+          <FormField
+            id="simulationAmount"
+            label="Monto (USD)"
+            type="number"
+            step="any"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            error={errors.amount}
+            help={amountHelp(limits)}
+            required
+          />
+          <FormField
+            id="simulationTerm"
+            label="Plazo (meses)"
+            type="number"
+            step="any"
+            inputMode="numeric"
+            value={termMonths}
+            onChange={(e) => setTermMonths(e.target.value)}
+            error={errors.termMonths}
+            help={termHelp(limits)}
+            required
+          />
         </div>
 
         <div className="bq-campo">
@@ -97,18 +94,18 @@ export default function SimulationPage() {
         </div>
 
         <div className="bq-acciones">
-          <button className="bq-btn bq-btn-primario" type="submit" disabled={simulating}>
+          <button className="bq-btn bq-btn-primario" type="submit" disabled={simulating || invalid}>
             {simulating ? 'Simulando…' : 'Simular'}
           </button>
         </div>
       </form>
 
-      {simulation ? <SimulationResult simulation={simulation} /> : null}
+      {simulation ? <SimulationResult simulation={simulation} onRequest={onRequest} /> : null}
     </main>
   )
 }
 
-function SimulationResult({ simulation }) {
+function SimulationResult({ simulation, onRequest }) {
   const german = simulation.amortizationMethod === 'GERMAN'
 
   return (
@@ -134,6 +131,21 @@ function SimulationResult({ simulation }) {
         <p className="bq-pequeno bq-texto-2">
           El costo total suma intereses, seguro de desgravamen y SOLCA. La tasa definitiva la asigna el analista al aprobar tu solicitud.
         </p>
+        <div className="bq-acciones">
+          <button
+            className="bq-btn bq-btn-primario"
+            type="button"
+            onClick={() =>
+              onRequest({
+                amount: String(simulation.amount),
+                termMonths: String(simulation.termMonths),
+                amortizationMethod: simulation.amortizationMethod,
+              })
+            }
+          >
+            Solicitar este crédito
+          </button>
+        </div>
       </div>
 
       <div className="bq-tarjeta">

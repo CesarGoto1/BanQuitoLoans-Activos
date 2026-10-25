@@ -36,3 +36,8 @@ export async function simulateLoan(simulation) {
   })
   return readResponse(response)
 }
+
+export async function findCreditLimits() {
+  const response = await fetch(`${API}/credit-limits`, { headers })
+  return readResponse(response)
+}

@@ -1,5 +1,15 @@
 import { useState } from 'react'
 import { registerApplication } from '../services/loanApplicationsApi.js'
+import FormField from '../components/FormField.jsx'
+import {
+  amountError,
+  amountHelp,
+  expensesError,
+  incomeError,
+  termError,
+  termHelp,
+  useCreditLimits,
+} from '../components/creditRules.js'
 
 const dollars = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
 
@@ -22,11 +32,19 @@ const emptyForm = {
   monthlyExpenses: '',
 }
 
-export default function ApplicationRequestPage({ customer }) {
-  const [form, setForm] = useState(emptyForm)
+export default function ApplicationRequestPage({ customer, simulatedLoan }) {
+  const [form, setForm] = useState({ ...emptyForm, ...simulatedLoan })
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState(null)
+  const limits = useCreditLimits()
+  const errors = {
+    amount: amountError(form.amount, limits),
+    termMonths: termError(form.termMonths, limits),
+    monthlyIncome: incomeError(form.monthlyIncome),
+    monthlyExpenses: expensesError(form.monthlyExpenses),
+  }
+  const invalid = Object.values(errors).some(Boolean)
 
   function change(field, value) {
     setForm((current) => ({ ...current, [field]: value }))
@@ -73,6 +91,12 @@ export default function ApplicationRequestPage({ customer }) {
         <ApplicationResult result={result} onNew={newApplication} />
       ) : (
         <form className="bq-tarjeta bq-formulario" onSubmit={submit}>
+          {simulatedLoan ? (
+            <div className="bq-alerta bq-alerta-info" role="status">
+              <strong>Datos de tu simulación</strong>
+              <span>Completa el destino, tus ingresos y tus gastos para registrar la solicitud.</span>
+            </div>
+          ) : null}
           {error ? (
             <div className="bq-alerta bq-alerta-peligro" role="alert">
               <strong>No se pudo registrar la solicitud</strong>
@@ -82,38 +106,30 @@ export default function ApplicationRequestPage({ customer }) {
 
           <span className="bq-etiqueta-seccion">Crédito</span>
           <div className="bq-fila">
-            <div className="bq-campo">
-              <label className="bq-label" htmlFor="amount">
-                Monto (USD) <span className="bq-obligatorio">*</span>
-              </label>
-              <input
-                className="bq-input"
-                id="amount"
-                type="number"
-                min="0.01"
-                step="0.01"
-                inputMode="decimal"
-                value={form.amount}
-                onChange={(e) => change('amount', e.target.value)}
-                required
-              />
-            </div>
-            <div className="bq-campo">
-              <label className="bq-label" htmlFor="termMonths">
-                Plazo (meses) <span className="bq-obligatorio">*</span>
-              </label>
-              <input
-                className="bq-input"
-                id="termMonths"
-                type="number"
-                min="1"
-                step="1"
-                inputMode="numeric"
-                value={form.termMonths}
-                onChange={(e) => change('termMonths', e.target.value)}
-                required
-              />
-            </div>
+            <FormField
+              id="amount"
+              label="Monto (USD)"
+              type="number"
+              step="any"
+              inputMode="decimal"
+              value={form.amount}
+              onChange={(e) => change('amount', e.target.value)}
+              error={errors.amount}
+              help={amountHelp(limits)}
+              required
+            />
+            <FormField
+              id="termMonths"
+              label="Plazo (meses)"
+              type="number"
+              step="any"
+              inputMode="numeric"
+              value={form.termMonths}
+              onChange={(e) => change('termMonths', e.target.value)}
+              error={errors.termMonths}
+              help={termHelp(limits)}
+              required
+            />
             <div className="bq-campo">
               <label className="bq-label" htmlFor="purpose">
                 Destino <span className="bq-obligatorio">*</span>
@@ -144,43 +160,33 @@ export default function ApplicationRequestPage({ customer }) {
 
           <span className="bq-etiqueta-seccion">Capacidad de pago</span>
           <div className="bq-fila">
-            <div className="bq-campo">
-              <label className="bq-label" htmlFor="monthlyIncome">
-                Ingresos mensuales (USD) <span className="bq-obligatorio">*</span>
-              </label>
-              <input
-                className="bq-input"
-                id="monthlyIncome"
-                type="number"
-                min="0.01"
-                step="0.01"
-                inputMode="decimal"
-                value={form.monthlyIncome}
-                onChange={(e) => change('monthlyIncome', e.target.value)}
-                required
-              />
-            </div>
-            <div className="bq-campo">
-              <label className="bq-label" htmlFor="monthlyExpenses">
-                Gastos mensuales (USD) <span className="bq-obligatorio">*</span>
-              </label>
-              <input
-                className="bq-input"
-                id="monthlyExpenses"
-                type="number"
-                min="0"
-                step="0.01"
-                inputMode="decimal"
-                value={form.monthlyExpenses}
-                onChange={(e) => change('monthlyExpenses', e.target.value)}
-                required
-              />
-              <span className="bq-ayuda">Gastos del hogar y cuotas de otras deudas.</span>
-            </div>
+            <FormField
+              id="monthlyIncome"
+              label="Ingresos mensuales (USD)"
+              type="number"
+              step="any"
+              inputMode="decimal"
+              value={form.monthlyIncome}
+              onChange={(e) => change('monthlyIncome', e.target.value)}
+              error={errors.monthlyIncome}
+              required
+            />
+            <FormField
+              id="monthlyExpenses"
+              label="Gastos mensuales (USD)"
+              type="number"
+              step="any"
+              inputMode="decimal"
+              value={form.monthlyExpenses}
+              onChange={(e) => change('monthlyExpenses', e.target.value)}
+              error={errors.monthlyExpenses}
+              help="Gastos del hogar y cuotas de otras deudas."
+              required
+            />
           </div>
 
           <div className="bq-acciones">
-            <button className="bq-btn bq-btn-primario" type="submit" disabled={sending}>
+            <button className="bq-btn bq-btn-primario" type="submit" disabled={sending || invalid}>
               {sending ? 'Registrando…' : 'Registrar solicitud'}
             </button>
           </div>

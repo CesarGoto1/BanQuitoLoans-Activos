@@ -129,6 +129,16 @@ class CustomerApplicationServiceTest {
                 .hasMessageContaining("entre 6 y 60 meses");
     }
 
+    @Test
+    void returnsTheCreditLimitsInForce() {
+        CreditLimits limits = customerApplicationService.findCreditLimits();
+
+        assertThat(limits.minAmount()).isEqualByComparingTo("500.00");
+        assertThat(limits.maxAmount()).isEqualByComparingTo("30000.00");
+        assertThat(limits.minTermMonths()).isEqualTo(6);
+        assertThat(limits.maxTermMonths()).isEqualTo(60);
+    }
+
     private LoanApplicationRequest request(Integer customerId, String amount, Integer termMonths, AmortizationMethod method) {
         return new LoanApplicationRequest(customerId, new BigDecimal(amount), termMonths, method, CreditPurpose.HEALTH,
                 new BigDecimal("3500.00"), new BigDecimal("1200.00"));
