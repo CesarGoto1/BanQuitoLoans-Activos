@@ -96,7 +96,7 @@ class SolicitudServiceCapacidadPagoTest {
         Solicitud sol2 = crearSolicitudBase(11, new BigDecimal("1800.00"), new BigDecimal("700.00"), new BigDecimal("220.00"));
         sol2.setRegisteredAt(LocalDateTime.of(2026, 10, 22, 14, 30));
 
-        when(solicitudRepository.findByStatusOrderByFechaHoraRegistroAsc(EstadoSolicitud.REGISTERED))
+        when(solicitudRepository.findByStatusOrderByFechaHoraRegistroAsc(EstadoSolicitud.REGISTRADA))
                 .thenReturn(List.of(sol1, sol2));
 
         List<SolicitudBandejaResponse> bandeja = solicitudService.listarBandejaAnalista("REGISTRADA");
@@ -133,16 +133,16 @@ class SolicitudServiceCapacidadPagoTest {
         Solicitud s = new Solicitud();
         s.setId(id);
         s.setCustomerId(101);
-        s.setAmortizationMethod(MetodoAmortizacion.FRENCH);
+        s.setAmortizationMethod(MetodoAmortizacion.FRANCES);
         s.setRequestedAmount(new BigDecimal("5000.00"));
         s.setTermMonths(12);
-        s.setPurpose(DestinoCredito.EDUCATION);
+        s.setPurpose(DestinoCredito.EDUCACION);
         s.setMonthlyIncome(ingresos);
         s.setMonthlyExpenses(gastos);
         s.setApplicationDate(LocalDate.of(2026, 10, 24));
         s.setRegisteredAt(LocalDateTime.of(2026, 10, 24, 10, 0));
         s.setReferenceInstallment(cuotaRef);
-        s.setStatus(EstadoSolicitud.REGISTERED);
+        s.setStatus(EstadoSolicitud.REGISTRADA);
         s.setCreatedBy("cliente_web");
         s.setCreatedAt(LocalDateTime.of(2026, 10, 24, 10, 0));
         return s;

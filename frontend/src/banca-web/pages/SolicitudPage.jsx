@@ -13,21 +13,21 @@ import {
 
 const dollars = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
 
-const amortizationMethods = { FRENCH: 'Francés (cuota fija)', GERMAN: 'Alemán (cuota decreciente)' }
+const amortizationMethods = { FRANCES: 'Francés (cuota fija)', ALEMAN: 'Alemán (cuota decreciente)' }
 
 const purposes = {
-  DURABLE_GOODS: 'Bienes duraderos',
-  HEALTH: 'Salud',
-  EDUCATION: 'Educación',
-  TRAVEL: 'Viaje',
-  OTHER: 'Otro',
+  BIENES_DURADEROS: 'Bienes duraderos',
+  SALUD: 'Salud',
+  EDUCACION: 'Educación',
+  VIAJE: 'Viaje',
+  OTRO: 'Otro',
 }
 
 const emptyForm = {
   monto: '',
   plazoMeses: '',
-  metodoAmortizacion: 'FRENCH',
-  destinoCredito: 'DURABLE_GOODS',
+  metodoAmortizacion: 'FRANCES',
+  destinoCredito: 'BIENES_DURADEROS',
   ingresosMensuales: '',
   gastosMensuales: '',
 }
@@ -196,7 +196,7 @@ export default function SolicitudPage({ customer, simulatedLoan }) {
 }
 
 function ApplicationResult({ result, onNew }) {
-  const registered = result.status === 'REGISTERED'
+  const registered = result.status === 'REGISTRADA'
 
   return (
     <div className="bq-tarjeta">
@@ -226,7 +226,7 @@ function ApplicationResult({ result, onNew }) {
           <span>{amortizationMethods[result.metodoAmortizacion]}</span>
         </div>
         <div className="bq-campo">
-          <span className="bq-label">{result.metodoAmortizacion === 'GERMAN' ? 'Primera cuota (la más alta)' : 'Cuota mensual'} referencial</span>
+          <span className="bq-label">{result.metodoAmortizacion === 'ALEMAN' ? 'Primera cuota (la más alta)' : 'Cuota mensual'} referencial</span>
           <span>{dollars.format(result.cuotaEvaluacionReferencial)}</span>
         </div>
       </div>

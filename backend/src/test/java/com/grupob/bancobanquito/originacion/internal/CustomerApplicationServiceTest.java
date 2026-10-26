@@ -28,9 +28,9 @@ class CustomerApplicationServiceTest {
 
     @Test
     void registersAnApplicationThatPassesTheEvaluation() {
-        Solicitud application = customerApplicationService.register(1, request("10000.00", 12, MetodoAmortizacion.FRENCH));
+        Solicitud application = customerApplicationService.register(1, request("10000.00", 12, MetodoAmortizacion.FRANCES));
 
-        assertThat(application.getStatus()).isEqualTo(EstadoSolicitud.REGISTERED);
+        assertThat(application.getStatus()).isEqualTo(EstadoSolicitud.REGISTRADA);
         assertThat(application.getReferenceInstallment()).isLessThan(new BigDecimal("920.00"));
         assertThat(application.getResolutionDate()).isNull();
         assertThat(application.getRejectionReason()).isNull();
@@ -38,9 +38,9 @@ class CustomerApplicationServiceTest {
 
     @Test
     void rejectsAGermanApplicationWhoseFirstInstallmentExceedsTheLimit() {
-        Solicitud application = customerApplicationService.register(1, request("10000.00", 12, MetodoAmortizacion.GERMAN));
+        Solicitud application = customerApplicationService.register(1, request("10000.00", 12, MetodoAmortizacion.ALEMAN));
 
-        assertThat(application.getStatus()).isEqualTo(EstadoSolicitud.REJECTED);
+        assertThat(application.getStatus()).isEqualTo(EstadoSolicitud.RECHAZADA);
         assertThat(application.getReferenceInstallment()).isGreaterThan(new BigDecimal("920.00"));
         assertThat(application.getRejectionReason()).contains("920,00");
         assertThat(application.getResolutionDate()).isNotNull();
@@ -48,7 +48,7 @@ class CustomerApplicationServiceTest {
 
     @Test
     void doesNotRegisterAnAmountOutOfRange() {
-        assertThatThrownBy(() -> customerApplicationService.register(1, request("40000.00", 12, MetodoAmortizacion.FRENCH)))
+        assertThatThrownBy(() -> customerApplicationService.register(1, request("40000.00", 12, MetodoAmortizacion.FRANCES)))
                 .isInstanceOf(ExcepcionOriginacion.class)
                 .hasMessageContaining("30.000,00")
                 .extracting(e -> ((ExcepcionOriginacion) e).getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
@@ -56,9 +56,9 @@ class CustomerApplicationServiceTest {
 
     @Test
     void doesNotRegisterASecondPendingApplication() {
-        customerApplicationService.register(2, request("5000.00", 24, MetodoAmortizacion.FRENCH));
+        customerApplicationService.register(2, request("5000.00", 24, MetodoAmortizacion.FRANCES));
 
-        assertThatThrownBy(() -> customerApplicationService.register(2, request("3000.00", 12, MetodoAmortizacion.FRENCH)))
+        assertThatThrownBy(() -> customerApplicationService.register(2, request("3000.00", 12, MetodoAmortizacion.FRANCES)))
                 .isInstanceOf(ExcepcionOriginacion.class)
                 .hasMessageContaining("pendiente");
     }
@@ -73,32 +73,32 @@ class CustomerApplicationServiceTest {
                 '2200000003', DATE '2026-10-31', 'ENTREGADA', 'VENCIDA', 30000.00, 5, 'pruebas');
             """)
     void doesNotRegisterWhenTheCustomerHasDaysPastDue() {
-        assertThatThrownBy(() -> customerApplicationService.register(3, request("1000.00", 12, MetodoAmortizacion.FRENCH)))
+        assertThatThrownBy(() -> customerApplicationService.register(3, request("1000.00", 12, MetodoAmortizacion.FRANCES)))
                 .isInstanceOf(ExcepcionOriginacion.class)
                 .hasMessageContaining("mora");
     }
 
     @Test
     void doesNotRegisterForAnUnknownCustomer() {
-        assertThatThrownBy(() -> customerApplicationService.register(77, request("1000.00", 12, MetodoAmortizacion.FRENCH)))
+        assertThatThrownBy(() -> customerApplicationService.register(77, request("1000.00", 12, MetodoAmortizacion.FRANCES)))
                 .isInstanceOf(ExcepcionOriginacion.class)
                 .extracting(e -> ((ExcepcionOriginacion) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void listsOnlyTheApplicationsOfTheCustomer() {
-        customerApplicationService.register(1, request("10000.00", 12, MetodoAmortizacion.FRENCH));
+        customerApplicationService.register(1, request("10000.00", 12, MetodoAmortizacion.FRANCES));
 
         assertThat(customerApplicationService.findByCustomer(1, null, PageRequest.of(0, 10)))
                 .allMatch(application -> application.getCustomerId().equals(1))
                 .hasSize(2);
-        assertThat(customerApplicationService.findByCustomer(1, EstadoSolicitud.REGISTERED, PageRequest.of(0, 10)))
+        assertThat(customerApplicationService.findByCustomer(1, EstadoSolicitud.REGISTRADA, PageRequest.of(0, 10)))
                 .hasSize(1);
     }
 
     @Test
     void findsOnlyApprovedApplicationsForTheDisbursement() {
-        Solicitud registered = customerApplicationService.register(1, request("10000.00", 12, MetodoAmortizacion.FRENCH));
+        Solicitud registered = customerApplicationService.register(1, request("10000.00", 12, MetodoAmortizacion.FRANCES));
 
         assertThat(servicioSolicitudes.findApproved(9001)).isPresent();
         assertThat(servicioSolicitudes.findApproved(registered.getId())).isEmpty();
@@ -107,7 +107,7 @@ class CustomerApplicationServiceTest {
     @Test
     void simulatesALoanWithTheReferenceRateWithoutSavingIt() {
         SimulacionPrestamo simulation = customerApplicationService.simulate(
-                new PeticionSimulacionPrestamo(new BigDecimal("10000.00"), 12, MetodoAmortizacion.GERMAN));
+                new PeticionSimulacionPrestamo(new BigDecimal("10000.00"), 12, MetodoAmortizacion.ALEMAN));
 
         assertThat(simulation.teaAsignada()).isEqualByComparingTo("0.1550");
         assertThat(simulation.seguroMensual()).isEqualByComparingTo("6.00");
@@ -117,14 +117,14 @@ class CustomerApplicationServiceTest {
         assertThat(simulation.primeraCuota()).isGreaterThan(simulation.ultimaCuota());
         assertThat(simulation.costoTotal()).isEqualByComparingTo(
                 simulation.interesTotal().add(new BigDecimal("72.00")).add(new BigDecimal("50.00")));
-        assertThat(customerApplicationService.findByCustomer(1, EstadoSolicitud.REGISTERED, PageRequest.of(0, 10)))
+        assertThat(customerApplicationService.findByCustomer(1, EstadoSolicitud.REGISTRADA, PageRequest.of(0, 10)))
                 .isEmpty();
     }
 
     @Test
     void doesNotSimulateATermOutOfRange() {
         assertThatThrownBy(() -> customerApplicationService.simulate(
-                new PeticionSimulacionPrestamo(new BigDecimal("10000.00"), 3, MetodoAmortizacion.FRENCH)))
+                new PeticionSimulacionPrestamo(new BigDecimal("10000.00"), 3, MetodoAmortizacion.FRANCES)))
                 .isInstanceOf(ExcepcionOriginacion.class)
                 .hasMessageContaining("entre 6 y 60 meses");
     }
@@ -140,7 +140,7 @@ class CustomerApplicationServiceTest {
     }
 
     private PeticionSolicitud request(String monto, Integer plazoMeses, MetodoAmortizacion metodo) {
-        return new PeticionSolicitud(new BigDecimal(monto), plazoMeses, metodo, DestinoCredito.HEALTH,
+        return new PeticionSolicitud(new BigDecimal(monto), plazoMeses, metodo, DestinoCredito.SALUD,
                 new BigDecimal("3500.00"), new BigDecimal("1200.00"));
     }
 }

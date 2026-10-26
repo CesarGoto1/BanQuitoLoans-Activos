@@ -1,8 +1,9 @@
 package com.grupob.bancobanquito.parametros.internal;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
@@ -20,7 +21,7 @@ class DiaNegocio {
     @Column(name = "fechaNegocio")
     private LocalDate fechaNegocio;
 
-    @Convert(converter = ConversorEstadoCierre.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "estadoCierre")
     private EstadoCierre status;
 

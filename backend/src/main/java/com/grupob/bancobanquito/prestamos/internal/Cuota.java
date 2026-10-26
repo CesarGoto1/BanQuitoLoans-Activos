@@ -1,8 +1,9 @@
 package com.grupob.bancobanquito.prestamos.internal;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -96,7 +97,7 @@ class Cuota {
     private BigDecimal accruedDefaultInterest;
 
     @NotNull
-    @Convert(converter = ConversorEstadoCuota.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "estadoCuota")
     private EstadoCuota status;
 

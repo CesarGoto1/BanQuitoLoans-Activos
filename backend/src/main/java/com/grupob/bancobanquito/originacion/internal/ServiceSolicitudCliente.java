@@ -61,7 +61,7 @@ class ServiceSolicitudCliente {
             throw new ExcepcionOriginacion(HttpStatus.UNPROCESSABLE_CONTENT,
                     "Tienes una operación con días de mora, por eso no puedes registrar una nueva solicitud.");
         }
-        if (loanApplicationRepository.existsByIdClienteAndStatus(idCliente, EstadoSolicitud.REGISTERED)) {
+        if (loanApplicationRepository.existsByIdClienteAndStatus(idCliente, EstadoSolicitud.REGISTRADA)) {
             throw new ExcepcionOriginacion(HttpStatus.UNPROCESSABLE_CONTENT,
                     "Ya tienes una solicitud pendiente de revisión.");
         }
@@ -82,7 +82,7 @@ class ServiceSolicitudCliente {
         application.setApplicationDate(fechaNegocio);
         application.setRegisteredAt(LocalDateTime.now());
         application.setReferenceInstallment(installment);
-        application.setStatus(EstadoSolicitud.REGISTERED);
+        application.setStatus(EstadoSolicitud.REGISTRADA);
         application.setCreatedBy(AUDIT_USER);
         application.setCreatedAt(LocalDateTime.now());
 
@@ -173,7 +173,7 @@ class ServiceSolicitudCliente {
     }
 
     private void reject(Solicitud application, LocalDate fechaNegocio, String reason) {
-        application.setStatus(EstadoSolicitud.REJECTED);
+        application.setStatus(EstadoSolicitud.RECHAZADA);
         application.setResolutionDate(fechaNegocio);
         application.setRejectionReason(reason);
     }

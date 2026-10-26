@@ -17,7 +17,7 @@ class ServiceFechaNegocioImpl implements ServiceFechaNegocio {
 
     @Override
     public LocalDate getCurrentBusinessDate() {
-        return businessDayRepository.findFirstByStatusNotOrderByFechaNegocioAsc(EstadoCierre.COMPLETED)
+        return businessDayRepository.findFirstByStatusNotOrderByFechaNegocioAsc(EstadoCierre.COMPLETADO)
                 .map(DiaNegocio::getFechaNegocio)
                 .orElseThrow(() -> new IllegalStateException("No hay una fecha de negocio abierta."));
     }

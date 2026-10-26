@@ -3,7 +3,7 @@ import { disburse, getDisbursementPreview } from '../services/desembolsoApi.js'
 
 const dollars = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
 const percentage = new Intl.NumberFormat('es-EC', { style: 'percent', minimumFractionDigits: 2 })
-const amortizationMethods = { FRENCH: 'Francés', GERMAN: 'Alemán' }
+const amortizationMethods = { FRANCES: 'Francés', ALEMAN: 'Alemán' }
 const accountTypes = { AHORROS: 'Ahorros', CORRIENTE: 'Corriente' }
 
 function formatDate(iso) {

@@ -37,10 +37,10 @@ class LoanDecisionServiceTest {
         when(analysts.findByNationalId("1710000001"))
                 .thenReturn(Optional.of(new SesionAnalista(42, "1710000001", "Analista de pruebas")));
         application = new Solicitud(7);
-        application.setStatus(EstadoSolicitud.REGISTERED);
+        application.setStatus(EstadoSolicitud.REGISTRADA);
         application.setRequestedAmount(new BigDecimal("10000.00"));
         application.setTermMonths(12);
-        application.setAmortizationMethod(MetodoAmortizacion.FRENCH);
+        application.setAmortizationMethod(MetodoAmortizacion.FRANCES);
         application.setMonthlyIncome(new BigDecimal("3500.00"));
         application.setMonthlyExpenses(new BigDecimal("1200.00"));
         application.setReferenceInstallment(new BigDecimal("100.00"));
@@ -73,7 +73,7 @@ class LoanDecisionServiceTest {
         assertThat(application.getLastModifiedAt()).isAfter(application.getCreatedAt());
         assertThat(application.getCreatedBy()).isEqualTo("customer");
         verify(amortizacion).calculate(new BigDecimal("10000.00"), new BigDecimal("0.1677"), 12,
-                MetodoAmortizacion.FRENCH, fechaNegocio);
+                MetodoAmortizacion.FRANCES, fechaNegocio);
         verify(applications).saveAndFlush(application);
         verify(dates, times(1)).getCurrentBusinessDate();
     }
@@ -105,12 +105,12 @@ class LoanDecisionServiceTest {
         schedule("969.36");
         assertThatThrownBy(() -> service.approveApplication(7, "1710000001", new BigDecimal("0.1677")))
                 .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
-        assertThat(application.getStatus()).isEqualTo(EstadoSolicitud.REGISTERED);
+        assertThat(application.getStatus()).isEqualTo(EstadoSolicitud.REGISTRADA);
         verify(applications, never()).saveAndFlush(any());
     }
 
     @ParameterizedTest
-    @EnumSource(value = EstadoSolicitud.class, names = {"APPROVED", "REJECTED"})
+    @EnumSource(value = EstadoSolicitud.class, names = {"APROBADA", "RECHAZADA"})
     void refusesBothDecisionsForResolvedApplications(EstadoSolicitud status) {
         application.setStatus(status);
         assertThatThrownBy(() -> service.approveApplication(7, "1710000001", new BigDecimal("0.16")))

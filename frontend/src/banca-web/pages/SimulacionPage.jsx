@@ -6,7 +6,7 @@ import { amountError, amountHelp, termError, termHelp, useCreditLimits } from '.
 const dollars = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
 const percentage = new Intl.NumberFormat('es-EC', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 4 })
 
-const amortizationMethods = { FRENCH: 'Francés (cuota fija)', GERMAN: 'Alemán (cuota decreciente)' }
+const amortizationMethods = { FRANCES: 'Francés (cuota fija)', ALEMAN: 'Alemán (cuota decreciente)' }
 
 function formatDate(iso) {
   const [year, month, day] = iso.split('-')
@@ -16,7 +16,7 @@ function formatDate(iso) {
 export default function SimulacionPage({ onRequest }) {
   const [monto, setMonto] = useState('')
   const [plazoMeses, setPlazoMeses] = useState('')
-  const [metodoAmortizacion, setMetodoAmortizacion] = useState('FRENCH')
+  const [metodoAmortizacion, setMetodoAmortizacion] = useState('FRANCES')
   const [error, setError] = useState('')
   const [simulating, setSimulating] = useState(false)
   const [simulation, setSimulation] = useState(null)
@@ -106,7 +106,7 @@ export default function SimulacionPage({ onRequest }) {
 }
 
 function SimulationResult({ simulation, onRequest }) {
-  const german = simulation.metodoAmortizacion === 'GERMAN'
+  const german = simulation.metodoAmortizacion === 'ALEMAN'
 
   return (
     <>

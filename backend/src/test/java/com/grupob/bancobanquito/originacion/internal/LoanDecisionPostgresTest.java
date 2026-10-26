@@ -72,23 +72,23 @@ class LoanDecisionPostgresTest {
                     .build(), HttpResponse.BodyHandlers.ofString());
             assertThat(replay.statusCode()).isEqualTo(409);
             assertThat(replay.headers().firstValue("Content-Type")).hasValue("application/problem+json");
-            assertThat(applications.findById(id).orElseThrow().getStatus()).isEqualTo(EstadoSolicitud.APPROVED);
+            assertThat(applications.findById(id).orElseThrow().getStatus()).isEqualTo(EstadoSolicitud.APROBADA);
         }
     }
 
     private Integer registerApplication(String system, String income) {
         Solicitud application = new Solicitud();
         application.setCustomerId(101);
-        application.setAmortizationMethod(new ConversorMetodoAmortizacion().convertToEntityAttribute(system));
+        application.setAmortizationMethod(MetodoAmortizacion.valueOf(system));
         application.setRequestedAmount(new BigDecimal("10000.00"));
         application.setTermMonths(12);
-        application.setPurpose(DestinoCredito.EDUCATION);
+        application.setPurpose(DestinoCredito.EDUCACION);
         application.setMonthlyIncome(new BigDecimal(income));
         application.setMonthlyExpenses(new BigDecimal("1200.00"));
         application.setApplicationDate(LocalDate.of(2026, 10, 31));
         application.setRegisteredAt(LocalDateTime.now());
         application.setReferenceInstallment(new BigDecimal("900.00"));
-        application.setStatus(EstadoSolicitud.REGISTERED);
+        application.setStatus(EstadoSolicitud.REGISTRADA);
         application.setCreatedBy("rf05-test-customer");
         application.setCreatedAt(LocalDateTime.now());
         Integer id = applications.saveAndFlush(application).getId();
@@ -126,7 +126,7 @@ class LoanDecisionPostgresTest {
         assertThatThrownBy(() -> decisions.approveApplication(id, "1799999901", new BigDecimal("0.1677")))
                 .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
         Solicitud stored = applications.findById(id).orElseThrow();
-        assertThat(stored.getStatus()).isEqualTo(EstadoSolicitud.REGISTERED);
+        assertThat(stored.getStatus()).isEqualTo(EstadoSolicitud.REGISTRADA);
         assertThat(stored.getAssignedRate()).isNull();
         assertThat(stored.getFinalInstallment()).isNull();
         assertThat(stored.getLastModifiedBy()).isNull();
@@ -146,7 +146,7 @@ class LoanDecisionPostgresTest {
         Integer id = registerApplication("FRANCES", "3500.00");
         decisions.rejectApplication(id, "1799999901", "Documentación insuficiente.");
         Solicitud stored = applications.findById(id).orElseThrow();
-        assertThat(stored.getStatus()).isEqualTo(EstadoSolicitud.REJECTED);
+        assertThat(stored.getStatus()).isEqualTo(EstadoSolicitud.RECHAZADA);
         assertThat(stored.getRejectionReason()).isEqualTo("Documentación insuficiente.");
         assertThat(stored.getAssignedRate()).isNull();
         assertThat(stored.getFinalInstallment()).isNull();
@@ -167,7 +167,7 @@ class LoanDecisionPostgresTest {
             throw new IllegalStateException("Induced failure after flush");
         })).isInstanceOf(IllegalStateException.class);
         Solicitud stored = applications.findById(id).orElseThrow();
-        assertThat(stored.getStatus()).isEqualTo(EstadoSolicitud.REGISTERED);
+        assertThat(stored.getStatus()).isEqualTo(EstadoSolicitud.REGISTRADA);
         assertThat(stored.getRejectionReason()).isNull();
         assertThat(stored.getAnalystId()).isNull();
         assertThat(stored.getResolutionDate()).isNull();
@@ -188,7 +188,7 @@ class LoanDecisionPostgresTest {
                     .containsExactlyInAnyOrder("SUCCESS", "CONFLICT");
         }
         Solicitud stored = applications.findById(id).orElseThrow();
-        assertThat(stored.getStatus()).isIn(EstadoSolicitud.APPROVED, EstadoSolicitud.REJECTED);
+        assertThat(stored.getStatus()).isIn(EstadoSolicitud.APROBADA, EstadoSolicitud.RECHAZADA);
         assertThat(operationCount(id)).isZero();
     }
 

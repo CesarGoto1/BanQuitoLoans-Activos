@@ -15,10 +15,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ServiceBandejaSolicitudImpl implements ServiceBandejaSolicitud {
 
-    private static final ConversorEstadoSolicitud STATUS = new ConversorEstadoSolicitud();
-    private static final ConversorMetodoAmortizacion METHOD = new ConversorMetodoAmortizacion();
-    private static final ConversorDestinoCredito PURPOSE = new ConversorDestinoCredito();
-
     private final SolicitudRepository solicitudRepository;
     private final ServiceParametro servicioParametro;
 
@@ -44,12 +40,12 @@ public class ServiceBandejaSolicitudImpl implements ServiceBandejaSolicitud {
 
     private EstadoSolicitud parsearEstado(String estado) {
         if (estado == null || estado.isBlank()) {
-            return EstadoSolicitud.REGISTERED;
+            return EstadoSolicitud.REGISTRADA;
         }
         try {
-            return STATUS.convertToEntityAttribute(estado.trim().toUpperCase());
+            return EstadoSolicitud.valueOf(estado.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            return EstadoSolicitud.REGISTERED;
+            return EstadoSolicitud.REGISTRADA;
         }
     }
 
@@ -59,12 +55,12 @@ public class ServiceBandejaSolicitudImpl implements ServiceBandejaSolicitud {
                 s.getCustomerId(),
                 s.getRequestedAmount(),
                 s.getTermMonths(),
-                METHOD.convertToDatabaseColumn(s.getAmortizationMethod()),
-                PURPOSE.convertToDatabaseColumn(s.getPurpose()),
+                s.getAmortizationMethod().name(),
+                s.getPurpose().name(),
                 s.getReferenceInstallment(),
                 s.getApplicationDate(),
                 s.getRegisteredAt(),
-                STATUS.convertToDatabaseColumn(s.getStatus())
+                s.getStatus().name()
         );
     }
 
@@ -109,13 +105,13 @@ public class ServiceBandejaSolicitudImpl implements ServiceBandejaSolicitud {
         return new SolicitudDetalleResponse(
                 s.getId(),
                 s.getCustomerId(),
-                STATUS.convertToDatabaseColumn(s.getStatus()),
+                s.getStatus().name(),
                 s.getApplicationDate(),
                 s.getRegisteredAt(),
                 s.getRequestedAmount(),
                 s.getTermMonths(),
-                METHOD.convertToDatabaseColumn(s.getAmortizationMethod()),
-                PURPOSE.convertToDatabaseColumn(s.getPurpose()),
+                s.getAmortizationMethod().name(),
+                s.getPurpose().name(),
                 cuotaReferencial,
                 ingresos,
                 gastos,

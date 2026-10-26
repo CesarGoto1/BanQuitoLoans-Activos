@@ -106,7 +106,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
         loan.setNetAmount(montoAprobado.subtract(contribucionSolca));
         loan.setDestinationAccount(cuentaDestino);
         loan.setDisbursementDate(fechaDesembolso);
-        loan.setDisbursementInstructionStatus(EstadoInstruccionDesembolso.PENDING);
+        loan.setDisbursementInstructionStatus(EstadoInstruccionDesembolso.PENDIENTE);
         loan.setPortfolioStatus(EstadoCartera.POR_VENCER);
         loan.setPrincipalBalance(montoAprobado);
         loan.setDaysPastDue(0);
@@ -131,7 +131,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
             throw new ExcepcionPrestamo(HttpStatus.BAD_GATEWAY,
                     "No se pudo acreditar en el Core de Pasivos; el desembolso no se realizó. Intenta de nuevo.");
         }
-        loan.setDisbursementInstructionStatus(EstadoInstruccionDesembolso.DELIVERED);
+        loan.setDisbursementInstructionStatus(EstadoInstruccionDesembolso.ENTREGADA);
         loan.setLastModifiedBy(AUDIT_USER);
         loan.setLastModifiedAt(LocalDateTime.now());
 
@@ -202,7 +202,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
         installment.setInterestPaid(BigDecimal.ZERO);
         installment.setPrincipalPaid(BigDecimal.ZERO);
         installment.setAccruedDefaultInterest(BigDecimal.ZERO);
-        installment.setStatus(EstadoCuota.PENDING);
+        installment.setStatus(EstadoCuota.PENDIENTE);
         installment.setCreatedBy(AUDIT_USER);
         installment.setCreatedAt(loan.getCreatedAt());
         return installment;

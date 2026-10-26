@@ -18,8 +18,6 @@ import com.grupob.bancobanquito.acceso.SesionAnalista;
 @Transactional
 class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
 
-    private static final ConversorEstadoSolicitud STATUS = new ConversorEstadoSolicitud();
-
     private final SolicitudRepository applicationRepository;
     private final ServiceAnalista analystService;
     private final PoliticaAprobacionPrestamo politicaAprobacion;
@@ -56,7 +54,7 @@ class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
         application.setAssignedRate(teaAsignada.setScale(4, RoundingMode.UNNECESSARY));
         application.setFinalInstallment(installment);
         application.setRejectionReason(null);
-        application.setStatus(EstadoSolicitud.APPROVED);
+        application.setStatus(EstadoSolicitud.APROBADA);
         return saveDecision(application, idAnalista, identification, fechaNegocio);
     }
 
@@ -71,7 +69,7 @@ class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
         application.setAssignedRate(null);
         application.setFinalInstallment(null);
         application.setRejectionReason(motivoRechazo.strip());
-        application.setStatus(EstadoSolicitud.REJECTED);
+        application.setStatus(EstadoSolicitud.RECHAZADA);
         return saveDecision(application, idAnalista, identification, fechaNegocio);
     }
 
@@ -89,7 +87,7 @@ class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
         }
         Solicitud application = applicationRepository.findForDecision(idSolicitud)
                 .orElseThrow(() -> new SolicitudNoEncontradaException(idSolicitud));
-        politicaAprobacion.ensureRegistered(STATUS.convertToDatabaseColumn(application.getStatus()));
+        politicaAprobacion.ensureRegistered(application.getStatus().name());
         return application;
     }
 
@@ -114,7 +112,7 @@ class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
         application.setLastModifiedBy(identification);
         application.setLastModifiedAt(LocalDateTime.now());
         applicationRepository.saveAndFlush(application);
-        return new ResultadoDecisionPrestamo(application.getId(), STATUS.convertToDatabaseColumn(application.getStatus()),
+        return new ResultadoDecisionPrestamo(application.getId(), application.getStatus().name(),
                 application.getAssignedRate(), application.getFinalInstallment(), fechaNegocio,
                 application.getRejectionReason(), idAnalista);
     }

@@ -49,7 +49,7 @@ class LoanServiceTest {
 
         Prestamo loan = loanRepository.findByNumeroOperacion(result.numeroOperacion()).orElseThrow();
         assertThat(loan.getPortfolioStatus()).isEqualTo(EstadoCartera.POR_VENCER);
-        assertThat(loan.getDisbursementInstructionStatus()).isEqualTo(EstadoInstruccionDesembolso.DELIVERED);
+        assertThat(loan.getDisbursementInstructionStatus()).isEqualTo(EstadoInstruccionDesembolso.ENTREGADA);
         assertThat(installmentRepository.countByLoanId(loan.getId())).isEqualTo(12);
 
         BigDecimal totalPrincipal = installmentRepository.findAll().stream()

@@ -4,20 +4,20 @@ import { findApplications } from '../services/solicitudesCreditoApi.js'
 const dollars = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
 
 const statuses = {
-  REGISTERED: { label: 'Registrada', className: 'bq-estado-info' },
-  APPROVED: { label: 'Aprobada', className: 'bq-estado-exito' },
-  REJECTED: { label: 'Rechazada', className: 'bq-estado-peligro' },
+  REGISTRADA: { label: 'Registrada', className: 'bq-estado-info' },
+  APROBADA: { label: 'Aprobada', className: 'bq-estado-exito' },
+  RECHAZADA: { label: 'Rechazada', className: 'bq-estado-peligro' },
 }
 
 const purposes = {
-  DURABLE_GOODS: 'Bienes duraderos',
-  HEALTH: 'Salud',
-  EDUCATION: 'Educación',
-  TRAVEL: 'Viaje',
-  OTHER: 'Otro',
+  BIENES_DURADEROS: 'Bienes duraderos',
+  SALUD: 'Salud',
+  EDUCACION: 'Educación',
+  VIAJE: 'Viaje',
+  OTRO: 'Otro',
 }
 
-const amortizationMethods = { FRENCH: 'Francés', GERMAN: 'Alemán' }
+const amortizationMethods = { FRANCES: 'Francés', ALEMAN: 'Alemán' }
 
 function formatDate(iso) {
   const [year, month, day] = iso.split('-')

@@ -33,7 +33,7 @@ class ServiceAmortizacionImpl implements ServiceAmortizacion {
             BigDecimal capital;
             if (number == plazoMeses) {
                 capital = balance;
-            } else if (metodo == MetodoAmortizacion.FRENCH) {
+            } else if (metodo == MetodoAmortizacion.FRANCES) {
                 capital = frenchPayment.subtract(interes).min(balance);
             } else {
                 capital = germanPrincipal.min(balance);

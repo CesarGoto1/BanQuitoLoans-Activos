@@ -27,7 +27,7 @@ const samplePreview = {
   montoAprobado: 10000.0,
   teaAsignada: 0.155,
   plazoMeses: 2,
-  metodoAmortizacion: 'FRENCH',
+  metodoAmortizacion: 'FRANCES',
   seguroMensual: 6.0,
   contribucionSolca: 50.0,
   montoNeto: 9950.0,

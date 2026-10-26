@@ -2,8 +2,9 @@ package com.grupob.bancobanquito.originacion.internal;
 
 import com.grupob.bancobanquito.amortizacion.MetodoAmortizacion;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,7 +30,7 @@ class Solicitud {
     private Integer idCliente;
 
     @NotNull
-    @Convert(converter = ConversorMetodoAmortizacion.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "sistemaAmortizacion")
     private MetodoAmortizacion metodoAmortizacion;
 
@@ -46,7 +47,7 @@ class Solicitud {
     private Integer plazoMeses;
 
     @NotNull
-    @Convert(converter = ConversorDestinoCredito.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "destinoCredito")
     private DestinoCredito destinoCredito;
 
@@ -82,7 +83,7 @@ class Solicitud {
     private BigDecimal finalInstallment;
 
     @NotNull
-    @Convert(converter = ConversorEstadoSolicitud.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "estadoSolicitud")
     private EstadoSolicitud status;
 

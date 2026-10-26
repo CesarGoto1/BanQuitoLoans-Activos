@@ -3,7 +3,6 @@ package com.grupob.bancobanquito.prestamos.internal;
 import com.grupob.bancobanquito.amortizacion.MetodoAmortizacion;
 import com.grupob.bancobanquito.prestamos.EstadoCartera;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -41,7 +40,7 @@ class Prestamo {
     private String cedulaCliente;
 
     @NotNull
-    @Convert(converter = ConversorMetodoAmortizacion.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "sistemaAmortizacion")
     private MetodoAmortizacion metodoAmortizacion;
 
@@ -89,7 +88,7 @@ class Prestamo {
     private LocalDate fechaDesembolso;
 
     @NotNull
-    @Convert(converter = ConversorEstadoInstruccionDesembolso.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "estadoInstruccionDesembolso")
     private EstadoInstruccionDesembolso disbursementInstructionStatus;
 

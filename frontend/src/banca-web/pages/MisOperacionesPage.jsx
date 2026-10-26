@@ -3,7 +3,7 @@ import { findCustomerLoans, findLoanInstallments } from '../services/prestamosCl
 
 const dollars = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
 const percentage = new Intl.NumberFormat('es-EC', { style: 'percent', minimumFractionDigits: 2 })
-const amortizationMethods = { FRENCH: 'Francés', GERMAN: 'Alemán' }
+const amortizationMethods = { FRANCES: 'Francés', ALEMAN: 'Alemán' }
 
 const portfolioStatuses = {
   POR_VENCER: { label: 'Por vencer', className: 'bq-estado-info' },
@@ -14,9 +14,9 @@ const portfolioStatuses = {
 }
 
 const installmentStatuses = {
-  PENDING: { label: 'Pendiente', className: 'bq-estado-neutro' },
-  PARTIALLY_PAID: { label: 'Pago parcial', className: 'bq-estado-aviso' },
-  PAID: { label: 'Pagada', className: 'bq-estado-exito' },
+  PENDIENTE: { label: 'Pendiente', className: 'bq-estado-neutro' },
+  PAGO_PARCIAL: { label: 'Pago parcial', className: 'bq-estado-aviso' },
+  PAGADA: { label: 'Pagada', className: 'bq-estado-exito' },
 }
 
 function formatDate(iso) {
@@ -124,7 +124,7 @@ function LoanDetail({ loan, onBack }) {
     }
   }, [loan.numeroOperacion, page])
 
-  const next = installments?.content.find((installment) => installment.estadoCuota !== 'PAID')
+  const next = installments?.content.find((installment) => installment.estadoCuota !== 'PAGADA')
 
   return (
     <main className="bq-pagina">

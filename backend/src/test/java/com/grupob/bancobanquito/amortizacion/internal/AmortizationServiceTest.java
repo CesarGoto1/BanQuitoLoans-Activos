@@ -24,7 +24,7 @@ class AmortizationServiceTest {
     @Test
     void frenchScheduleMatchesTheReferenceExample() {
         List<CuotaCalculada> cuotas = servicioAmortizacion.calculate(AMOUNT, RATE, 12,
-                MetodoAmortizacion.FRENCH, DISBURSEMENT);
+                MetodoAmortizacion.FRANCES, DISBURSEMENT);
 
         String[][] expected = {
                 {"2026-11-30", "775.41", "130.03", "9224.59"},
@@ -54,7 +54,7 @@ class AmortizationServiceTest {
     @Test
     void germanScheduleMatchesTheReferenceExample() {
         List<CuotaCalculada> cuotas = servicioAmortizacion.calculate(AMOUNT, RATE, 12,
-                MetodoAmortizacion.GERMAN, DISBURSEMENT);
+                MetodoAmortizacion.ALEMAN, DISBURSEMENT);
 
         assertThat(cuotas.get(0).capital()).isEqualByComparingTo("833.33");
         assertThat(cuotas.get(0).interes()).isEqualByComparingTo("130.03");
@@ -98,7 +98,7 @@ class AmortizationServiceTest {
             "2027-01-31,2027-02-28,2027-03-31", "2028-01-31,2028-02-29,2028-03-31"})
     void dueDatesKeepTheDisbursementDayAfterFebruary(LocalDate disbursement, LocalDate first, LocalDate second) {
         List<CuotaCalculada> cuotas = servicioAmortizacion.calculate(new BigDecimal("500.00"),
-                new BigDecimal("0.1550"), 6, MetodoAmortizacion.FRENCH, disbursement);
+                new BigDecimal("0.1550"), 6, MetodoAmortizacion.FRANCES, disbursement);
 
         assertThat(cuotas.get(0).fechaVencimiento()).isEqualTo(first);
         assertThat(cuotas.get(1).fechaVencimiento()).isEqualTo(second);
@@ -107,7 +107,7 @@ class AmortizationServiceTest {
     @Test
     void zeroRateDoesNotDivideByZero() {
         List<CuotaCalculada> cuotas = servicioAmortizacion.calculate(new BigDecimal("1000.00"),
-                BigDecimal.ZERO, 6, MetodoAmortizacion.FRENCH, DISBURSEMENT);
+                BigDecimal.ZERO, 6, MetodoAmortizacion.FRANCES, DISBURSEMENT);
 
         assertThat(interesTotal(cuotas)).isZero();
         assertThat(cuotas.getLast().capital()).isEqualByComparingTo("166.65");

@@ -21,7 +21,7 @@ class ServiceSolicitudesImpl implements ServiceSolicitudes {
 
     @Override
     public Optional<SolicitudAprobada> findApproved(Integer idSolicitud) {
-        return loanApplicationRepository.findByIdAndStatus(idSolicitud, EstadoSolicitud.APPROVED)
+        return loanApplicationRepository.findByIdAndStatus(idSolicitud, EstadoSolicitud.APROBADA)
                 .map(application -> new SolicitudAprobada(application.getId(), application.getCustomerId(),
                         application.getRequestedAmount(), application.getAssignedRate(), application.getTermMonths(),
                         application.getAmortizationMethod()));
@@ -29,7 +29,7 @@ class ServiceSolicitudesImpl implements ServiceSolicitudes {
 
     @Override
     public Page<SolicitudDesembolsoPendiente> findPendingDisbursement(Pageable paginacion) {
-        return loanApplicationRepository.findWithoutLoan(EstadoSolicitud.APPROVED, paginacion)
+        return loanApplicationRepository.findWithoutLoan(EstadoSolicitud.APROBADA, paginacion)
                 .map(application -> new SolicitudDesembolsoPendiente(application.getId(),
                         application.getCustomerId(), application.getRequestedAmount(), application.getAssignedRate(),
                         application.getTermMonths(), application.getAmortizationMethod(),

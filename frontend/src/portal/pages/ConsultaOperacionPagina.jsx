@@ -8,7 +8,7 @@ import {
 const dolares = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
 const numero = new Intl.NumberFormat('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const porcentaje = new Intl.NumberFormat('es-EC', { style: 'percent', minimumFractionDigits: 2 })
-const sistemasAmortizacion = { FRENCH: 'Francés', GERMAN: 'Alemán' }
+const sistemasAmortizacion = { FRANCES: 'Francés', ALEMAN: 'Alemán' }
 
 const estadosCartera = {
   POR_VENCER: { texto: 'Por vencer', clase: 'bq-estado-info' },
@@ -19,9 +19,9 @@ const estadosCartera = {
 }
 
 const estadosCuota = {
-  PENDING: { texto: 'Pendiente', clase: 'bq-estado-neutro' },
-  PARTIALLY_PAID: { texto: 'Pago parcial', clase: 'bq-estado-aviso' },
-  PAID: { texto: 'Pagada', clase: 'bq-estado-exito' },
+  PENDIENTE: { texto: 'Pendiente', clase: 'bq-estado-neutro' },
+  PAGO_PARCIAL: { texto: 'Pago parcial', clase: 'bq-estado-aviso' },
+  PAGADA: { texto: 'Pagada', clase: 'bq-estado-exito' },
 }
 
 const modosBusqueda = {
