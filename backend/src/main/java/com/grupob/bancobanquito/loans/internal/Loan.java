@@ -1,10 +1,12 @@
 package com.grupob.bancobanquito.loans.internal;
 
 import com.grupob.bancobanquito.amortization.AmortizationMethod;
-import com.grupob.bancobanquito.loans.PortfolioStatus;
+import com.grupob.bancobanquito.loans.EstadoCartera;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -92,9 +94,9 @@ class Loan {
     private DisbursementInstructionStatus disbursementInstructionStatus;
 
     @NotNull
-    @Convert(converter = PortfolioStatusConverter.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "estadoCartera")
-    private PortfolioStatus portfolioStatus;
+    private EstadoCartera portfolioStatus;
 
     @NotNull
     @Digits(integer = 8, fraction = 2)
@@ -248,11 +250,11 @@ class Loan {
         this.disbursementInstructionStatus = disbursementInstructionStatus;
     }
 
-    PortfolioStatus getPortfolioStatus() {
+    EstadoCartera getPortfolioStatus() {
         return portfolioStatus;
     }
 
-    void setPortfolioStatus(PortfolioStatus portfolioStatus) {
+    void setPortfolioStatus(EstadoCartera portfolioStatus) {
         this.portfolioStatus = portfolioStatus;
     }
 

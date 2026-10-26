@@ -1,9 +1,9 @@
 package com.grupob.bancobanquito.loans.internal;
 
-import com.grupob.bancobanquito.loans.InstallmentSummary;
-import com.grupob.bancobanquito.loans.LoanInquiryService;
-import com.grupob.bancobanquito.loans.LoanSummary;
-import com.grupob.bancobanquito.loans.PortfolioStatus;
+import com.grupob.bancobanquito.loans.ConsultaPrestamoService;
+import com.grupob.bancobanquito.loans.EstadoCartera;
+import com.grupob.bancobanquito.loans.ResumenCuota;
+import com.grupob.bancobanquito.loans.ResumenPrestamo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Pattern;
@@ -22,32 +22,32 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Loans")
 class LoanController {
 
-    private final LoanInquiryService loanInquiryService;
+    private final ConsultaPrestamoService consultaPrestamoService;
 
-    LoanController(LoanInquiryService loanInquiryService) {
-        this.loanInquiryService = loanInquiryService;
+    LoanController(ConsultaPrestamoService consultaPrestamoService) {
+        this.consultaPrestamoService = consultaPrestamoService;
     }
 
     @GetMapping("/{loanNumber}")
-    @Operation(summary = "Loan found by its loan number, with its portfolio status, days past due and principal balance")
-    LoanSummary findByLoanNumber(@PathVariable String loanNumber) {
-        return loanInquiryService.findByLoanNumber(loanNumber);
+    @Operation(summary = "Préstamo buscado por su número de operación, con su estado de cartera, días de mora y saldo de capital")
+    ResumenPrestamo buscarPorNumeroOperacion(@PathVariable String loanNumber) {
+        return consultaPrestamoService.buscarPorNumeroOperacion(loanNumber);
     }
 
     @GetMapping
     @Operation(summary = "Loans of one customer, filtered by national ID and optionally by portfolio status, one page at a time")
-    Page<LoanSummary> findByCustomer(
+    Page<ResumenPrestamo> findByCustomer(
             @RequestParam @Pattern(regexp = "\\d{10}", message = "La cédula debe tener 10 dígitos.") String customerNationalId,
-            @RequestParam(required = false) PortfolioStatus portfolioStatus,
+            @RequestParam(required = false) EstadoCartera portfolioStatus,
             @PageableDefault(size = 10, sort = "disbursementDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        return loanInquiryService.findByCustomer(customerNationalId, portfolioStatus, pageable);
+        return consultaPrestamoService.buscarPorCliente(customerNationalId, portfolioStatus, pageable);
     }
 
     @GetMapping("/{loanNumber}/installments")
     @Operation(summary = "Amortization schedule of a loan, one page at a time")
-    Page<InstallmentSummary> findInstallments(
+    Page<ResumenCuota> findInstallments(
             @PathVariable String loanNumber,
             @PageableDefault(size = 12, sort = "installmentNumber") Pageable pageable) {
-        return loanInquiryService.findInstallments(loanNumber, pageable);
+        return consultaPrestamoService.buscarTablaAmortizacion(loanNumber, pageable);
     }
 }
