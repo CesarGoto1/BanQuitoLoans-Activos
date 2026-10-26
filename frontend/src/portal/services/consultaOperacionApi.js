@@ -1,4 +1,4 @@
-import { getAnalystSession } from './analystSession.js'
+import { getAnalystSession } from './sesionAnalista.js'
 
 const API = import.meta.env.VITE_API ?? '/api'
 
@@ -6,7 +6,7 @@ function cabeceras() {
   return {
     'Content-Type': 'application/json',
     'X-Rol': 'ANALISTA',
-    'X-Identificacion': getAnalystSession()?.nationalId ?? '',
+    'X-Identificacion': getAnalystSession()?.cedula ?? '',
   }
 }
 async function leerRespuesta(respuesta) {
@@ -18,22 +18,22 @@ async function leerRespuesta(respuesta) {
 }
 
 export async function buscarPrestamo(numeroOperacion) {
-  const respuesta = await fetch(`${API}/loans/${encodeURIComponent(numeroOperacion)}`, { headers: cabeceras() })
+  const respuesta = await fetch(`${API}/prestamos/${encodeURIComponent(numeroOperacion)}`, { headers: cabeceras() })
   return leerRespuesta(respuesta)
 }
 
 export async function buscarPrestamosDelCliente(cedulaCliente, estadoCartera, pagina) {
-  const parametros = new URLSearchParams({ customerNationalId: cedulaCliente, page: pagina })
+  const parametros = new URLSearchParams({ cedulaCliente, page: pagina })
   if (estadoCartera) {
-    parametros.set('portfolioStatus', estadoCartera)
+    parametros.set('estadoCartera', estadoCartera)
   }
-  const respuesta = await fetch(`${API}/loans?${parametros}`, { headers: cabeceras() })
+  const respuesta = await fetch(`${API}/prestamos?${parametros}`, { headers: cabeceras() })
   return leerRespuesta(respuesta)
 }
 
 export async function buscarTablaAmortizacion(numeroOperacion, pagina) {
   const parametros = new URLSearchParams({ page: pagina })
-  const respuesta = await fetch(`${API}/loans/${encodeURIComponent(numeroOperacion)}/installments?${parametros}`, {
+  const respuesta = await fetch(`${API}/prestamos/${encodeURIComponent(numeroOperacion)}/cuotas?${parametros}`, {
     headers: cabeceras(),
   })
   return leerRespuesta(respuesta)

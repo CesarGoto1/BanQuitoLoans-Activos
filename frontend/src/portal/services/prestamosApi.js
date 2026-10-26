@@ -1,11 +1,11 @@
-import { getAnalystSession } from './analystSession.js';
+import { getAnalystSession } from './sesionAnalista.js';
 const environment = import.meta.env || {};
 const API_ROOT = environment.VITE_API_PRESTAMOS
   ? `${environment.VITE_API_PRESTAMOS.replace(/\/$/, '')}/api`
   : (environment.VITE_API || '/api').replace(/\/$/, '');
 
 function getAnalystIdentification() {
-  return getAnalystSession()?.nationalId ?? '';
+  return getAnalystSession()?.cedula ?? '';
 }
 
 async function request(path, { method = 'GET', body } = {}) {

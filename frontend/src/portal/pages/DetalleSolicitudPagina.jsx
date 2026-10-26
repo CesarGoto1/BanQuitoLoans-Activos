@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { obtenerDetalleSolicitud } from '../services/prestamosApi.js';
-import LoanDecisionPanel from '../components/LoanDecisionPanel.jsx';
+import PanelDecisionPrestamo from '../components/PanelDecisionPrestamo.jsx';
 
 export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
   const [detalle, setDetalle] = useState(null);
@@ -184,7 +184,7 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
             </div>
           </div>
 
-          <LoanDecisionPanel key={detalle.idSolicitud} application={detalle}
+          <PanelDecisionPrestamo key={detalle.idSolicitud} application={detalle}
             onResolved={(result) => setDetalle((current) => ({ ...current, ...result }))} />
         </>
       ) : null}

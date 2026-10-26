@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import DisbursementStartPage from './DisbursementStartPage.jsx'
+import InicioDesembolsoPage from './InicioDesembolsoPage.jsx'
 import ConsultaOperacionPagina from './ConsultaOperacionPagina.jsx'
-import LoginPage from './LoginPage.jsx'
+import InicioSesionPage from './InicioSesionPage.jsx'
 import SolicitudesPagina from './SolicitudesPagina.jsx'
-import { clearAnalystSession, getAnalystSession } from '../services/analystSession.js'
+import { clearAnalystSession, getAnalystSession } from '../services/sesionAnalista.js'
 
 const SECTIONS = [
   { id: 'applications', label: 'Solicitudes', page: SolicitudesPagina },
-  { id: 'disbursement', label: 'Desembolsar', page: DisbursementStartPage },
+  { id: 'disbursement', label: 'Desembolsar', page: InicioDesembolsoPage },
   { id: 'inquiry', label: 'Consultar operaciones', page: ConsultaOperacionPagina },]
 
 export default function PortalPage() {
@@ -20,7 +20,7 @@ export default function PortalPage() {
   }
 
   if (!analyst) {
-    return <LoginPage onLogin={setAnalyst} />
+    return <InicioSesionPage onLogin={setAnalyst} />
   }
 
   const Page = SECTIONS.find((section) => section.id === sectionId).page
@@ -34,7 +34,7 @@ export default function PortalPage() {
           <span className="bq-marca-app">Portal del analista</span>
         </div>
         <div className="bq-cabecera-usuario">
-          <span>{analyst.name}</span>
+          <span>{analyst.nombre}</span>
           <button type="button" className="bq-btn bq-btn-secundario bq-btn-sm" onClick={logout}>
             Cerrar sesión
           </button>
