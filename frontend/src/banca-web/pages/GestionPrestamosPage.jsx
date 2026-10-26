@@ -1,0 +1,93 @@
+import { useState } from 'react'
+import SolicitudPage from './SolicitudPage.jsx'
+import MisSolicitudesPage from './MisSolicitudesPage.jsx'
+import MisOperacionesPage from './MisOperacionesPage.jsx'
+import SimulacionPage from './SimulacionPage.jsx'
+import { clearCustomerSession, receiveCustomerFromUrl } from '../services/sesionCliente.js'
+
+const ONLINE_BANKING_URL = import.meta.env.VITE_URL_PASIVOS ?? 'http://localhost:5174'
+
+const SECTIONS = [
+  { id: 'simulation', label: 'Simular crédito', page: SimulacionPage },
+  { id: 'request', label: 'Solicitar crédito', page: SolicitudPage },
+  { id: 'applications', label: 'Mis solicitudes', page: MisSolicitudesPage },
+  { id: 'loans', label: 'Mis operaciones', page: MisOperacionesPage },
+]
+
+export default function GestionPrestamosPage() {
+  const [customer] = useState(receiveCustomerFromUrl)
+  const [sectionId, setSectionId] = useState(SECTIONS[0].id)
+  const [simulatedLoan, setSimulatedLoan] = useState(null)
+
+  function openSection(id) {
+    setSimulatedLoan(null)
+    setSectionId(id)
+  }
+
+  function requestSimulatedLoan(loan) {
+    setSimulatedLoan(loan)
+    setSectionId('request')
+  }
+
+  function backToAccount() {
+    clearCustomerSession()
+    window.location.href = `${ONLINE_BANKING_URL}/banca/mi-cuenta`
+  }
+
+  if (!customer) {
+    return (
+      <main className="bq-pagina">
+        <div className="bq-alerta bq-alerta-aviso" role="alert">
+          <strong>Ingresa desde la Banca Web</strong>
+          <span>Para gestionar tus préstamos, primero inicia sesión en la Banca Web.</span>
+        </div>
+        <div className="bq-acciones">
+          <a className="bq-btn bq-btn-primario" href={ONLINE_BANKING_URL}>
+            Ir a la Banca Web
+          </a>
+        </div>
+      </main>
+    )
+  }
+
+  const Page = SECTIONS.find((section) => section.id === sectionId).page
+
+  return (
+    <>
+      <header className="bq-cabecera">
+        <div className="bq-marca">
+          <img className="bq-logo" src="/logo-bq.png" alt="BanQuito" />
+          <span className="bq-marca-nombre">BanQuito</span>
+          <span className="bq-marca-app">Gestión de préstamos</span>
+        </div>
+        <div className="bq-cabecera-usuario">
+          <span>
+            {customer.nombresCliente} {customer.apellidosCliente}
+          </span>
+          <button type="button" className="bq-btn bq-btn-secundario bq-btn-sm" onClick={backToAccount}>
+            Volver a mi cuenta
+          </button>
+        </div>
+      </header>
+      <nav className="bq-menu">
+        {SECTIONS.map((section) => (
+          <button
+            key={section.id}
+            type="button"
+            className="bq-menu-item"
+            aria-current={section.id === sectionId ? 'page' : undefined}
+            onClick={() => openSection(section.id)}
+          >
+            {section.label}
+          </button>
+        ))}
+      </nav>
+      <Page
+        key={`${sectionId}-${simulatedLoan ? 'simulated' : 'empty'}`}
+        customer={customer}
+        simulatedLoan={simulatedLoan}
+        onRequest={requestSimulatedLoan}
+      />
+    </>
+  )
+}
