@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import InicioDesembolsoPage from './InicioDesembolsoPage.jsx'
 import ConsultaOperacionPagina from './ConsultaOperacionPagina.jsx'
+import CierreDiaPagina from './CierreDiaPagina.jsx'
 import InicioSesionPage from './InicioSesionPage.jsx'
 import SolicitudesPagina from './SolicitudesPagina.jsx'
 import { clearAnalystSession, getAnalystSession } from '../services/sesionAnalista.js'
@@ -8,7 +9,8 @@ import { clearAnalystSession, getAnalystSession } from '../services/sesionAnalis
 const SECTIONS = [
   { id: 'applications', label: 'Solicitudes', page: SolicitudesPagina },
   { id: 'disbursement', label: 'Desembolsar', page: InicioDesembolsoPage },
-  { id: 'inquiry', label: 'Consultar operaciones', page: ConsultaOperacionPagina },]
+  { id: 'inquiry', label: 'Consultar operaciones', page: ConsultaOperacionPagina },
+  { id: 'closing', label: 'Cierre de día', page: CierreDiaPagina },]
 
 export default function PortalPage() {
   const [analyst, setAnalyst] = useState(getAnalystSession)
