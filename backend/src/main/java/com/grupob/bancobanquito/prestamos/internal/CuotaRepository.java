@@ -12,4 +12,5 @@ interface CuotaRepository extends JpaRepository<Cuota, Integer> {
     long countByLoanId(Integer loanId);
 
     List<Cuota> findByLoanIdOrderByNumeroCuotaAsc(Integer loanId);
+    List<Cuota> findByLoanIdAndStatusNotOrderByNumeroCuotaAsc(Integer loanId, EstadoCuota status);
 }
