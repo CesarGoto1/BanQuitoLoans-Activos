@@ -120,7 +120,7 @@ export default function CierreDiaPagina() {
             <>
               <div className="bq-encabezado-tarjeta">
                 <div className="bq-cifra">
-                  <span>Fecha de negocio vigente</span>
+                  <span className="bq-texto-2">Fecha de negocio vigente</span>
                   <strong>{formatDate(open.fechaNegocio)}</strong>
                 </div>
                 <ClosingState state={open.estadoCierre} />
@@ -276,7 +276,7 @@ function StageLog({ closing, onClose }) {
                   <td className="bq-mono">{formatDateTime(execution.fechaHoraFin)}</td>
                   <td className="bq-num">{formatDuration(execution.duracionMilisegundos)}</td>
                   <td className="bq-num">{execution.registrosProcesados}</td>
-                  <td>{execution.mensajeError ?? '-'}</td>
+                  <td className="bq-texto-largo">{execution.mensajeError ?? '-'}</td>
                 </tr>
               )
             })}

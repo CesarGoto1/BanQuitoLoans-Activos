@@ -22,10 +22,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-// Cada etapa corre en su propia transacción: si falla, se deshace solo esa etapa, el día queda FALLIDO
-// y el reintento continúa desde la primera etapa que no terminó con éxito (RF-11, QA-03).
-// Por eso una etapa solo debe escribir en la base dentro de ejecutar(); lo que haga fuera de la base
-// (por ejemplo, generar un archivo) tiene que poder repetirse sin efectos duplicados.
 @Service
 public class ServiceCierreDiaImpl implements ServiceCierreDia {
 
@@ -117,8 +113,6 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
             log.warn("La etapa {} no tiene implementación; se registra sin procesar registros", paso);
         }
         try {
-            // El trabajo de la etapa y su marca EXITOSA se guardan juntos: si la aplicación se cae en medio,
-            // no queda una etapa con efectos aplicados que el reintento vuelva a ejecutar.
             transaccion.executeWithoutResult(estado -> {
                 ejecucion.terminar(etapa == null ? 0 : etapa.ejecutar(cierre.getFechaNegocio()), usuario);
                 ejecucionRepository.save(ejecucion);
