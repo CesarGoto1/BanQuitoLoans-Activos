@@ -34,16 +34,16 @@ class ServicePagosImpl implements ServicePagos {
     private final ServiceCartera servicioCartera;
     private final ServiceContabilidad servicioContabilidad;
     private final CalculadoraPrelacion calculadoraPrelacion;
-    private final PagoRepository pagoRepository;
+    private final PagoRecaudacionRepository pagoRecaudacionRepository;
     private final DetallePagoRepository detallePagoRepository;
 
     ServicePagosImpl(ServiceCartera servicioCartera, ServiceContabilidad servicioContabilidad,
-                     CalculadoraPrelacion calculadoraPrelacion, PagoRepository pagoRepository,
-                     DetallePagoRepository detallePagoRepository) {
+                    CalculadoraPrelacion calculadoraPrelacion, PagoRecaudacionRepository pagoRecaudacionRepository,
+                    DetallePagoRepository detallePagoRepository) {
         this.servicioCartera = servicioCartera;
         this.servicioContabilidad = servicioContabilidad;
         this.calculadoraPrelacion = calculadoraPrelacion;
-        this.pagoRepository = pagoRepository;
+        this.pagoRecaudacionRepository = pagoRecaudacionRepository;
         this.detallePagoRepository = detallePagoRepository;
     }
 
@@ -53,7 +53,7 @@ class ServicePagosImpl implements ServicePagos {
         if (pago.idRegistro() == null || pago.fechaNegocio() == null) {
             throw new IllegalArgumentException("El pago debe indicar el registro de recaudación y la fecha de negocio.");
         }
-        if (pagoRepository.existsByIdRegistro(pago.idRegistro())) {
+        if (pagoRecaudacionRepository.existsByIdRegistro(pago.idRegistro())) {
             throw new IllegalStateException("El registro de recaudación " + pago.idRegistro() + " ya fue aplicado.");
         }
         if (pago.monto() == null || pago.monto().signum() <= 0 || pago.monto().stripTrailingZeros().scale() > 2) {
@@ -95,7 +95,7 @@ class ServicePagosImpl implements ServicePagos {
         registrado.setExcedenteDevuelto(distribucion.excedente());
         registrado.setUsuarioCreacion(USUARIO_AUDITORIA);
         registrado.setFechaCreacion(LocalDateTime.now());
-        return pagoRepository.save(registrado);
+        return pagoRecaudacionRepository.save(registrado);
     }
 
     private void guardarDetalles(Pago pago, List<ImputacionCuota> imputaciones) {
@@ -116,7 +116,7 @@ class ServicePagosImpl implements ServicePagos {
     }
 
     private List<MovimientoContable> asientos(OperacionPorPagar operacion, PagoRecaudacion pago,
-                                              DistribucionPago distribucion) {
+                                            DistribucionPago distribucion) {
         List<MovimientoContable> movimientos = new ArrayList<>();
         String clave = "PAGO-REG-" + pago.idRegistro() + "-";
         LocalDate fecha = pago.fechaNegocio();
@@ -149,7 +149,7 @@ class ServicePagosImpl implements ServicePagos {
     }
 
     private void agregar(List<MovimientoContable> movimientos, OperacionPorPagar operacion, LocalDate fecha,
-                         TipoAsiento tipo, CodigoCuentaContable cuentaCredito, BigDecimal monto, String clave) {
+                        TipoAsiento tipo, CodigoCuentaContable cuentaCredito, BigDecimal monto, String clave) {
         if (monto.signum() > 0) {
             movimientos.add(new MovimientoContable(operacion.idOperacion(), fecha, tipo,
                     CodigoCuentaContable.RECAUDACIONES_POR_APLICAR, cuentaCredito, monto, clave));
