@@ -1,12 +1,15 @@
 package com.grupob.bancobanquito.amortizacion.internal;
 
 import com.grupob.bancobanquito.amortizacion.MetodoAmortizacion;
+import com.grupob.bancobanquito.amortizacion.ModalidadAbono;
+import com.grupob.bancobanquito.amortizacion.RecalculoTabla;
 import com.grupob.bancobanquito.amortizacion.ServiceAmortizacion;
 import com.grupob.bancobanquito.amortizacion.CuotaCalculada;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -58,6 +61,60 @@ class ServiceAmortizacionImpl implements ServiceAmortizacion {
             root = next;
         }
         throw new IllegalStateException("No se pudo calcular la tasa mensual.");
+    }
+
+    @Override
+    public BigDecimal interesPorDias(BigDecimal saldoCapital, BigDecimal teaAsignada, long dias, Integer baseDias) {
+        return saldoCapital.multiply(tasaPorDias(teaAsignada, dias, baseDias)).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public List<CuotaCalculada> recalcular(RecalculoTabla recalculo) {
+        BigDecimal monthlyRate = monthlyRate(recalculo.teaAsignada());
+        List<LocalDate> vencimientos = recalculo.vencimientosPendientes();
+        long diasPrimerPeriodo = ChronoUnit.DAYS.between(recalculo.fechaAbono(), vencimientos.getFirst());
+        BigDecimal tasaPrimerPeriodo = tasaPorDias(recalculo.teaAsignada(), diasPrimerPeriodo, recalculo.baseDias());
+        BigDecimal valorFijo = valorFijo(recalculo, monthlyRate, tasaPrimerPeriodo);
+
+        List<CuotaCalculada> cuotas = new ArrayList<>();
+        BigDecimal balance = recalculo.saldoCapital();
+        for (int index = 0; index < vencimientos.size() && balance.signum() > 0; index++) {
+            BigDecimal tasa = index == 0 ? tasaPrimerPeriodo : monthlyRate;
+            BigDecimal interes = balance.multiply(tasa).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal capital = recalculo.metodo() == MetodoAmortizacion.FRANCES
+                    ? valorFijo.subtract(interes)
+                    : valorFijo;
+            if (index == vencimientos.size() - 1 || capital.compareTo(balance) > 0) {
+                capital = balance;
+            }
+            balance = balance.subtract(capital);
+            cuotas.add(new CuotaCalculada(recalculo.primeraCuota() + index, vencimientos.get(index),
+                    capital, interes, balance));
+        }
+        return cuotas;
+    }
+
+    private BigDecimal valorFijo(RecalculoTabla recalculo, BigDecimal monthlyRate, BigDecimal tasaPrimerPeriodo) {
+        if (recalculo.modalidad() == ModalidadAbono.DISMINUIR_PLAZO) {
+            return recalculo.cuotaVigente();
+        }
+        int cuotasRestantes = recalculo.vencimientosPendientes().size();
+        if (recalculo.metodo() == MetodoAmortizacion.ALEMAN || monthlyRate.signum() == 0) {
+            return recalculo.saldoCapital().divide(BigDecimal.valueOf(cuotasRestantes), 2, RoundingMode.HALF_UP);
+        }
+        BigDecimal factor = BigDecimal.ONE.add(monthlyRate).pow(cuotasRestantes, PRECISION);
+        BigDecimal factorAnterior = BigDecimal.ONE.add(monthlyRate).pow(cuotasRestantes - 1, PRECISION);
+        return recalculo.saldoCapital()
+                .multiply(BigDecimal.ONE.add(tasaPrimerPeriodo))
+                .multiply(monthlyRate)
+                .multiply(factorAnterior)
+                .divide(factor.subtract(BigDecimal.ONE), 2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal tasaPorDias(BigDecimal teaAsignada, long dias, Integer baseDias) {
+        return monthlyRate(teaAsignada).multiply(MONTHS_PER_YEAR)
+                .multiply(BigDecimal.valueOf(dias))
+                .divide(BigDecimal.valueOf(baseDias), PRECISION);
     }
 
     private BigDecimal frenchPayment(BigDecimal monto, BigDecimal monthlyRate, Integer plazoMeses) {

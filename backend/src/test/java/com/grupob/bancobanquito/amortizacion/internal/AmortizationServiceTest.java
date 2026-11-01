@@ -5,9 +5,12 @@ import static org.assertj.core.api.Assertions.within;
 
 import com.grupob.bancobanquito.amortizacion.MetodoAmortizacion;
 import com.grupob.bancobanquito.amortizacion.CuotaCalculada;
+import com.grupob.bancobanquito.amortizacion.ModalidadAbono;
+import com.grupob.bancobanquito.amortizacion.RecalculoTabla;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -111,6 +114,74 @@ class AmortizationServiceTest {
 
         assertThat(interesTotal(cuotas)).isZero();
         assertThat(cuotas.getLast().capital()).isEqualByComparingTo("166.65");
+    }
+
+    @Test
+    void elInteresDevengadoDelAbonoCoincideConElEjemplo() {
+        assertThat(servicioAmortizacion.interesPorDias(new BigDecimal("9224.59"), RATE, 15, 360))
+                .isEqualByComparingTo("59.98");
+        assertThat(servicioAmortizacion.interesPorDias(new BigDecimal("7284.57"), RATE, 16, 360))
+                .isEqualByComparingTo("50.52");
+    }
+
+    @Test
+    void abonoDisminuyendoLaCuotaCoincideConElEjemplo() {
+        List<CuotaCalculada> cuotas = servicioAmortizacion.recalcular(recalculoDelEjemplo(
+                MetodoAmortizacion.FRANCES, ModalidadAbono.DISMINUIR_CUOTA, new BigDecimal("905.44")));
+
+        assertThat(cuotas).hasSize(11);
+        assertThat(cuotas.getFirst().numeroCuota()).isEqualTo(2);
+        assertThat(cuotas.getFirst().interes()).isEqualByComparingTo("50.52");
+        assertThat(cuotas.subList(0, 10)).allSatisfy(cuota ->
+                assertThat(cuota.capital().add(cuota.interes())).isEqualByComparingTo("710.73"));
+        assertThat(cuotas.getLast().fechaVencimiento()).isEqualTo(LocalDate.of(2027, 10, 31));
+        assertThat(cuotas.getLast().capital().add(cuotas.getLast().interes())).isEqualByComparingTo("710.74");
+        assertThat(cuotas.getLast().remainingPrincipalBalance()).isZero();
+        assertThat(capitalTotal(cuotas)).isEqualByComparingTo("7284.57");
+        assertThat(interesTotal(cuotas).add(new BigDecimal("130.03")).add(new BigDecimal("59.98")))
+                .isEqualByComparingTo("723.48");
+    }
+
+    @Test
+    void abonoDisminuyendoElPlazoCoincideConElEjemplo() {
+        List<CuotaCalculada> cuotas = servicioAmortizacion.recalcular(recalculoDelEjemplo(
+                MetodoAmortizacion.FRANCES, ModalidadAbono.DISMINUIR_PLAZO, new BigDecimal("905.44")));
+
+        assertThat(cuotas).hasSize(9);
+        assertThat(cuotas.subList(0, 8)).allSatisfy(cuota ->
+                assertThat(cuota.capital().add(cuota.interes())).isEqualByComparingTo("905.44"));
+        assertThat(cuotas.getLast().numeroCuota()).isEqualTo(10);
+        assertThat(cuotas.getLast().fechaVencimiento()).isEqualTo(LocalDate.of(2027, 8, 31));
+        assertThat(cuotas.getLast().capital().add(cuotas.getLast().interes())).isEqualByComparingTo("453.31");
+        assertThat(cuotas.getLast().remainingPrincipalBalance()).isZero();
+        assertThat(capitalTotal(cuotas)).isEqualByComparingTo("7284.57");
+        assertThat(interesTotal(cuotas).add(new BigDecimal("130.03")).add(new BigDecimal("59.98")))
+                .isEqualByComparingTo("602.27");
+    }
+
+    @ParameterizedTest
+    @EnumSource(ModalidadAbono.class)
+    void abonoEnSistemaAlemanAmortizaTodoElSaldo(ModalidadAbono modalidad) {
+        List<CuotaCalculada> cuotas = servicioAmortizacion.recalcular(recalculoDelEjemplo(
+                MetodoAmortizacion.ALEMAN, modalidad, new BigDecimal("833.33")));
+
+        assertThat(capitalTotal(cuotas)).isEqualByComparingTo("7284.57");
+        assertThat(cuotas.getLast().remainingPrincipalBalance()).isZero();
+        assertThat(cuotas).allSatisfy(cuota -> assertThat(cuota.capital()).isPositive());
+        assertThat(cuotas).hasSize(modalidad == ModalidadAbono.DISMINUIR_CUOTA ? 11 : 9);
+    }
+
+    private RecalculoTabla recalculoDelEjemplo(MetodoAmortizacion metodo, ModalidadAbono modalidad,
+                                               BigDecimal cuotaVigente) {
+        List<LocalDate> vencimientos = IntStream.rangeClosed(2, 12)
+                .mapToObj(DISBURSEMENT::plusMonths)
+                .toList();
+        return new RecalculoTabla(new BigDecimal("7284.57"), RATE, metodo, modalidad,
+                LocalDate.of(2026, 12, 15), 2, vencimientos, cuotaVigente, 360);
+    }
+
+    private BigDecimal capitalTotal(List<CuotaCalculada> cuotas) {
+        return cuotas.stream().map(CuotaCalculada::capital).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private BigDecimal interesTotal(List<CuotaCalculada> cuotas) {
