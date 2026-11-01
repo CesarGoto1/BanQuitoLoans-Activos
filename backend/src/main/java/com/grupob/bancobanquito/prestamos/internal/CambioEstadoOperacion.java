@@ -69,4 +69,12 @@ class CambioEstadoOperacion {
     LocalDate getFechaCambio() {
         return fechaCambio;
     }
+
+    Integer getDiasMora() {
+        return diasMora;
+    }
+
+    String getUsuarioCreacion() {
+        return usuarioCreacion;
+    }
 }

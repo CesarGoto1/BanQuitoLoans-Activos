@@ -10,4 +10,6 @@ public interface ConsultaPrestamoService {
     Page<ResumenPrestamo> buscarPorCliente(String cedulaCliente, EstadoCartera estadoCartera, Pageable paginacion);
 
     Page<ResumenCuota> buscarTablaAmortizacion(String numeroOperacion, Pageable paginacion);
+
+    HistorialOperacion buscarHistorial(String numeroOperacion);
 }

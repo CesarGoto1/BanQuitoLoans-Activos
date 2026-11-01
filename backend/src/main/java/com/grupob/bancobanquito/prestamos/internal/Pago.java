@@ -102,6 +102,14 @@ class Pago {
         return modalidadAbono;
     }
 
+    String getUsuarioCreacion() {
+        return usuarioCreacion;
+    }
+
+    LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
     List<DetallePago> getDetalles() {
         return detalles;
     }
