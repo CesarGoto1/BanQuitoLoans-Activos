@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.context.jdbc.Sql;
+import com.grupob.bancobanquito.originacion.internal.SolicitudesDePrueba;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +44,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
 @Transactional
-@Sql("/test-data-disbursement.sql")
 class DesembolsoContabilidadTest {
 
     private static final LocalDate FECHA = LocalDate.of(2026, 10, 31);
@@ -66,19 +65,24 @@ class DesembolsoContabilidadTest {
     @Captor
     ArgumentCaptor<List<MovimientoContable>> movimientosRegistrados;
 
+    private Integer idSolicitud;
+    private Integer idOperacion;
+
     @BeforeEach
     void prepararDesembolso() {
         when(servicioFechaNegocio.getCurrentBusinessDate()).thenReturn(FECHA);
-        when(servicioPasivos.findCustomer(1)).thenReturn(Optional.of(
-                new Cliente(1, "1710034065", "Pepito", "Perez")));
-        when(servicioPasivos.findActiveAccounts(1)).thenReturn(List.of(new Cuenta("2200000001", "AHORROS")));
-        assertThat(servicioPrestamo.findDisbursement(9001)).isEmpty();
+        Integer cliente = SolicitudesDePrueba.clienteIndependiente(entityManager);
+        when(servicioPasivos.findCustomer(cliente)).thenReturn(Optional.of(
+                new Cliente(cliente, "1710034065", "Pepito", "Perez")));
+        when(servicioPasivos.findActiveAccounts(cliente)).thenReturn(List.of(new Cuenta("2200000001", "AHORROS")));
+        idSolicitud = SolicitudesDePrueba.crearAprobada(entityManager, cliente, "10000.00", 2,
+                com.grupob.bancobanquito.amortizacion.MetodoAmortizacion.FRANCES);
+        assertThat(servicioPrestamo.findDisbursement(idSolicitud)).isEmpty();
     }
 
     @Test
     void persisteLosDosAsientosYNoLosDuplicaAlRepetirElLote() {
-        long anteriores = asientoRepository.count();
-        servicioPrestamo.disburse(9001, "2200000001");
+        servicioPrestamo.disburse(idSolicitud, "2200000001");
         entityManager.flush();
 
         List<AsientoContable> asientos = asientosDesembolso();
@@ -104,58 +108,66 @@ class DesembolsoContabilidadTest {
                 asiento.getCuentaDebito().getCodigoCuenta(), asiento.getCuentaCredito().getCodigoCuenta(),
                 asiento.getMontoAsiento(), asiento.getClaveIdempotencia())).toList();
         assertThat(servicioContabilidad.registrarAsientos(repetidos)).isZero();
-        assertThat(asientoRepository.count()).isEqualTo(anteriores + 2);
+        assertThat(asientoRepository.findByIdOperacionOrderByIdAsc(idOperacion))
+                .extracting(AsientoContable::getId).containsExactlyElementsOf(asientos.stream().map(AsientoContable::getId).toList());
     }
 
     @Test
     void rechazaElSegundoDesembolsoSinCrearMasAsientos() {
-        servicioPrestamo.disburse(9001, "2200000001");
-        long registrados = asientoRepository.count();
+        servicioPrestamo.disburse(idSolicitud, "2200000001");
+        List<AsientoContable> registrados = asientosDesembolso();
+        Integer operacion = registrados.getFirst().getIdOperacion();
 
-        assertThatThrownBy(() -> servicioPrestamo.disburse(9001, "2200000001"))
+        assertThatThrownBy(() -> servicioPrestamo.disburse(idSolicitud, "2200000001"))
                 .hasMessageContaining("ya fue desembolsada");
 
-        assertThat(asientoRepository.count()).isEqualTo(registrados);
+        assertThat(asientoRepository.findByIdOperacionOrderByIdAsc(operacion))
+                .extracting(AsientoContable::getId).containsExactlyElementsOf(registrados.stream().map(AsientoContable::getId).toList());
         verify(servicioPasivos).creditDisbursement(any());
     }
 
     @Test
     void revierteLaOperacionYElPrimerAsientoSiFallaElSegundo() {
-        long anteriores = asientoRepository.count();
         doAnswer(invocacion -> {
             List<MovimientoContable> movimientos = invocacion.getArgument(0);
+            idOperacion = movimientos.getFirst().idOperacion();
             servicioContabilidad.registrarAsiento(movimientos.getFirst());
             entityManager.flush();
-            assertThat(asientoRepository.count()).isEqualTo(anteriores + 1);
+            assertThat(asientoRepository.findByIdOperacionOrderByIdAsc(idOperacion)).hasSize(1);
             throw new AsientoInvalidoException("Fallo al registrar SOLCA");
         }).when(servicioContabilidad).registrarAsientos(anyList());
 
         new TransactionTemplate(transactionManager).executeWithoutResult(estado -> {
-            assertThatThrownBy(() -> servicioPrestamo.disburse(9001, "2200000001"))
+            assertThatThrownBy(() -> servicioPrestamo.disburse(idSolicitud, "2200000001"))
                     .isInstanceOf(AsientoInvalidoException.class);
             assertThat(estado.isRollbackOnly()).isTrue();
         });
         TestTransaction.end();
-        assertThat(servicioPrestamo.findDisbursement(9001)).isEmpty();
-        assertThat(asientoRepository.count()).isEqualTo(anteriores);
+        assertThat(servicioPrestamo.findDisbursement(idSolicitud)).isEmpty();
+        assertThat(idOperacion).isNotNull();
+        assertThat(asientoRepository.findByIdOperacionOrderByIdAsc(idOperacion)).isEmpty();
         verify(servicioPasivos, never()).creditDisbursement(any());
     }
 
     @Test
     void revierteOperacionYAsientosCuandoPasivosFalla() {
-        long anteriores = asientoRepository.count();
-        doThrow(new IllegalStateException("Pasivos no disponible"))
-                .when(servicioPasivos).creditDisbursement(any());
+        doAnswer(invocacion -> {
+            idOperacion = entityManager.createQuery("select p.id from Prestamo p where p.idSolicitud = :solicitud", Integer.class)
+                    .setParameter("solicitud", idSolicitud).getSingleResult();
+            assertThat(asientoRepository.findByIdOperacionOrderByIdAsc(idOperacion)).hasSize(2);
+            throw new IllegalStateException("Pasivos no disponible");
+        }).when(servicioPasivos).creditDisbursement(any());
 
         new TransactionTemplate(transactionManager).executeWithoutResult(estado -> {
-            assertThatThrownBy(() -> servicioPrestamo.disburse(9001, "2200000001"))
+            assertThatThrownBy(() -> servicioPrestamo.disburse(idSolicitud, "2200000001"))
                     .hasMessageContaining("No se pudo acreditar");
             assertThat(estado.isRollbackOnly()).isTrue();
         });
 
         TestTransaction.end();
-        assertThat(servicioPrestamo.findDisbursement(9001)).isEmpty();
-        assertThat(asientoRepository.count()).isEqualTo(anteriores);
+        assertThat(servicioPrestamo.findDisbursement(idSolicitud)).isEmpty();
+        assertThat(idOperacion).isNotNull();
+        assertThat(asientoRepository.findByIdOperacionOrderByIdAsc(idOperacion)).isEmpty();
     }
 
     private List<AsientoContable> asientosDesembolso() {

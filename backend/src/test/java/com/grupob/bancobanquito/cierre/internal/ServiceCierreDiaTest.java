@@ -20,6 +20,11 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import static org.mockito.Mockito.*;
+import static org.mockito.AdditionalAnswers.delegatesTo;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 @SpringBootTest
 @Transactional
@@ -27,10 +32,11 @@ class ServiceCierreDiaTest {
 
     private static final String ANALISTA = "1712345675";
 
-    @Autowired
     ServiceCierreDiaImpl servicioCierre;
 
     @Autowired
+    PlatformTransactionManager transactionManager;
+
     ServiceFechaNegocio servicioFechaNegocio;
 
     @Autowired
@@ -53,7 +59,27 @@ class ServiceCierreDiaTest {
     @BeforeEach
     void prepararEtapas() {
         List.of(recaudaciones, devengo, mora).forEach(EtapaFalsa::reiniciar);
-        hoy = servicioFechaNegocio.getCurrentBusinessDate();
+        do {
+            hoy = LocalDate.of(3000, 1, 1).plusDays(Math.floorMod(UUID.randomUUID().getMostSignificantBits(), 1000000L));
+        } while (cierreRepository.existsByFechaNegocio(hoy) || cierreRepository.existsByFechaNegocio(hoy.plusDays(1)));
+        cierreRepository.saveAndFlush(CierreDia.abrir(hoy, ANALISTA));
+        CierreDiaRepository cierresDelEscenario = mock(CierreDiaRepository.class, delegatesTo(cierreRepository));
+        doAnswer(invocacion -> cierresPropios().stream()
+                .filter(cierre -> cierre.getEstadoCierre() != invocacion.getArgument(0)).findFirst())
+                .when(cierresDelEscenario).findFirstByEstadoCierreNotOrderByFechaNegocioAsc(any());
+        doAnswer(invocacion -> cierresPropios().stream()
+                .filter(cierre -> cierre.getEstadoCierre() == invocacion.getArgument(0)).toList())
+                .when(cierresDelEscenario).findByEstadoCierre(any());
+        EjecucionEtapaRepository etapasDelEscenario = mock(EjecucionEtapaRepository.class, delegatesTo(ejecucionRepository));
+        doAnswer(invocacion -> cierresPropios().stream().flatMap(cierre -> ejecucionRepository
+                .findByIdCierreOrderByNumeroEtapaAscNumeroIntentoAsc(cierre.getId()).stream())
+                .filter(ejecucion -> ejecucion.getEstadoEtapa() == invocacion.getArgument(0)).toList())
+                .when(etapasDelEscenario).findByEstadoEtapa(any());
+        servicioCierre = new ServiceCierreDiaImpl(cierresDelEscenario, etapasDelEscenario,
+                List.of(recaudaciones, devengo, mora), transactionManager);
+        servicioFechaNegocio = () -> cierresPropios().stream()
+                .filter(cierre -> cierre.getEstadoCierre() != EstadoCierre.COMPLETADO)
+                .findFirst().orElseThrow().getFechaNegocio();
     }
 
     @Test
@@ -180,9 +206,19 @@ class ServiceCierreDiaTest {
 
     @Test
     void consultarUnDiaSinCierreRespondeNoEncontrado() {
-        assertThatThrownBy(() -> servicioCierre.consultarCierre(LocalDate.of(2020, 1, 1)))
+        LocalDate inexistente = hoy.plusDays(2);
+        while (cierreRepository.existsByFechaNegocio(inexistente)) {
+            inexistente = inexistente.plusDays(1);
+        }
+        LocalDate fechaConsulta = inexistente;
+        assertThatThrownBy(() -> servicioCierre.consultarCierre(fechaConsulta))
                 .isInstanceOfSatisfying(ExcepcionCierre.class,
                         e -> assertThat(e.getStatus()).isEqualTo(HttpStatus.NOT_FOUND));
+    }
+
+    private List<CierreDia> cierresPropios() {
+        return Stream.of(hoy, hoy.plusDays(1)).map(cierreRepository::findByFechaNegocio)
+                .flatMap(java.util.Optional::stream).toList();
     }
 
     private static EjecucionEtapaCierre ejecucion(ResultadoCierreDia resultado, PasoCierre paso, int intento) {
