@@ -19,15 +19,25 @@ async function readResponse(response) {
 }
 
 export async function listDayClosings(page) {
-  const response = await fetch(`${API}/analista/cierres-dia?page=${page}`, { headers: headers() })
+  let response
+  try {
+    response = await fetch(`${API}/analista/cierres-dia?page=${page}`, { headers: headers(), cache: 'no-store' })
+  } catch {
+    throw new Error('No se pudo conectar con el servidor. Intenta nuevamente.')
+  }
   return readResponse(response)
 }
 
 export async function runDayClosing(fechaNegocio) {
-  const response = await fetch(`${API}/analista/cierres-dia`, {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({ fechaNegocio }),
-  })
+  let response
+  try {
+    response = await fetch(`${API}/analista/cierres-dia`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ fechaNegocio }),
+    })
+  } catch {
+    throw new Error('Se perdió la comunicación con el servidor. Revisa el historial para saber si el cierre se ejecutó antes de reintentar.')
+  }
   return readResponse(response)
 }

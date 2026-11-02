@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.grupob.bancobanquito.cierre.EjecucionEtapaCierre;
 import com.grupob.bancobanquito.cierre.EtapaCierre;
+import com.grupob.bancobanquito.cierre.ExcepcionEtapaCierre;
 import com.grupob.bancobanquito.cierre.PasoCierre;
 import com.grupob.bancobanquito.cierre.ResultadoCierreDia;
 import com.grupob.bancobanquito.parametros.ServiceFechaNegocio;
@@ -123,6 +124,16 @@ class ServiceCierreDiaTest {
     }
 
     @Test
+    void unErrorTecnicoNoSeMuestraAlAnalista() {
+        mora.fallaInesperada = true;
+
+        ResultadoCierreDia resultado = servicioCierre.ejecutarCierre(hoy, ANALISTA);
+
+        assertThat(ejecucion(resultado, PasoCierre.MORA, 1).mensajeError())
+                .isEqualTo(ServiceCierreDiaImpl.ERROR_INESPERADO);
+    }
+
+    @Test
     void elReintentoContinuaDesdeLaEtapaFallidaSinRepetirLasExitosas() {
         mora.falla = true;
         servicioCierre.ejecutarCierre(hoy, ANALISTA);
@@ -207,6 +218,7 @@ class ServiceCierreDiaTest {
         private final int registros;
         final List<LocalDate> fechas = new ArrayList<>();
         boolean falla;
+        boolean fallaInesperada;
 
         EtapaFalsa(PasoCierre paso, int registros) {
             this.paso = paso;
@@ -217,6 +229,7 @@ class ServiceCierreDiaTest {
             orden.clear();
             fechas.clear();
             falla = false;
+            fallaInesperada = false;
         }
 
         @Override
@@ -229,7 +242,10 @@ class ServiceCierreDiaTest {
             orden.add(paso);
             fechas.add(fechaNegocio);
             if (falla) {
-                throw new IllegalStateException("Falla simulada en " + paso);
+                throw new ExcepcionEtapaCierre("Falla simulada en " + paso);
+            }
+            if (fallaInesperada) {
+                throw new IllegalStateException("could not execute statement [ERROR: deadlock detected]");
             }
             return registros;
         }

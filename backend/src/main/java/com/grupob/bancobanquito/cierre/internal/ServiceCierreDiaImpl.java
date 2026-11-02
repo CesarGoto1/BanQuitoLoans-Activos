@@ -2,6 +2,7 @@ package com.grupob.bancobanquito.cierre.internal;
 
 import com.grupob.bancobanquito.cierre.EjecucionEtapaCierre;
 import com.grupob.bancobanquito.cierre.EtapaCierre;
+import com.grupob.bancobanquito.cierre.ExcepcionEtapaCierre;
 import com.grupob.bancobanquito.cierre.PasoCierre;
 import com.grupob.bancobanquito.cierre.ResultadoCierreDia;
 import com.grupob.bancobanquito.cierre.ServiceCierreDia;
@@ -26,6 +27,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class ServiceCierreDiaImpl implements ServiceCierreDia {
 
     static final String USUARIO_SISTEMA = "sistema";
+    static final String ERROR_INESPERADO =
+            "Ocurrió un error inesperado en la etapa. Comuníquelo a soporte técnico y reintente el cierre.";
 
     private static final Logger log = LoggerFactory.getLogger(ServiceCierreDiaImpl.class);
 
@@ -120,7 +123,7 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
             return true;
         } catch (RuntimeException e) {
             log.error("Falló la etapa {} del cierre del {}", paso, cierre.getFechaNegocio(), e);
-            String mensaje = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            String mensaje = e instanceof ExcepcionEtapaCierre ? e.getMessage() : ERROR_INESPERADO;
             transaccion.executeWithoutResult(estado -> {
                 ejecucion.fallar(mensaje, usuario);
                 ejecucionRepository.save(ejecucion);

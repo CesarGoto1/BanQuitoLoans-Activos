@@ -71,6 +71,16 @@ export default function CierreDiaPagina() {
 
   const open = page === 0 ? closings?.content.find((closing) => closing.estadoCierre !== 'COMPLETADO') : null
 
+  // Mientras un cierre está en ejecución (por ejemplo, el automático), la pantalla se refresca sola.
+  const inProgress = !running && open?.estadoCierre === 'EN_PROCESO'
+  useEffect(() => {
+    if (!inProgress) {
+      return undefined
+    }
+    const timer = setInterval(() => setReload((value) => value + 1), 5000)
+    return () => clearInterval(timer)
+  }, [inProgress])
+
   async function closeDay() {
     setConfirming(false)
     setRunning(true)
@@ -98,11 +108,6 @@ export default function CierreDiaPagina() {
             Si una etapa falla, la fecha de negocio no avanza y el cierre se puede reintentar.
           </p>
         </div>
-        <div className="bq-acciones">
-          <button type="button" className="bq-btn bq-btn-secundario bq-btn-sm" disabled={running} onClick={() => setReload(reload + 1)}>
-            Actualizar
-          </button>
-        </div>
       </div>
 
       {error ? (
@@ -125,6 +130,11 @@ export default function CierreDiaPagina() {
                 </div>
                 <ClosingState state={open.estadoCierre} />
               </div>
+              {open.estadoCierre === 'EN_PROCESO' && !running ? (
+                <p className="bq-pequeno bq-texto-2">
+                  El cierre de este día se está ejecutando. La pantalla se actualizará cuando termine.
+                </p>
+              ) : null}
               {open.estadoCierre === 'FALLIDO' ? (
                 <p className="bq-pequeno bq-texto-2">
                   El último intento falló. Al reintentar se saltan las etapas que ya terminaron con éxito.
@@ -252,15 +262,15 @@ function StageLog({ closing, onClose }) {
         <table className="bq-tabla">
           <thead>
             <tr>
-              <th>#</th>
+              <th>N.º</th>
               <th>Etapa</th>
               <th className="bq-num">Intento</th>
-              <th>Estado</th>
+              <th>Resultado</th>
               <th>Inicio</th>
               <th>Fin</th>
               <th className="bq-num">Duración</th>
-              <th className="bq-num">Registros</th>
-              <th>Error</th>
+              <th className="bq-num">Registros procesados</th>
+              <th>Detalle del error</th>
             </tr>
           </thead>
           <tbody>
