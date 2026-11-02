@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  buscarHistorial,
   buscarPrestamo,
   buscarPrestamosDelCliente,
   buscarTablaAmortizacion,
@@ -24,9 +25,21 @@ const estadosCuota = {
   PAGADA: { texto: 'Pagada', clase: 'bq-estado-exito' },
 }
 
+const tiposPago = {
+  ARCHIVO_RECAUDACION: 'Recaudación',
+  ABONO_EXTRAORDINARIO: 'Abono extraordinario',
+  CANCELACION_ANTICIPADA: 'Cancelación anticipada',
+}
+
+const modalidadesAbono = { DISMINUIR_CUOTA: 'disminuir cuota', DISMINUIR_PLAZO: 'disminuir plazo' }
+
 const modosBusqueda = {
   NUMERO_OPERACION: { texto: 'Número de operación', ejemplo: 'OP-20261031-000001' },
   CEDULA: { texto: 'Cédula del cliente', ejemplo: '1712345678' },
+}
+
+function usuarioVisible(usuario) {
+  return !usuario || usuario === 'system' ? 'Sistema' : usuario
 }
 
 function formatearFecha(iso) {
@@ -43,6 +56,7 @@ export default function ConsultaOperacionPagina() {
   const [prestamosDelCliente, setPrestamosDelCliente] = useState(null)
   const [prestamo, setPrestamo] = useState(null)
   const [tablaAmortizacion, setTablaAmortizacion] = useState(null)
+  const [historial, setHistorial] = useState(null)
 
   async function ejecutar(accion) {
     setBuscando(true)
@@ -57,12 +71,14 @@ export default function ConsultaOperacionPagina() {
   }
 
   async function abrirPrestamo(numeroOperacion) {
-    const [prestamoEncontrado, tabla] = await Promise.all([
+    const [prestamoEncontrado, tabla, historialEncontrado] = await Promise.all([
       buscarPrestamo(numeroOperacion),
       buscarTablaAmortizacion(numeroOperacion, 0),
+      buscarHistorial(numeroOperacion),
     ])
     setPrestamo(prestamoEncontrado)
     setTablaAmortizacion(tabla)
+    setHistorial(historialEncontrado)
   }
 
   async function buscarCliente(pagina) {
@@ -73,6 +89,7 @@ export default function ConsultaOperacionPagina() {
     evento.preventDefault()
     setPrestamo(null)
     setTablaAmortizacion(null)
+    setHistorial(null)
     setPrestamosDelCliente(null)
     if (modoBusqueda === 'CEDULA' && !/^\d{10}$/.test(textoBusqueda.trim())) {
       setError('La cédula debe tener 10 dígitos.')
@@ -177,6 +194,9 @@ export default function ConsultaOperacionPagina() {
               ejecutar(async () => setTablaAmortizacion(await buscarTablaAmortizacion(prestamo.numeroOperacion, pagina)))
             }
           />
+          <HistorialPagos pagos={historial.pagos} />
+          <CargosMora cargos={historial.cargosMora} />
+          <MovimientosEstado movimientos={historial.movimientosEstado} />
         </>
       ) : null}
     </main>
@@ -308,6 +328,146 @@ function TablaAmortizacion({ tabla, alCambiarPagina }) {
         </table>
       </div>
       <Paginacion pagina={tabla.page} alCambiarPagina={alCambiarPagina} />
+    </div>
+  )
+}
+
+function HistorialPagos({ pagos }) {
+  return (
+    <div className="bq-tarjeta">
+      <span className="bq-etiqueta-seccion">Historial de pagos aplicados</span>
+      {pagos.length === 0 ? (
+        <p className="bq-pequeno bq-texto-2">La operación todavía no tiene pagos aplicados.</p>
+      ) : (
+        <div className="bq-tabla-contenedor">
+          <table className="bq-tabla">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Cuota</th>
+                <th className="bq-num">Seguro</th>
+                <th className="bq-num">Mora</th>
+                <th className="bq-num">Interés</th>
+                <th className="bq-num">Capital</th>
+                <th className="bq-num">Total</th>
+                <th>Registrado por</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagos.flatMap((pago) => [
+                <tr key={pago.idPago}>
+                  <td><strong>{formatearFecha(pago.fechaPago)}</strong></td>
+                  <td>
+                    <strong>{tiposPago[pago.tipoPago] ?? pago.tipoPago}</strong>
+                    {pago.modalidadAbono ? ` (${modalidadesAbono[pago.modalidadAbono] ?? pago.modalidadAbono})` : ''}
+                  </td>
+                  <td></td>
+                  <td className="bq-num"><strong>{numero.format(pago.aplicadoSeguro)}</strong></td>
+                  <td className="bq-num"><strong>{numero.format(pago.aplicadoMora)}</strong></td>
+                  <td className="bq-num"><strong>{numero.format(pago.aplicadoInteres)}</strong></td>
+                  <td className="bq-num"><strong>{numero.format(pago.aplicadoCapital)}</strong></td>
+                  <td className="bq-num"><strong>{numero.format(pago.montoRecibido ?? [pago.aplicadoSeguro, pago.aplicadoMora, pago.aplicadoInteres, pago.aplicadoCapital].reduce((total, valor) => total + Number(valor ?? 0), 0))}</strong></td>
+                  <td>{usuarioVisible(pago.registradoPor)}</td>
+                </tr>,
+                ...pago.detalles.map((detalle, indice) => (
+                  <tr key={`${pago.idPago}-${indice}`}>
+                    <td></td>
+                    <td className="bq-pequeno bq-texto-2">Desglose</td>
+                    <td className="bq-pequeno bq-texto-2">
+                      {detalle.numeroCuota ? `Cuota ${detalle.numeroCuota}` : 'Liquidación del abono'}
+                    </td>
+                    <td className="bq-num bq-pequeno">{numero.format(detalle.aplicadoSeguro)}</td>
+                    <td className="bq-num bq-pequeno">{numero.format(detalle.aplicadoMora)}</td>
+                    <td className="bq-num bq-pequeno">{numero.format(detalle.aplicadoInteres)}</td>
+                    <td className="bq-num bq-pequeno">{numero.format(detalle.aplicadoCapital)}</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                )),
+              ])}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CargosMora({ cargos }) {
+  return (
+    <div className="bq-tarjeta">
+      <span className="bq-etiqueta-seccion">Cargos de mora</span>
+      {cargos.length === 0 ? (
+        <p className="bq-pequeno bq-texto-2">La operación no tiene cargos de mora.</p>
+      ) : (
+        <div className="bq-tabla-contenedor">
+          <table className="bq-tabla">
+            <thead>
+              <tr>
+                <th className="bq-num">Cuota</th>
+                <th>Vencimiento</th>
+                <th className="bq-num">Mora generada</th>
+                <th className="bq-num">Mora pagada</th>
+                <th className="bq-num">Mora pendiente</th>
+                <th>Estado de la cuota</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cargos.map((cargo) => (
+                <tr key={cargo.numeroCuota}>
+                  <td className="bq-num">{cargo.numeroCuota}</td>
+                  <td>{formatearFecha(cargo.fechaVencimiento)}</td>
+                  <td className="bq-num">{numero.format(cargo.moraGenerada)}</td>
+                  <td className="bq-num">{numero.format(cargo.moraPagada)}</td>
+                  <td className="bq-num">{numero.format(cargo.moraPendiente)}</td>
+                  <td>
+                    <span className={`bq-estado ${estadosCuota[cargo.estadoCuota]?.clase ?? 'bq-estado-neutro'}`}>
+                      {estadosCuota[cargo.estadoCuota]?.texto ?? cargo.estadoCuota}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MovimientosEstado({ movimientos }) {
+  return (
+    <div className="bq-tarjeta">
+      <span className="bq-etiqueta-seccion">Movimientos de estado</span>
+      {movimientos.length === 0 ? (
+        <p className="bq-pequeno bq-texto-2">La operación no ha cambiado de estado desde el desembolso.</p>
+      ) : (
+        <div className="bq-tabla-contenedor">
+          <table className="bq-tabla">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Estado anterior</th>
+                <th>Estado nuevo</th>
+                <th className="bq-num">Días de mora</th>
+                <th>Registrado por</th>
+              </tr>
+            </thead>
+            <tbody>
+              {movimientos.map((movimiento, indice) => (
+                <tr key={indice}>
+                  <td>{formatearFecha(movimiento.fechaCambio)}</td>
+                  <td><EstadoCartera estado={movimiento.estadoAnterior} /></td>
+                  <td><EstadoCartera estado={movimiento.estadoNuevo} /></td>
+                  <td className="bq-num">{movimiento.diasMora}</td>
+                  <td>{usuarioVisible(movimiento.registradoPor)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

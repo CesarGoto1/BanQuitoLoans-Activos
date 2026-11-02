@@ -124,7 +124,7 @@ class LoanDecisionPostgresTest {
     void refusesGermanReferenceExampleAndRollsBackAllChanges() {
         Integer id = registerApplication("ALEMAN", "3500.00");
         assertThatThrownBy(() -> decisions.approveApplication(id, "1799999901", new BigDecimal("0.1677")))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
         Solicitud stored = applications.findById(id).orElseThrow();
         assertThat(stored.getStatus()).isEqualTo(EstadoSolicitud.REGISTRADA);
         assertThat(stored.getAssignedRate()).isNull();
@@ -153,9 +153,9 @@ class LoanDecisionPostgresTest {
         assertThat(stored.getAnalystId()).isNotNull();
         assertThat(stored.getResolutionDate()).isEqualTo(LocalDate.of(2026, 10, 31));
         assertThatThrownBy(() -> decisions.rejectApplication(id, "1799999902", "Otro motivo"))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
         assertThatThrownBy(() -> decisions.approveApplication(id, "1799999902", new BigDecimal("0.16")))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
         assertThat(operationCount(id)).isZero();
     }
 
@@ -200,7 +200,7 @@ class LoanDecisionPostgresTest {
             if (approve) decisions.approveApplication(id, "1799999901", new BigDecimal("0.1677"));
             else decisions.rejectApplication(id, "1799999902", "Rechazo concurrente");
             return "SUCCESS";
-        } catch (ExcepcionReglaDecisionPrestamo | PessimisticLockingFailureException exception) {
+        } catch (ReglaDecisionPrestamoException | PessimisticLockingFailureException exception) {
             return "CONFLICT";
         }
     }

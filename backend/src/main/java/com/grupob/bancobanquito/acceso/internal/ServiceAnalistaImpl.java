@@ -26,7 +26,7 @@ class ServiceAnalistaImpl implements ServiceAnalista {
     public SesionAnalista login(String cedula) {
         return analystRepository.findByCedula(cedula)
                 .map(this::session)
-                .orElseThrow(() -> new ExcepcionAcceso(HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new AccesoException(HttpStatus.NOT_FOUND,
                         "No existe un analista con la cédula " + cedula + "."));
     }
 

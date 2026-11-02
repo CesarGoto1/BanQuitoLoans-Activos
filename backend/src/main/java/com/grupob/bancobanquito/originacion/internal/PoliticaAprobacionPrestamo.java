@@ -12,7 +12,7 @@ public class PoliticaAprobacionPrestamo {
     public void ensureRegistered(String applicationStatus) {
 
         if (!"REGISTRADA".equals(applicationStatus)) {
-            throw new ExcepcionReglaDecisionPrestamo(
+            throw new ReglaDecisionPrestamoException(
                     "La solicitud ya fue aprobada o rechazada."
             );
         }
@@ -26,7 +26,7 @@ public class PoliticaAprobacionPrestamo {
         if (teaAsignada == null
                 || teaAsignada.signum() <= 0) {
 
-            throw new ExcepcionReglaDecisionPrestamo(
+            throw new ReglaDecisionPrestamoException(
                     "La tasa de interés debe ser mayor que cero."
             );
         }
@@ -35,14 +35,14 @@ public class PoliticaAprobacionPrestamo {
                 || maximumAnnualEffectiveRate.signum() <= 0) {
 
             throw new IllegalStateException(
-                    "Invalid maximum interest rate configuration."
+                    "La configuración de la tasa máxima no es válida."
             );
         }
 
         if (teaAsignada.compareTo(
                 maximumAnnualEffectiveRate) > 0) {
 
-            throw new ExcepcionReglaDecisionPrestamo(
+            throw new ReglaDecisionPrestamoException(
                     "La tasa asignada supera la tasa máxima permitida."
             );
         }
@@ -59,7 +59,7 @@ public class PoliticaAprobacionPrestamo {
                 || gastosMensuales == null
                 || cuotaProyectada == null) {
 
-            throw new ExcepcionReglaDecisionPrestamo(
+            throw new ReglaDecisionPrestamoException(
                     "Los datos de evaluación están incompletos."
             );
         }
@@ -68,7 +68,7 @@ public class PoliticaAprobacionPrestamo {
                 || gastosMensuales.signum() < 0
                 || cuotaProyectada.signum() <= 0) {
 
-            throw new ExcepcionReglaDecisionPrestamo(
+            throw new ReglaDecisionPrestamoException(
                     "Los valores de evaluación no son válidos."
             );
         }
@@ -78,7 +78,7 @@ public class PoliticaAprobacionPrestamo {
                 || maximumPaymentRatio.compareTo(BigDecimal.ONE) > 0) {
 
             throw new IllegalStateException(
-                    "Invalid payment capacity configuration."
+                    "La configuración de capacidad de pago no es válida."
             );
         }
 
@@ -86,7 +86,7 @@ public class PoliticaAprobacionPrestamo {
                 ingresosMensuales.subtract(gastosMensuales);
 
         if (remainingIncome.signum() <= 0) {
-            throw new ExcepcionReglaDecisionPrestamo(
+            throw new ReglaDecisionPrestamoException(
                     "El cliente no dispone de ingresos remanentes suficientes."
             );
         }
@@ -104,7 +104,7 @@ public class PoliticaAprobacionPrestamo {
                             .toPlainString()
                             .replace('.', ',');
 
-            throw new ExcepcionReglaDecisionPrestamo(
+            throw new ReglaDecisionPrestamoException(
                     "La cuota proyectada supera el máximo permitido de USD "
                             + formattedMaximum + "."
             );

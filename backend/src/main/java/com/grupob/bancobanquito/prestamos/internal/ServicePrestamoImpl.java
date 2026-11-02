@@ -2,6 +2,10 @@ package com.grupob.bancobanquito.prestamos.internal;
 
 import com.grupob.bancobanquito.amortizacion.ServiceAmortizacion;
 import com.grupob.bancobanquito.amortizacion.CuotaCalculada;
+import com.grupob.bancobanquito.contabilidad.CodigoCuentaContable;
+import com.grupob.bancobanquito.contabilidad.MovimientoContable;
+import com.grupob.bancobanquito.contabilidad.ServiceContabilidad;
+import com.grupob.bancobanquito.contabilidad.TipoAsiento;
 import com.grupob.bancobanquito.pasivos.Cuenta;
 import com.grupob.bancobanquito.pasivos.Cliente;
 import com.grupob.bancobanquito.pasivos.InstruccionDesembolso;
@@ -45,11 +49,12 @@ class ServicePrestamoImpl implements ServicePrestamo {
     private final ServicePasivos servicioPasivos;
     private final ServiceParametro servicioParametro;
     private final ServiceFechaNegocio servicioFechaNegocio;
+    private final ServiceContabilidad servicioContabilidad;
 
     ServicePrestamoImpl(PrestamoRepository loanRepository, CuotaRepository installmentRepository,
                     ServiceSolicitudes servicioSolicitudes, ServiceAmortizacion servicioAmortizacion,
                     ServicePasivos servicioPasivos, ServiceParametro servicioParametro,
-                    ServiceFechaNegocio servicioFechaNegocio) {
+                    ServiceFechaNegocio servicioFechaNegocio, ServiceContabilidad servicioContabilidad) {
         this.loanRepository = loanRepository;
         this.installmentRepository = installmentRepository;
         this.servicioSolicitudes = servicioSolicitudes;
@@ -57,6 +62,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
         this.servicioPasivos = servicioPasivos;
         this.servicioParametro = servicioParametro;
         this.servicioFechaNegocio = servicioFechaNegocio;
+        this.servicioContabilidad = servicioContabilidad;
     }
 
     @Override
@@ -83,7 +89,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
 
         List<Cuenta> cuentas = servicioPasivos.findActiveAccounts(application.idCliente());
         if (cuentas.stream().noneMatch(account -> account.numeroCuenta().equals(cuentaDestino))) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST,
+            throw new PrestamoException(HttpStatus.BAD_REQUEST,
                     "La cuenta " + cuentaDestino + " no es una cuenta activa del cliente.");
         }
 
@@ -113,6 +119,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
         loan.setCreatedBy(AUDIT_USER);
         loan.setCreatedAt(LocalDateTime.now());
         loanRepository.save(loan);
+        contabilizar(loan);
 
         List<Cuota> cuotas = new ArrayList<>();
         for (CuotaCalculada calculated : servicioAmortizacion.calculate(montoAprobado,
@@ -128,7 +135,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
                     customer.cedula(), cuentaDestino, montoAprobado, contribucionSolca,
                     loan.getNetAmount(), fechaDesembolso));
         } catch (RuntimeException e) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_GATEWAY,
+            throw new PrestamoException(HttpStatus.BAD_GATEWAY,
                     "No se pudo acreditar en el Core de Pasivos; el desembolso no se realizó. Intenta de nuevo.");
         }
         loan.setDisbursementInstructionStatus(EstadoInstruccionDesembolso.ENTREGADA);
@@ -161,10 +168,10 @@ class ServicePrestamoImpl implements ServicePrestamo {
 
     private SolicitudAprobada pendingApplication(Integer idSolicitud) {
         SolicitudAprobada application = servicioSolicitudes.findApproved(idSolicitud)
-                .orElseThrow(() -> new ExcepcionPrestamo(HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new PrestamoException(HttpStatus.NOT_FOUND,
                         "No existe una solicitud aprobada con el número " + idSolicitud + "."));
         if (loanRepository.existsByIdSolicitud(idSolicitud)) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT,
+            throw new PrestamoException(HttpStatus.CONFLICT,
                     "La solicitud " + idSolicitud + " ya fue desembolsada.");
         }
         return application;
@@ -172,7 +179,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
 
     private Cliente customer(Integer idCliente) {
         return servicioPasivos.findCustomer(idCliente)
-                .orElseThrow(() -> new ExcepcionPrestamo(HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new PrestamoException(HttpStatus.NOT_FOUND,
                         "El cliente " + idCliente + " no existe en el Core de Pasivos."));
     }
 
@@ -182,6 +189,19 @@ class ServicePrestamoImpl implements ServicePrestamo {
 
     private BigDecimal contribucionSolca(BigDecimal montoAprobado) {
         return montoAprobado.multiply(servicioParametro.getValue(SOLCA_RATE)).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void contabilizar(Prestamo loan) {
+        List<MovimientoContable> movimientos = new ArrayList<>();
+        movimientos.add(new MovimientoContable(loan.getId(), loan.getDisbursementDate(), TipoAsiento.DESEMBOLSO,
+                CodigoCuentaContable.CARTERA_POR_VENCER, CodigoCuentaContable.CUENTA_CLIENTE,
+                loan.getNetAmount(), "DESEMBOLSO-" + loan.getId() + "-NETO"));
+        if (loan.getSolcaContribution().signum() > 0) {
+            movimientos.add(new MovimientoContable(loan.getId(), loan.getDisbursementDate(), TipoAsiento.DESEMBOLSO,
+                    CodigoCuentaContable.CARTERA_POR_VENCER, CodigoCuentaContable.SOLCA_POR_PAGAR,
+                    loan.getSolcaContribution(), "DESEMBOLSO-" + loan.getId() + "-SOLCA"));
+        }
+        servicioContabilidad.registrarAsientos(movimientos);
     }
 
     private String numeroOperacion(LocalDate fechaDesembolso, Integer idSolicitud) {

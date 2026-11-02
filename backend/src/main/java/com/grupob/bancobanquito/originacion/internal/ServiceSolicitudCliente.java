@@ -55,14 +55,14 @@ class ServiceSolicitudCliente {
         LocalDate fechaNegocio = servicioFechaNegocio.getCurrentBusinessDate();
         validateRanges(request.monto(), request.plazoMeses(), fechaNegocio);
         if (servicioPasivos.findCustomer(idCliente).isEmpty()) {
-            throw new ExcepcionOriginacion(HttpStatus.NOT_FOUND, "No existe el cliente " + idCliente + ".");
+            throw new OriginacionException(HttpStatus.NOT_FOUND, "No existe el cliente " + idCliente + ".");
         }
         if (prestamoClienteRepositorio.existsByIdClienteAndDaysPastDueGreaterThan(idCliente, 0)) {
-            throw new ExcepcionOriginacion(HttpStatus.UNPROCESSABLE_CONTENT,
+            throw new OriginacionException(HttpStatus.UNPROCESSABLE_CONTENT,
                     "Tienes una operación con días de mora, por eso no puedes registrar una nueva solicitud.");
         }
         if (loanApplicationRepository.existsByIdClienteAndStatus(idCliente, EstadoSolicitud.REGISTRADA)) {
-            throw new ExcepcionOriginacion(HttpStatus.UNPROCESSABLE_CONTENT,
+            throw new OriginacionException(HttpStatus.UNPROCESSABLE_CONTENT,
                     "Ya tienes una solicitud pendiente de revisión.");
         }
 
@@ -103,7 +103,7 @@ class ServiceSolicitudCliente {
     Integer customerIdOf(String cedula) {
         return servicioPasivos.findCustomerByNationalId(cedula)
                 .map(customer -> customer.idCliente())
-                .orElseThrow(() -> new ExcepcionOriginacion(HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new OriginacionException(HttpStatus.NOT_FOUND,
                         "No existe un cliente con la cédula " + cedula + "."));
     }
 
@@ -136,11 +136,11 @@ class ServiceSolicitudCliente {
     private void validateRanges(BigDecimal monto, Integer plazoMeses, LocalDate fechaNegocio) {
         LimitesCredito limits = creditLimits(fechaNegocio);
         if (monto.compareTo(limits.montoMinimo()) < 0 || monto.compareTo(limits.montoMaximo()) > 0) {
-            throw new ExcepcionOriginacion(HttpStatus.UNPROCESSABLE_CONTENT, "El monto debe estar entre USD "
+            throw new OriginacionException(HttpStatus.UNPROCESSABLE_CONTENT, "El monto debe estar entre USD "
                     + money(limits.montoMinimo()) + " y USD " + money(limits.montoMaximo()) + ".");
         }
         if (plazoMeses < limits.plazoMinimoMeses() || plazoMeses > limits.plazoMaximoMeses()) {
-            throw new ExcepcionOriginacion(HttpStatus.UNPROCESSABLE_CONTENT, "El plazo debe estar entre "
+            throw new OriginacionException(HttpStatus.UNPROCESSABLE_CONTENT, "El plazo debe estar entre "
                     + limits.plazoMinimoMeses() + " y " + limits.plazoMaximoMeses() + " meses.");
         }
     }

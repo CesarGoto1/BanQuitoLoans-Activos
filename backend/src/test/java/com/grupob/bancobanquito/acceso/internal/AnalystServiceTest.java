@@ -43,7 +43,7 @@ class AnalystServiceTest {
     @Test
     void rejectsAnUnknownNationalId() {
         assertThatThrownBy(() -> analystService.login("1700000000"))
-                .isInstanceOfSatisfying(ExcepcionAcceso.class,
+                .isInstanceOfSatisfying(AccesoException.class,
                         e -> assertThat(e.getStatus()).isEqualTo(HttpStatus.NOT_FOUND));
     }
 }

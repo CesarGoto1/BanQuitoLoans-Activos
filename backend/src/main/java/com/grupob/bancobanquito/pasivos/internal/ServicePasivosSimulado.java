@@ -45,7 +45,7 @@ class ServicePasivosSimulado implements ServicePasivos {
     @Override
     public void creditDisbursement(InstruccionDesembolso instruction) {
         if (FAILING_ACCOUNT.equals(instruction.cuentaDestino())) {
-            throw new IllegalStateException("The liabilities core did not respond.");
+            throw new IllegalStateException("El core de pasivos no respondió.");
         }
     }
 }

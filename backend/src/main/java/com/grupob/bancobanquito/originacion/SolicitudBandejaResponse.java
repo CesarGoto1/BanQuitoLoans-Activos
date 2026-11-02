@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 public record SolicitudBandejaResponse(
         Integer idSolicitud,
         Integer idCliente,
+        String cedulaCliente,
+        String nombreCliente,
         BigDecimal montoSolicitado,
         Integer plazoMeses,
         String sistemaAmortizacion,

@@ -50,7 +50,7 @@ class ControllerDesembolso {
         Optional<ResultadoDesembolso> existing = loanService.findDisbursement(request.idSolicitud());
         if (existing.isPresent()) {
             if (!existing.get().cuentaDestino().equals(request.cuentaDestino())) {
-                throw new ExcepcionPrestamo(HttpStatus.CONFLICT, "La solicitud " + request.idSolicitud()
+                throw new PrestamoException(HttpStatus.CONFLICT, "La solicitud " + request.idSolicitud()
                         + " ya fue desembolsada en la cuenta " + existing.get().cuentaDestino() + ".");
             }
             return ResponseEntity.ok(existing.get());

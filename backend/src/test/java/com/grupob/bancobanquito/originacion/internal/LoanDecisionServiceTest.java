@@ -95,7 +95,7 @@ class LoanDecisionServiceTest {
     @Test
     void rejectsRateAboveMaximumBeforeCalculating() {
         assertThatThrownBy(() -> service.approveApplication(7, "1710000001", new BigDecimal("0.18")))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
         verifyNoInteractions(amortizacion);
         verify(applications, never()).saveAndFlush(any());
     }
@@ -104,7 +104,7 @@ class LoanDecisionServiceTest {
     void repeatsCapacityEvaluationWithTheDefinitiveInstallment() {
         schedule("969.36");
         assertThatThrownBy(() -> service.approveApplication(7, "1710000001", new BigDecimal("0.1677")))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
         assertThat(application.getStatus()).isEqualTo(EstadoSolicitud.REGISTRADA);
         verify(applications, never()).saveAndFlush(any());
     }
@@ -114,9 +114,9 @@ class LoanDecisionServiceTest {
     void refusesBothDecisionsForResolvedApplications(EstadoSolicitud status) {
         application.setStatus(status);
         assertThatThrownBy(() -> service.approveApplication(7, "1710000001", new BigDecimal("0.16")))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
         assertThatThrownBy(() -> service.rejectApplication(7, "1710000001", "Motivo válido"))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
         verify(applications, never()).saveAndFlush(any());
     }
 
@@ -146,13 +146,13 @@ class LoanDecisionServiceTest {
     @ValueSource(strings = {" ", "\t"})
     void refusesBlankRejectionReason(String reason) {
         assertThatThrownBy(() -> service.rejectApplication(7, "1710000001", reason))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
     }
 
     @Test
     void refusesLongRejectionReason() {
         assertThatThrownBy(() -> service.rejectApplication(7, "1710000001", "a".repeat(201)))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
     }
 
     @Test

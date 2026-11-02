@@ -15,11 +15,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("simulated")
 @Transactional
+@Sql("/test-data-disbursement.sql")
 class ConsultaPrestamoServiceTest {
 
     @Autowired
@@ -44,8 +46,8 @@ class ConsultaPrestamoServiceTest {
     @Test
     void respondeNoEncontradoSiElNumeroDeOperacionNoExiste() {
         assertThatThrownBy(() -> consultaPrestamoService.buscarPorNumeroOperacion("OP-20261031-999999"))
-                .isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+                .isInstanceOf(PrestamoException.class)
+                .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -77,7 +79,7 @@ class ConsultaPrestamoServiceTest {
     void respondeNoEncontradoSiLaOperacionDeLaTablaNoExiste() {
         assertThatThrownBy(() -> consultaPrestamoService.buscarTablaAmortizacion("OP-20261031-999999",
                 PageRequest.of(0, 12)))
-                .isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+                .isInstanceOf(PrestamoException.class)
+                .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

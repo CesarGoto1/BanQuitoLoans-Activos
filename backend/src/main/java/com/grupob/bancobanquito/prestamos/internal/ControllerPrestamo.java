@@ -2,6 +2,7 @@ package com.grupob.bancobanquito.prestamos.internal;
 
 import com.grupob.bancobanquito.prestamos.ConsultaPrestamoService;
 import com.grupob.bancobanquito.prestamos.EstadoCartera;
+import com.grupob.bancobanquito.prestamos.HistorialOperacion;
 import com.grupob.bancobanquito.prestamos.ResumenCuota;
 import com.grupob.bancobanquito.prestamos.ResumenPrestamo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,7 +51,7 @@ class ControllerPrestamo {
             @PageableDefault(size = 10, sort = "fechaDesembolso", direction = Sort.Direction.DESC) Pageable paginacion) {
         String customer = CUSTOMER.equals(role) ? cedula : cedulaCliente;
         if (customer == null) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST, "El parámetro cedulaCliente es obligatorio.");
+            throw new PrestamoException(HttpStatus.BAD_REQUEST, "El parámetro cedulaCliente es obligatorio.");
         }
         return consultaPrestamoService.buscarPorCliente(customer, estadoCartera, paginacion);
     }
@@ -66,10 +67,19 @@ class ControllerPrestamo {
         return consultaPrestamoService.buscarTablaAmortizacion(numeroOperacion, paginacion);
     }
 
+    @GetMapping("/{numeroOperacion}/historial")
+    @Operation(summary = "Historial de pagos aplicados con su desglose, cargos de mora y movimientos de estado de un préstamo")
+    HistorialOperacion buscarHistorial(@PathVariable("numeroOperacion") String numeroOperacion,
+                                       @RequestHeader("X-Rol") String role,
+                                       @RequestHeader("X-Identificacion") String cedula) {
+        visibleLoan(numeroOperacion, role, cedula);
+        return consultaPrestamoService.buscarHistorial(numeroOperacion);
+    }
+
     private ResumenPrestamo visibleLoan(String numeroOperacion, String role, String cedula) {
         ResumenPrestamo loan = consultaPrestamoService.buscarPorNumeroOperacion(numeroOperacion);
         if (CUSTOMER.equals(role) && !loan.cedulaCliente().equals(cedula)) {
-            throw new ExcepcionPrestamo(HttpStatus.NOT_FOUND, "La operación " + numeroOperacion + " no existe.");
+            throw new PrestamoException(HttpStatus.NOT_FOUND, "La operación " + numeroOperacion + " no existe.");
         }
         return loan;
     }
