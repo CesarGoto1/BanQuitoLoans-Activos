@@ -17,4 +17,13 @@ interface PagoRepository extends JpaRepository<Pago, Integer> {
 
     @Query("select max(p.fechaPago) from PagoPrestamo p where p.idOperacion = :idOperacion and p.origen = :origen")
     Optional<LocalDate> findUltimaFecha(@Param("idOperacion") Integer idOperacion, @Param("origen") OrigenPago origen);
+
+    @EntityGraph(attributePaths = "detalles")
+    List<Pago> findByOrigenAndFechaPago(OrigenPago origen, LocalDate fechaPago);
+
+    @Query("""
+            select max(p.fechaPago) from PagoPrestamo p
+            where p.idOperacion = :idOperacion and p.origen = :origen and p.fechaPago < :fecha""")
+    Optional<LocalDate> findUltimaFechaAntesDe(@Param("idOperacion") Integer idOperacion,
+                                               @Param("origen") OrigenPago origen, @Param("fecha") LocalDate fecha);
 }
