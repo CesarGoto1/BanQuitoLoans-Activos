@@ -21,6 +21,8 @@ public interface PrestamoRepository extends JpaRepository<Prestamo, Integer> {
 
     List<Prestamo> findByPortfolioStatusNot(EstadoCartera portfolioStatus);
 
+    List<Prestamo> findByPortfolioStatusNotIn(List<EstadoCartera> portfolioStatuses);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Prestamo p where p.numeroOperacion = :numeroOperacion")
     Optional<Prestamo> findParaActualizar(@Param("numeroOperacion") String numeroOperacion);
