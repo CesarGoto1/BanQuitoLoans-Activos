@@ -41,6 +41,7 @@ class ServiceCierreDiaTest {
     EjecucionEtapaRepository ejecucionRepository;
 
     @Autowired
+    @Qualifier("etapaRecaudaciones")
     EtapaFalsa recaudaciones;
 
     @Autowired
@@ -198,7 +199,7 @@ class ServiceCierreDiaTest {
     static class EtapasDePrueba {
 
         @Bean
-        EtapaFalsa recaudaciones() {
+        EtapaFalsa etapaRecaudaciones() {
             return new EtapaFalsa(PasoCierre.RECAUDACIONES, 3);
         }
 

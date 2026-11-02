@@ -72,3 +72,6 @@ nbdist/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+backend/recaudaciones/
+backend/novedades/

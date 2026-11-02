@@ -1,5 +1,6 @@
 package com.grupob.bancobanquito.cobranza.internal;
 
+import com.grupob.bancobanquito.cierre.EtapaCierreException;
 import com.grupob.bancobanquito.cobranza.ResultadoRecaudacion;
 import com.grupob.bancobanquito.cobranza.ResultadoRegistroRecaudacion;
 import com.grupob.bancobanquito.cobranza.ServiceRecaudaciones;
@@ -8,13 +9,19 @@ import com.grupob.bancobanquito.pagos.PagoRecaudacion;
 import com.grupob.bancobanquito.pagos.ResultadoPago;
 import com.grupob.bancobanquito.pagos.ServicePagos;
 import com.grupob.bancobanquito.parametros.ServiceFechaNegocio;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -31,10 +38,19 @@ class ServiceRecaudacionesImpl implements ServiceRecaudaciones {
     private final ServiceFechaNegocio fechaNegocio;
     private final ObjectProvider<ServicePagos> pagos;
     private final TransactionTemplate transaccion;
+    private final EscritorNovedadesRecaudacion escritorNovedades;
+    private final Path carpetaEntrada;
+    private final Path carpetaNovedades;
 
     ServiceRecaudacionesImpl(LectorArchivoRecaudacion lector, ArchivoRecaudacionRepository archivos,
                              RegistroRecaudacionRepository registros, ServiceFechaNegocio fechaNegocio,
-                             ObjectProvider<ServicePagos> pagos, PlatformTransactionManager transacciones) {
+                             ObjectProvider<ServicePagos> pagos, PlatformTransactionManager transacciones,
+                             EscritorNovedadesRecaudacion escritorNovedades,
+                             @Value("${recaudacion.carpeta-entrada:./recaudaciones}") String carpetaEntrada,
+                             @Value("${recaudacion.carpeta-novedades:./novedades}") String carpetaNovedades) {
+        this.escritorNovedades = escritorNovedades;
+        this.carpetaEntrada = Path.of(carpetaEntrada);
+        this.carpetaNovedades = Path.of(carpetaNovedades);
         this.lector = lector;
         this.archivos = archivos;
         this.registros = registros;
@@ -70,6 +86,44 @@ class ServiceRecaudacionesImpl implements ServiceRecaudaciones {
         throw new IllegalStateException("No fue posible completar el procesamiento.");
     }
 
+    @Override
+    public int procesarCarpeta(LocalDate fechaNegocioCierre) {
+        if (!Files.isDirectory(carpetaEntrada)) {
+            return 0;
+        }
+        String prefijo = "REC_" + fechaNegocioCierre.format(DateTimeFormatter.BASIC_ISO_DATE) + "_";
+        int procesados = 0;
+        try {
+            Files.createDirectories(carpetaNovedades);
+            for (Path archivo : archivosDelDia(prefijo)) {
+                String nombre = archivo.getFileName().toString();
+                Path novedades = carpetaNovedades.resolve("NOV_" + nombre);
+                if (Files.exists(novedades)) {
+                    continue;
+                }
+                ResultadoRecaudacion resultado = procesar(nombre, Files.readAllBytes(archivo));
+                escritorNovedades.escribir(novedades, resultado, fechaNegocioCierre);
+                procesados++;
+            }
+        } catch (IOException excepcion) {
+            throw new EtapaCierreException("No se pudo leer o escribir los archivos de recaudación: "
+                    + excepcion.getMessage());
+        }
+        return procesados;
+    }
+
+    private List<Path> archivosDelDia(String prefijo) throws IOException {
+        try (Stream<Path> contenido = Files.list(carpetaEntrada)) {
+            return contenido.filter(Files::isRegularFile)
+                    .filter(archivo -> {
+                        String nombre = archivo.getFileName().toString();
+                        return nombre.startsWith(prefijo) && nombre.length() <= 30;
+                    })
+                    .sorted()
+                    .toList();
+        }
+    }
+
     private ResultadoRecaudacion procesarArchivo(ArchivoRecaudacionLeido entrada, LocalDate fecha) {
         if (archivos.existsByNombreArchivoAndHashSha256AndEstadoArchivo(entrada.nombre(), entrada.hashSha256(), "PROCESADO")) {
             return rechazarArchivo(entrada.nombre(), fecha, "ARC-006");
@@ -103,13 +157,14 @@ class ServiceRecaudacionesImpl implements ServiceRecaudaciones {
         registro.finalizar(estado, resultado.codigoRechazo());
         registros.flush();
         return new ResultadoRegistroRecaudacion(registro.id(), entrada.posicion(), entrada.uuidTransaccion(),
-                estado, resultado.codigoRechazo(), resultado);
+                entrada.numeroOperacion(), entrada.monto(), estado, resultado.codigoRechazo(), resultado);
     }
 
     private ResultadoRegistroRecaudacion registrarResultado(Integer idArchivo, RegistroRecaudacionLeido entrada,
                                                             String estado, String codigo) {
         RegistroRecaudacion registro = registros.saveAndFlush(new RegistroRecaudacion(idArchivo, entrada, estado, codigo));
-        return new ResultadoRegistroRecaudacion(registro.id(), entrada.posicion(), entrada.uuidTransaccion(), estado, codigo, null);
+        return new ResultadoRegistroRecaudacion(registro.id(), entrada.posicion(), entrada.uuidTransaccion(),
+                entrada.numeroOperacion(), entrada.monto(), estado, codigo, null);
     }
 
     private ResultadoRecaudacion rechazarArchivo(String nombre, LocalDate fecha, String codigo) {
