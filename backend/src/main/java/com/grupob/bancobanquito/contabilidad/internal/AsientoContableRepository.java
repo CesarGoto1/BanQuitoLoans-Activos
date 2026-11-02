@@ -1,5 +1,6 @@
 package com.grupob.bancobanquito.contabilidad.internal;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -8,4 +9,6 @@ interface AsientoContableRepository extends JpaRepository<AsientoContable, Integ
     boolean existsByClaveIdempotencia(String claveIdempotencia);
 
     List<AsientoContable> findByIdOperacionOrderByIdAsc(Integer idOperacion);
+
+    List<AsientoContable> findByFechaAsientoOrderByIdAsc(LocalDate fechaAsiento);
 }
