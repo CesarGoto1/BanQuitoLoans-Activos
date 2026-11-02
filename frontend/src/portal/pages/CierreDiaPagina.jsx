@@ -71,7 +71,6 @@ export default function CierreDiaPagina() {
 
   const open = page === 0 ? closings?.content.find((closing) => closing.estadoCierre !== 'COMPLETADO') : null
 
-  // Mientras un cierre está en ejecución (por ejemplo, el automático), la pantalla se refresca sola.
   const inProgress = !running && open?.estadoCierre === 'EN_PROCESO'
   useEffect(() => {
     if (!inProgress) {

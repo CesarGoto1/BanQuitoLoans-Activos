@@ -9,9 +9,9 @@ import java.time.LocalDate;
 @Component
 public class EtapaClasificacionCartera implements EtapaCierre {
 
-    private final ServicioClasificacionCartera servicioClasificacionCartera;
+    private final ServiceClasificacionCartera servicioClasificacionCartera;
 
-    public EtapaClasificacionCartera(ServicioClasificacionCartera servicioClasificacionCartera) {
+    public EtapaClasificacionCartera(ServiceClasificacionCartera servicioClasificacionCartera) {
         this.servicioClasificacionCartera = servicioClasificacionCartera;
     }
 

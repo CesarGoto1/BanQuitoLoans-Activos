@@ -2,7 +2,7 @@ package com.grupob.bancobanquito.cobranza.internal;
 
 import com.grupob.bancobanquito.cobranza.ResumenFotoCartera;
 import com.grupob.bancobanquito.cobranza.ResumenTramoCartera;
-import com.grupob.bancobanquito.cobranza.ServicioFotografiaCartera;
+import com.grupob.bancobanquito.cobranza.ServiceFotografiaCartera;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class ServicioFotografiaCarteraImpl implements ServicioFotografiaCartera {
+public class ServiceFotografiaCarteraImpl implements ServiceFotografiaCartera {
 
     private final OperacionCobranzaRepository operacionRepository;
     private final CuotaCobranzaRepository cuotaRepository;
@@ -23,7 +23,7 @@ public class ServicioFotografiaCarteraImpl implements ServicioFotografiaCartera 
     private final FotoCarteraRepository fotoRepository;
     private final DevengoCobranzaRepository devengoRepository;
 
-    public ServicioFotografiaCarteraImpl(
+    public ServiceFotografiaCarteraImpl(
             OperacionCobranzaRepository operacionRepository,
             CuotaCobranzaRepository cuotaRepository,
             TramoCarteraRepository tramoRepository,

@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ServicioClasificacionCarteraTest {
+class ServiceClasificacionCarteraTest {
 
     @Mock
     private OperacionCobranzaRepository operacionRepository;
@@ -37,16 +37,16 @@ class ServicioClasificacionCarteraTest {
     private TramoCarteraRepository tramoRepository;
 
     @Mock
-    private CambioEstadoOperacionRepository cambioEstadoRepository;
+    private CambioEstadoCarteraRepository cambioEstadoRepository;
 
     @Mock
     private ServiceContabilidad serviceContabilidad;
 
-    private ServicioClasificacionCarteraImpl servicio;
+    private ServiceClasificacionCarteraImpl servicio;
 
     @BeforeEach
     void setUp() {
-        this.servicio = new ServicioClasificacionCarteraImpl(
+        this.servicio = new ServiceClasificacionCarteraImpl(
                 operacionRepository,
                 cuotaRepository,
                 tramoRepository,

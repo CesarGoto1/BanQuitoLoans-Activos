@@ -81,7 +81,7 @@ class ControllerAbonoCancelacionTest {
 
     @Test
     void devuelveElErrorDeNegocioComoProblemDetail() throws Exception {
-        when(servicioAbono.simular(anyString(), any(), any())).thenThrow(new ExcepcionPrestamo(HttpStatus.CONFLICT,
+        when(servicioAbono.simular(anyString(), any(), any())).thenThrow(new PrestamoException(HttpStatus.CONFLICT,
                 "La operación tiene cuotas vencidas; el valor debe aplicarse como pago con prelación, no como abono."));
 
         mvc.perform(post(OPERACION + "/simulaciones-abono").contentType(MediaType.APPLICATION_JSON)

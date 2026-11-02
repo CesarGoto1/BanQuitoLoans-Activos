@@ -16,8 +16,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice(assignableTypes = {ControllerDesembolso.class, ControllerPrestamo.class})
 class ManejadorExcepcionPrestamo {
 
-    @ExceptionHandler(ExcepcionPrestamo.class)
-    ProblemDetail loan(ExcepcionPrestamo e) {
+    @ExceptionHandler(PrestamoException.class)
+    ProblemDetail loan(PrestamoException e) {
         return problem(e.getStatus(), "No se pudo procesar", e.getMessage());
     }
 

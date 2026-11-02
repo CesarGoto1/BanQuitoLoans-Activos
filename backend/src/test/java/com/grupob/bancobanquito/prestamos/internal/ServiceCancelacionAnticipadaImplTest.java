@@ -189,7 +189,7 @@ class ServiceCancelacionAnticipadaImplTest {
         when(servicioFechaNegocio.getCurrentBusinessDate()).thenReturn(LocalDate.of(2026, 12, 15));
 
         assertThatThrownBy(() -> servicioCancelacion.registrar(OPERACION, new BigDecimal("9000.00"), ANALISTA))
-                .isInstanceOf(ExcepcionPrestamo.class)
+                .isInstanceOf(PrestamoException.class)
                 .hasMessageContaining("USD 9284.57");
         verify(pagoRepository, never()).save(any());
         verify(servicioContabilidad, never()).registrarAsientos(anyList());

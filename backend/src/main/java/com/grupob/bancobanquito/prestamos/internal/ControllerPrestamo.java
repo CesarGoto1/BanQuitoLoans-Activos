@@ -51,7 +51,7 @@ class ControllerPrestamo {
             @PageableDefault(size = 10, sort = "fechaDesembolso", direction = Sort.Direction.DESC) Pageable paginacion) {
         String customer = CUSTOMER.equals(role) ? cedula : cedulaCliente;
         if (customer == null) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST, "El parámetro cedulaCliente es obligatorio.");
+            throw new PrestamoException(HttpStatus.BAD_REQUEST, "El parámetro cedulaCliente es obligatorio.");
         }
         return consultaPrestamoService.buscarPorCliente(customer, estadoCartera, paginacion);
     }
@@ -79,7 +79,7 @@ class ControllerPrestamo {
     private ResumenPrestamo visibleLoan(String numeroOperacion, String role, String cedula) {
         ResumenPrestamo loan = consultaPrestamoService.buscarPorNumeroOperacion(numeroOperacion);
         if (CUSTOMER.equals(role) && !loan.cedulaCliente().equals(cedula)) {
-            throw new ExcepcionPrestamo(HttpStatus.NOT_FOUND, "La operación " + numeroOperacion + " no existe.");
+            throw new PrestamoException(HttpStatus.NOT_FOUND, "La operación " + numeroOperacion + " no existe.");
         }
         return loan;
     }

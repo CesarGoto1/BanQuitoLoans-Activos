@@ -3,7 +3,7 @@ package com.grupob.bancobanquito.cobranza;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface ServicioFotografiaCartera {
+public interface ServiceFotografiaCartera {
 
     int tomarFotografiaDiaria(LocalDate fechaNegocio);
 

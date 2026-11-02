@@ -1,12 +1,12 @@
-package com.grupob.bancobanquito.originacion.internal;
+package com.grupob.bancobanquito.acceso.internal;
 
 import org.springframework.http.HttpStatus;
 
-class ExcepcionOriginacion extends RuntimeException {
+class AccesoException extends RuntimeException {
 
     private final HttpStatus status;
 
-    ExcepcionOriginacion(HttpStatus status, String message) {
+    AccesoException(HttpStatus status, String message) {
         super(message);
         this.status = status;
     }

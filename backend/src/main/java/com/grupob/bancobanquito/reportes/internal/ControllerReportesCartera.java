@@ -1,16 +1,24 @@
 package com.grupob.bancobanquito.reportes.internal;
 
-import com.grupob.bancobanquito.reportes.*;
+import com.grupob.bancobanquito.reportes.ResultadoComposicionCartera;
+import com.grupob.bancobanquito.reportes.ResultadoMorosidad;
+import com.grupob.bancobanquito.reportes.ResultadoRollRate;
+import com.grupob.bancobanquito.reportes.ResultadoSaludCartera;
+import com.grupob.bancobanquito.reportes.ServiceReportesCartera;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/analista/reportes")
 @Tag(name = "Reportes de cartera")
 class ControllerReportesCartera {
+
     private final ServiceReportesCartera servicio;
 
     ControllerReportesCartera(ServiceReportesCartera servicio) {

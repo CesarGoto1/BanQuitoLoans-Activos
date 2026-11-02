@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CambioEstadoOperacionRepository extends JpaRepository<CambioEstadoOperacion, Integer> {
+public interface CambioEstadoCarteraRepository extends JpaRepository<CambioEstadoOperacion, Integer> {
 
     boolean existsByIdOperacionAndFechaCambio(Integer idOperacion, LocalDate fechaCambio);
 

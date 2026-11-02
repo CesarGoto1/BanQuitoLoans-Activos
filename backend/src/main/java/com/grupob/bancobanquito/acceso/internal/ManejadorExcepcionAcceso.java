@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice(assignableTypes = ControllerInicioSesionAnalista.class)
 class ManejadorExcepcionAcceso {
 
-    @ExceptionHandler(ExcepcionAcceso.class)
-    ProblemDetail acceso(ExcepcionAcceso e) {
+    @ExceptionHandler(AccesoException.class)
+    ProblemDetail acceso(AccesoException e) {
         return problem(e.getStatus(), "No se pudo ingresar", e.getMessage());
     }
 

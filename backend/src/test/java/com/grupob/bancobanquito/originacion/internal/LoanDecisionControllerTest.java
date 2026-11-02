@@ -27,7 +27,7 @@ class LoanDecisionControllerTest {
     @BeforeEach
     void setUp() {
         mvc = MockMvcBuilders.standaloneSetup(new ControllerDecisionPrestamo(service))
-                .setControllerAdvice(new SolicitudExceptionHandler()).build();
+                .setControllerAdvice(new ManejadorExcepcionSolicitud()).build();
     }
 
     @Test
@@ -103,7 +103,7 @@ class LoanDecisionControllerTest {
 
     @Test
     void returnsConflictForBusinessRule() throws Exception {
-        when(service.approveApplication(any(), anyString(), any())).thenThrow(new ExcepcionReglaDecisionPrestamo("La solicitud ya fue resuelta."));
+        when(service.approveApplication(any(), anyString(), any())).thenThrow(new ReglaDecisionPrestamoException("La solicitud ya fue resuelta."));
         assertFailure(409);
     }
 

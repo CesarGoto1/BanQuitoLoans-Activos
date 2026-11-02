@@ -1,8 +1,8 @@
 package com.grupob.bancobanquito.cobranza.internal;
 
 import com.grupob.bancobanquito.cobranza.ResumenFotoCartera;
-import com.grupob.bancobanquito.cobranza.ServicioClasificacionCartera;
-import com.grupob.bancobanquito.cobranza.ServicioFotografiaCartera;
+import com.grupob.bancobanquito.cobranza.ServiceClasificacionCartera;
+import com.grupob.bancobanquito.cobranza.ServiceFotografiaCartera;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,16 +20,16 @@ import java.util.List;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/cobranza")
-public class CobranzaController {
+public class ControllerCobranza {
 
-    private final ServicioClasificacionCartera servicioClasificacionCartera;
-    private final ServicioFotografiaCartera servicioFotografiaCartera;
-    private final CambioEstadoOperacionRepository cambioEstadoRepository;
+    private final ServiceClasificacionCartera servicioClasificacionCartera;
+    private final ServiceFotografiaCartera servicioFotografiaCartera;
+    private final CambioEstadoCarteraRepository cambioEstadoRepository;
 
-    public CobranzaController(
-            ServicioClasificacionCartera servicioClasificacionCartera,
-            ServicioFotografiaCartera servicioFotografiaCartera,
-            CambioEstadoOperacionRepository cambioEstadoRepository) {
+    public ControllerCobranza(
+            ServiceClasificacionCartera servicioClasificacionCartera,
+            ServiceFotografiaCartera servicioFotografiaCartera,
+            CambioEstadoCarteraRepository cambioEstadoRepository) {
         this.servicioClasificacionCartera = servicioClasificacionCartera;
         this.servicioFotografiaCartera = servicioFotografiaCartera;
         this.cambioEstadoRepository = cambioEstadoRepository;

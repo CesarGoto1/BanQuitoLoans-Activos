@@ -1,12 +1,12 @@
-package com.grupob.bancobanquito.acceso.internal;
+package com.grupob.bancobanquito.prestamos.internal;
 
 import org.springframework.http.HttpStatus;
 
-class ExcepcionAcceso extends RuntimeException {
+class PrestamoException extends RuntimeException {
 
     private final HttpStatus status;
 
-    ExcepcionAcceso(HttpStatus status, String message) {
+    PrestamoException(HttpStatus status, String message) {
         super(message);
         this.status = status;
     }

@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.grupob.bancobanquito.cobranza.ResumenFotoCartera;
 import com.grupob.bancobanquito.cobranza.ResumenTramoCartera;
-import com.grupob.bancobanquito.cobranza.ServicioFotografiaCartera;
+import com.grupob.bancobanquito.cobranza.ServiceFotografiaCartera;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -24,7 +24,7 @@ class ConsultaReportesCarteraTest {
 
     private static final LocalDate FECHA = LocalDate.of(2026, 10, 31);
     @Mock
-    private ServicioFotografiaCartera fotografias;
+    private ServiceFotografiaCartera fotografias;
     @Mock
     private com.grupob.bancobanquito.cierre.ServiceCierreDia cierres;
     @Mock

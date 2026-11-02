@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
-class SolicitudAnalistaControllerTest {
+class ControllerSolicitudAnalistaTest {
 
     @Mock
     private ServiceBandejaSolicitud solicitudService;
@@ -33,10 +33,10 @@ class SolicitudAnalistaControllerTest {
 
     @BeforeEach
     void setUp() {
-        SolicitudAnalistaController controller = new SolicitudAnalistaController(solicitudService);
+        ControllerSolicitudAnalista controller = new ControllerSolicitudAnalista(solicitudService);
         this.mockMvc = MockMvcBuilders
                 .standaloneSetup(controller)
-                .setControllerAdvice(new SolicitudExceptionHandler())
+                .setControllerAdvice(new ManejadorExcepcionSolicitud())
                 .build();
     }
 

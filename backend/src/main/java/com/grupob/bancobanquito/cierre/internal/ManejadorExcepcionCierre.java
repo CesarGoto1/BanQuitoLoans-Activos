@@ -13,8 +13,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice(assignableTypes = ControllerCierreDia.class)
 class ManejadorExcepcionCierre {
 
-    @ExceptionHandler(ExcepcionCierre.class)
-    ProblemDetail closing(ExcepcionCierre e) {
+    @ExceptionHandler(CierreException.class)
+    ProblemDetail closing(CierreException e) {
         return problem(e.getStatus(), "No se pudo procesar el cierre", e.getMessage());
     }
 

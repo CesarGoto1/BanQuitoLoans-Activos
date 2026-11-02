@@ -99,8 +99,8 @@ class LoanServiceTest {
         loanService.disburse(idSolicitud, "2200000001");
 
         assertThatThrownBy(() -> loanService.disburse(idSolicitud, "2200000001"))
-                .isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.CONFLICT);
+                .isInstanceOf(PrestamoException.class)
+                .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(loanService.findDisbursement(idSolicitud)).isPresent();
     }
 
@@ -109,16 +109,16 @@ class LoanServiceTest {
         Integer idSolicitud = SolicitudesDePrueba.crearAprobada(entityManager, cliente, "10000.00", 12, MetodoAmortizacion.FRANCES);
         SolicitudesDePrueba.marcarRegistrada(entityManager, idSolicitud);
         assertThatThrownBy(() -> loanService.disburse(idSolicitud, "2200000001"))
-                .isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+                .isInstanceOf(PrestamoException.class)
+                .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void doesNotDisburseToAnAccountOfAnotherCustomer() {
         Integer idSolicitud = SolicitudesDePrueba.crearAprobada(entityManager, cliente, "10000.00", 12, MetodoAmortizacion.FRANCES);
         assertThatThrownBy(() -> loanService.disburse(idSolicitud, "2200000002"))
-                .isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                .isInstanceOf(PrestamoException.class)
+                .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -140,8 +140,8 @@ class LoanServiceTest {
             assertThat(org.springframework.aop.support.AopUtils.isAopProxy(loanService)).isTrue();
             assertThat(org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
             assertThatThrownBy(() -> loanService.disburse(solicitud, "2200000001"))
-                    .isInstanceOf(ExcepcionPrestamo.class)
-                    .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.BAD_GATEWAY);
+                    .isInstanceOf(PrestamoException.class)
+                    .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.BAD_GATEWAY);
             assertThat(operacion.get()).isNotNull();
             transaccion.executeWithoutResult(estado -> {
                 assertThat(loanRepository.existsByIdSolicitud(solicitud)).isFalse();

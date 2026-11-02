@@ -109,7 +109,7 @@ class ServicePrestamoContabilidadTest {
         servicioPrestamo.disburse(9001, "2200000001");
 
         assertThatThrownBy(() -> servicioPrestamo.disburse(9001, "2200000001"))
-                .isInstanceOf(ExcepcionPrestamo.class).hasMessageContaining("ya fue desembolsada");
+                .isInstanceOf(PrestamoException.class).hasMessageContaining("ya fue desembolsada");
         verify(servicioContabilidad).registrarAsientos(anyList());
         verify(servicioPasivos).creditDisbursement(any());
         verify(loanRepository).save(any(Prestamo.class));
@@ -136,8 +136,8 @@ class ServicePrestamoContabilidadTest {
                 .when(servicioPasivos).creditDisbursement(any());
 
         assertThatThrownBy(() -> servicioPrestamo.disburse(9001, "2200000001"))
-                .isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(error -> ((ExcepcionPrestamo) error).getStatus())
+                .isInstanceOf(PrestamoException.class)
+                .extracting(error -> ((PrestamoException) error).getStatus())
                 .isEqualTo(org.springframework.http.HttpStatus.BAD_GATEWAY);
     }
 

@@ -9,9 +9,9 @@ import java.time.LocalDate;
 @Component
 public class EtapaFotografiaCartera implements EtapaCierre {
 
-    private final ServicioFotografiaCartera servicioFotografiaCartera;
+    private final ServiceFotografiaCartera servicioFotografiaCartera;
 
-    public EtapaFotografiaCartera(ServicioFotografiaCartera servicioFotografiaCartera) {
+    public EtapaFotografiaCartera(ServiceFotografiaCartera servicioFotografiaCartera) {
         this.servicioFotografiaCartera = servicioFotografiaCartera;
     }
 

@@ -71,7 +71,7 @@ class ServiceAbonoExtraordinarioImpl implements ServiceAbonoExtraordinario {
     public ResultadoAbono registrar(String numeroOperacion, BigDecimal monto, ModalidadAbono modalidad,
                                     String cedulaAnalista) {
         SesionAnalista analista = servicioAnalista.findByNationalId(cedulaAnalista)
-                .orElseThrow(() -> new ExcepcionPrestamo(HttpStatus.FORBIDDEN,
+                .orElseThrow(() -> new PrestamoException(HttpStatus.FORBIDDEN,
                         "El analista " + cedulaAnalista + " no está registrado."));
         Prestamo prestamo = prestamoRepository.findParaActualizar(numeroOperacion)
                 .orElseThrow(() -> operacionInexistente(numeroOperacion));
@@ -101,7 +101,7 @@ class ServiceAbonoExtraordinarioImpl implements ServiceAbonoExtraordinario {
 
         if (pagoRepository.existsByIdOperacionAndOrigenAndFechaPago(prestamo.getId(),
                 OrigenPago.ABONO_EXTRAORDINARIO, fecha)) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT,
+            throw new PrestamoException(HttpStatus.CONFLICT,
                     "La operación ya tiene un abono extraordinario registrado hoy.");
         }
 
@@ -111,16 +111,16 @@ class ServiceAbonoExtraordinarioImpl implements ServiceAbonoExtraordinario {
                 baseDias());
         BigDecimal minimo = servicioParametro.getValue(ABONO_MINIMO);
         if (monto.compareTo(minimo) < 0) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST,
+            throw new PrestamoException(HttpStatus.BAD_REQUEST,
                     "El abono mínimo es USD " + minimo.setScale(2, RoundingMode.HALF_UP) + ".");
         }
         if (monto.compareTo(interes) <= 0) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST,
+            throw new PrestamoException(HttpStatus.BAD_REQUEST,
                     "El abono debe ser mayor al interés devengado a la fecha (USD " + interes + ").");
         }
         BigDecimal capital = monto.subtract(interes);
         if (capital.compareTo(saldo) >= 0) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT,
+            throw new PrestamoException(HttpStatus.CONFLICT,
                     "El abono cubre toda la deuda; registre una cancelación anticipada.");
         }
 
@@ -135,18 +135,18 @@ class ServiceAbonoExtraordinarioImpl implements ServiceAbonoExtraordinario {
 
     private void validarMonto(BigDecimal monto, ModalidadAbono modalidad) {
         if (monto == null || monto.signum() <= 0 || monto.stripTrailingZeros().scale() > 2) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST,
+            throw new PrestamoException(HttpStatus.BAD_REQUEST,
                     "El valor del abono debe ser mayor que cero y tener máximo dos decimales.");
         }
         if (modalidad == null) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST, "La modalidad del abono es obligatoria.");
+            throw new PrestamoException(HttpStatus.BAD_REQUEST, "La modalidad del abono es obligatoria.");
         }
     }
 
     private void validarEstado(Prestamo prestamo) {
         EstadoCartera estado = prestamo.getPortfolioStatus();
         if (estado == EstadoCartera.CANCELADA || estado == EstadoCartera.CASTIGADA) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT,
+            throw new PrestamoException(HttpStatus.CONFLICT,
                     "No se puede abonar a una operación en estado " + estado + ".");
         }
         if (estado != EstadoCartera.POR_VENCER) {
@@ -159,15 +159,15 @@ class ServiceAbonoExtraordinarioImpl implements ServiceAbonoExtraordinario {
             throw cuotasVencidas();
         }
         if (cuotas.stream().anyMatch(cuota -> cuota.getDueDate().isEqual(fecha) && noPagada(cuota))) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT,
+            throw new PrestamoException(HttpStatus.CONFLICT,
                     "La cuota que vence hoy debe pagarse antes de registrar el abono.");
         }
         List<Cuota> pendientes = cuotas.stream().filter(cuota -> cuota.getDueDate().isAfter(fecha)).toList();
         if (pendientes.isEmpty()) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT, "La operación no tiene cuotas por vencer.");
+            throw new PrestamoException(HttpStatus.CONFLICT, "La operación no tiene cuotas por vencer.");
         }
         if (pendientes.stream().anyMatch(cuota -> cuota.getStatus() != EstadoCuota.PENDIENTE)) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT,
+            throw new PrestamoException(HttpStatus.CONFLICT,
                     "La operación tiene cuotas futuras pagadas por adelantado; no se puede recalcular la tabla.");
         }
         return pendientes;
@@ -258,13 +258,13 @@ class ServiceAbonoExtraordinarioImpl implements ServiceAbonoExtraordinario {
         return cuota.getStatus() != EstadoCuota.PAGADA;
     }
 
-    private ExcepcionPrestamo cuotasVencidas() {
-        return new ExcepcionPrestamo(HttpStatus.CONFLICT,
+    private PrestamoException cuotasVencidas() {
+        return new PrestamoException(HttpStatus.CONFLICT,
                 "La operación tiene cuotas vencidas; el valor debe aplicarse como pago con prelación, no como abono.");
     }
 
-    private ExcepcionPrestamo operacionInexistente(String numeroOperacion) {
-        return new ExcepcionPrestamo(HttpStatus.NOT_FOUND, "La operación " + numeroOperacion + " no existe.");
+    private PrestamoException operacionInexistente(String numeroOperacion) {
+        return new PrestamoException(HttpStatus.NOT_FOUND, "La operación " + numeroOperacion + " no existe.");
     }
 
     private record Calculo(LocalDate fecha, ModalidadAbono modalidad, BigDecimal monto, BigDecimal interes,

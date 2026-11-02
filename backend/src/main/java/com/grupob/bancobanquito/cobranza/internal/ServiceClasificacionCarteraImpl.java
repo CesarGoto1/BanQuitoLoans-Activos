@@ -1,6 +1,6 @@
 package com.grupob.bancobanquito.cobranza.internal;
 
-import com.grupob.bancobanquito.cobranza.ServicioClasificacionCartera;
+import com.grupob.bancobanquito.cobranza.ServiceClasificacionCartera;
 import com.grupob.bancobanquito.contabilidad.CodigoCuentaContable;
 import com.grupob.bancobanquito.contabilidad.MovimientoContable;
 import com.grupob.bancobanquito.contabilidad.ServiceContabilidad;
@@ -17,19 +17,19 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ServicioClasificacionCarteraImpl implements ServicioClasificacionCartera {
+public class ServiceClasificacionCarteraImpl implements ServiceClasificacionCartera {
 
     private final OperacionCobranzaRepository operacionRepository;
     private final CuotaCobranzaRepository cuotaRepository;
     private final TramoCarteraRepository tramoRepository;
-    private final CambioEstadoOperacionRepository cambioEstadoRepository;
+    private final CambioEstadoCarteraRepository cambioEstadoRepository;
     private final ServiceContabilidad serviceContabilidad;
 
-    public ServicioClasificacionCarteraImpl(
+    public ServiceClasificacionCarteraImpl(
             OperacionCobranzaRepository operacionRepository,
             CuotaCobranzaRepository cuotaRepository,
             TramoCarteraRepository tramoRepository,
-            CambioEstadoOperacionRepository cambioEstadoRepository,
+            CambioEstadoCarteraRepository cambioEstadoRepository,
             ServiceContabilidad serviceContabilidad) {
         this.operacionRepository = operacionRepository;
         this.cuotaRepository = cuotaRepository;

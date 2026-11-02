@@ -74,7 +74,7 @@ class ControllerCierreDiaTest {
     @Test
     void unDiaYaCerradoResponde409ConElMotivo() throws Exception {
         when(closingService.ejecutarCierre(FECHA_NEGOCIO, ANALISTA))
-                .thenThrow(new ExcepcionCierre(HttpStatus.CONFLICT, "El día 2026-10-31 ya fue cerrado."));
+                .thenThrow(new CierreException(HttpStatus.CONFLICT, "El día 2026-10-31 ya fue cerrado."));
 
         mockMvc.perform(post("/api/analista/cierres-dia")
                         .header("X-Identificacion", ANALISTA)

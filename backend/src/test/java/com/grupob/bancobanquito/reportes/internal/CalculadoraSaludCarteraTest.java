@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class CalculadoraSaludCarteraTest {
     private final ServiceReportesCarteraImpl servicio = new ServiceReportesCarteraImpl(org.mockito.Mockito.mock(
-            com.grupob.bancobanquito.cobranza.ServicioFotografiaCartera.class),
+            com.grupob.bancobanquito.cobranza.ServiceFotografiaCartera.class),
             org.mockito.Mockito.mock(com.grupob.bancobanquito.cierre.ServiceCierreDia.class),
             org.mockito.Mockito.mock(com.grupob.bancobanquito.prestamos.ConsultaPrestamoService.class));
 

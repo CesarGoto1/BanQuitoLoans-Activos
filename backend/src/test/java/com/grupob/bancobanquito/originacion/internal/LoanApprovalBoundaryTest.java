@@ -16,7 +16,7 @@ class LoanApprovalBoundaryTest {
     @ValueSource(strings = {"-0.01", "0"})
     void refusesMissingOrNonPositiveRate(String rate) {
         assertThatThrownBy(() -> policy.validateAnnualEffectiveRate(rate == null ? null : new BigDecimal(rate),
-                new BigDecimal("0.1677"))).isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                new BigDecimal("0.1677"))).isInstanceOf(ReglaDecisionPrestamoException.class);
     }
 
     @ParameterizedTest
@@ -24,7 +24,7 @@ class LoanApprovalBoundaryTest {
     void refusesNonPositiveSurplus(String surplus) {
         assertThatThrownBy(() -> policy.validatePaymentCapacity(new BigDecimal("1000").add(new BigDecimal(surplus)),
                 new BigDecimal("1000"), new BigDecimal("200"), new BigDecimal("0.4")))
-                .isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                .isInstanceOf(ReglaDecisionPrestamoException.class);
     }
 
     @Test
@@ -36,6 +36,6 @@ class LoanApprovalBoundaryTest {
     @Test
     void refusesOneCentAboveLimitEvenWhenPercentageRoundsToForty() {
         assertThatThrownBy(() -> policy.validatePaymentCapacity(new BigDecimal("1500"), new BigDecimal("500"),
-                new BigDecimal("400.01"), new BigDecimal("0.4"))).isInstanceOf(ExcepcionReglaDecisionPrestamo.class);
+                new BigDecimal("400.01"), new BigDecimal("0.4"))).isInstanceOf(ReglaDecisionPrestamoException.class);
     }
 }

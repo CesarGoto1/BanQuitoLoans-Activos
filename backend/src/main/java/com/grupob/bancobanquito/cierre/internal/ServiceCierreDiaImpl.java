@@ -2,7 +2,7 @@ package com.grupob.bancobanquito.cierre.internal;
 
 import com.grupob.bancobanquito.cierre.EjecucionEtapaCierre;
 import com.grupob.bancobanquito.cierre.EtapaCierre;
-import com.grupob.bancobanquito.cierre.ExcepcionEtapaCierre;
+import com.grupob.bancobanquito.cierre.EtapaCierreException;
 import com.grupob.bancobanquito.cierre.PasoCierre;
 import com.grupob.bancobanquito.cierre.ResultadoCierreDia;
 import com.grupob.bancobanquito.cierre.ServiceCierreDia;
@@ -13,8 +13,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,8 +27,6 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
     static final String USUARIO_SISTEMA = "sistema";
     static final String ERROR_INESPERADO =
             "Ocurrió un error inesperado en la etapa. Comuníquelo a soporte técnico y reintente el cierre.";
-
-    private static final Logger log = LoggerFactory.getLogger(ServiceCierreDiaImpl.class);
 
     private final CierreDiaRepository cierreRepository;
     private final EjecucionEtapaRepository ejecucionRepository;
@@ -48,7 +44,6 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
     @Override
     public ResultadoCierreDia ejecutarCierre(LocalDate fechaNegocio, String usuario) {
         CierreDia cierre = transaccion.execute(estado -> iniciar(fechaNegocio, usuario));
-        log.info("Cierre del {} iniciado por {}", fechaNegocio, enmascarar(usuario));
         Set<PasoCierre> exitosas = etapasExitosas(cierre.getId());
         for (PasoCierre paso : PasoCierre.values()) {
             if (exitosas.contains(paso)) {
@@ -56,12 +51,10 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
             }
             if (!ejecutarEtapa(cierre, paso, usuario)) {
                 transaccion.executeWithoutResult(estado -> cambiarEstado(cierre.getId(), EstadoCierre.FALLIDO, usuario));
-                log.warn("Cierre del {} detenido en la etapa {}; la fecha de negocio no avanza", fechaNegocio, paso);
                 return consultarCierre(fechaNegocio);
             }
         }
         transaccion.executeWithoutResult(estado -> completar(cierre.getId(), usuario));
-        log.info("Cierre del {} completado; nueva fecha de negocio {}", fechaNegocio, fechaNegocio.plusDays(1));
         return consultarCierre(fechaNegocio);
     }
 
@@ -70,7 +63,7 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
     public ResultadoCierreDia consultarCierre(LocalDate fechaNegocio) {
         return cierreRepository.findByFechaNegocio(fechaNegocio)
                 .map(this::aResultado)
-                .orElseThrow(() -> new ExcepcionCierre(HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new CierreException(HttpStatus.NOT_FOUND,
                         "No existe un cierre para el día " + fechaNegocio + "."));
     }
 
@@ -80,7 +73,6 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
         return cierreRepository.findAll(paginacion).map(this::aResultado);
     }
 
-    // Un cierre que quedó EN_PROCESO solo puede venir de una caída de la aplicación a mitad de una etapa.
     @Transactional
     public int recuperarCierresInterrumpidos() {
         ejecucionRepository.findByEstadoEtapa(EstadoEtapa.EN_PROCESO).forEach(ejecucion -> ejecucion.fallar(
@@ -92,17 +84,17 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
 
     private CierreDia iniciar(LocalDate fechaNegocio, String usuario) {
         CierreDia vigente = cierreRepository.findFirstByEstadoCierreNotOrderByFechaNegocioAsc(EstadoCierre.COMPLETADO)
-                .orElseThrow(() -> new ExcepcionCierre(HttpStatus.CONFLICT, "No hay una fecha de negocio abierta."));
+                .orElseThrow(() -> new CierreException(HttpStatus.CONFLICT, "No hay una fecha de negocio abierta."));
         if (!vigente.getFechaNegocio().equals(fechaNegocio)) {
             if (cierreRepository.existsByFechaNegocioAndEstadoCierre(fechaNegocio, EstadoCierre.COMPLETADO)) {
-                throw new ExcepcionCierre(HttpStatus.CONFLICT, "El día " + fechaNegocio + " ya fue cerrado.");
+                throw new CierreException(HttpStatus.CONFLICT, "El día " + fechaNegocio + " ya fue cerrado.");
             }
-            throw new ExcepcionCierre(HttpStatus.CONFLICT, "La fecha de negocio vigente es "
+            throw new CierreException(HttpStatus.CONFLICT, "La fecha de negocio vigente es "
                     + vigente.getFechaNegocio() + "; no se puede cerrar el " + fechaNegocio + ".");
         }
         CierreDia cierre = cierreRepository.findForClosing(fechaNegocio).orElseThrow();
         if (cierre.getEstadoCierre() == EstadoCierre.EN_PROCESO) {
-            throw new ExcepcionCierre(HttpStatus.CONFLICT, "El cierre del día " + fechaNegocio + " ya está en ejecución.");
+            throw new CierreException(HttpStatus.CONFLICT, "El cierre del día " + fechaNegocio + " ya está en ejecución.");
         }
         cierre.cambiarEstado(EstadoCierre.EN_PROCESO, usuario);
         return cierre;
@@ -112,9 +104,6 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
         EjecucionEtapa ejecucion = transaccion.execute(estado -> ejecucionRepository.save(
                 EjecucionEtapa.iniciar(cierre.getId(), paso, siguienteIntento(cierre.getId(), paso), usuario)));
         EtapaCierre etapa = etapas.get(paso);
-        if (etapa == null) {
-            log.warn("La etapa {} no tiene implementación; se registra sin procesar registros", paso);
-        }
         try {
             transaccion.executeWithoutResult(estado -> {
                 ejecucion.terminar(etapa == null ? 0 : etapa.ejecutar(cierre.getFechaNegocio()), usuario);
@@ -122,8 +111,7 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
             });
             return true;
         } catch (RuntimeException e) {
-            log.error("Falló la etapa {} del cierre del {}", paso, cierre.getFechaNegocio(), e);
-            String mensaje = e instanceof ExcepcionEtapaCierre ? e.getMessage() : ERROR_INESPERADO;
+            String mensaje = e instanceof EtapaCierreException ? e.getMessage() : ERROR_INESPERADO;
             transaccion.executeWithoutResult(estado -> {
                 ejecucion.fallar(mensaje, usuario);
                 ejecucionRepository.save(ejecucion);
@@ -200,10 +188,4 @@ public class ServiceCierreDiaImpl implements ServiceCierreDia {
         throw new IllegalStateException("No existe la etapa " + numeroEtapa + ".");
     }
 
-    private static String enmascarar(String usuario) {
-        if (usuario == null || usuario.length() <= 4 || !usuario.matches("[0-9]+")) {
-            return usuario;
-        }
-        return usuario.substring(0, 2) + "******" + usuario.substring(usuario.length() - 2);
-    }
 }

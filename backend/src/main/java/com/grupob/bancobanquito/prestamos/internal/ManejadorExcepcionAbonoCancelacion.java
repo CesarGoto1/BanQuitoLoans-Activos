@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice(assignableTypes = ControllerAbonoCancelacion.class)
 class ManejadorExcepcionAbonoCancelacion {
 
-    @ExceptionHandler(ExcepcionPrestamo.class)
-    ProblemDetail negocio(ExcepcionPrestamo e) {
+    @ExceptionHandler(PrestamoException.class)
+    ProblemDetail negocio(PrestamoException e) {
         return problema(e.getStatus(), "No se pudo procesar", e.getMessage());
     }
 

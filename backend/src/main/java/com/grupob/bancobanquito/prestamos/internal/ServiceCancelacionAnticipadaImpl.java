@@ -70,13 +70,13 @@ class ServiceCancelacionAnticipadaImpl implements ServiceCancelacionAnticipada {
     public LiquidacionCancelacion registrar(String numeroOperacion, BigDecimal montoRecibido,
                                             String cedulaAnalista) {
         SesionAnalista analista = servicioAnalista.findByNationalId(cedulaAnalista)
-                .orElseThrow(() -> new ExcepcionPrestamo(HttpStatus.FORBIDDEN,
+                .orElseThrow(() -> new PrestamoException(HttpStatus.FORBIDDEN,
                         "El analista " + cedulaAnalista + " no está registrado."));
         Prestamo prestamo = prestamoRepository.findParaActualizar(numeroOperacion)
                 .orElseThrow(() -> operacionInexistente(numeroOperacion));
         Liquidacion liquidacion = liquidar(prestamo);
         if (montoRecibido == null || montoRecibido.compareTo(liquidacion.total()) != 0) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT,
+            throw new PrestamoException(HttpStatus.CONFLICT,
                     "El valor de cancelación a la fecha es USD " + liquidacion.total() + ".");
         }
         LiquidacionCancelacion resultado = liquidacion(prestamo, liquidacion);
@@ -108,7 +108,7 @@ class ServiceCancelacionAnticipadaImpl implements ServiceCancelacionAnticipada {
 
     private Liquidacion liquidar(Prestamo prestamo) {
         if (prestamo.getPortfolioStatus() == EstadoCartera.CANCELADA) {
-            throw new ExcepcionPrestamo(HttpStatus.CONFLICT,
+            throw new PrestamoException(HttpStatus.CONFLICT,
                     "La operación " + prestamo.getLoanNumber() + " ya está cancelada.");
         }
         LocalDate fecha = servicioFechaNegocio.getCurrentBusinessDate();
@@ -233,8 +233,8 @@ class ServiceCancelacionAnticipadaImpl implements ServiceCancelacionAnticipada {
                 liquidacion.total());
     }
 
-    private ExcepcionPrestamo operacionInexistente(String numeroOperacion) {
-        return new ExcepcionPrestamo(HttpStatus.NOT_FOUND, "La operación " + numeroOperacion + " no existe.");
+    private PrestamoException operacionInexistente(String numeroOperacion) {
+        return new PrestamoException(HttpStatus.NOT_FOUND, "La operación " + numeroOperacion + " no existe.");
     }
 
     private record Aplicacion(Cuota cuota, boolean exigible, BigDecimal seguro, BigDecimal mora,

@@ -3,8 +3,6 @@ package com.grupob.bancobanquito.originacion.internal;
 import com.grupob.bancobanquito.originacion.SolicitudBandejaResponse;
 import com.grupob.bancobanquito.originacion.SolicitudDetalleResponse;
 import com.grupob.bancobanquito.originacion.ServiceBandejaSolicitud;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,13 +17,11 @@ import java.util.List;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/analista/solicitudes")
-public class SolicitudAnalistaController {
-
-    private static final Logger log = LoggerFactory.getLogger(SolicitudAnalistaController.class);
+public class ControllerSolicitudAnalista {
 
     private final ServiceBandejaSolicitud solicitudService;
 
-    public SolicitudAnalistaController(ServiceBandejaSolicitud solicitudService) {
+    public ControllerSolicitudAnalista(ServiceBandejaSolicitud solicitudService) {
         this.solicitudService = solicitudService;
     }
 
@@ -36,9 +32,6 @@ public class SolicitudAnalistaController {
             @RequestHeader(name = "X-Identificacion", required = false) String identificacion) {
 
         validarCabecerasSeguridad(rol, identificacion);
-        String cedulaEnmascarada = enmascararIdentificacion(identificacion);
-        log.info("Analista [{}] consulta bandeja de solicitudes (estado: {})", cedulaEnmascarada, estado);
-
         List<SolicitudBandejaResponse> bandeja = this.solicitudService.listarBandejaAnalista(estado);
         return ResponseEntity.ok(bandeja);
     }
@@ -50,9 +43,6 @@ public class SolicitudAnalistaController {
             @RequestHeader(name = "X-Identificacion", required = false) String identificacion) {
 
         validarCabecerasSeguridad(rol, identificacion);
-        String cedulaEnmascarada = enmascararIdentificacion(identificacion);
-        log.info("Analista [{}] consulta detalle de la solicitud ID: {}", cedulaEnmascarada, idSolicitud);
-
         SolicitudDetalleResponse detalle = this.solicitudService.obtenerDetalleParaEvaluacion(idSolicitud);
         return ResponseEntity.ok(detalle);
     }
@@ -66,14 +56,4 @@ public class SolicitudAnalistaController {
         }
     }
 
-    private String enmascararIdentificacion(String id) {
-        if (id == null) {
-            return "******";
-        }
-        String limpia = id.trim();
-        if (limpia.length() <= 4) {
-            return "******";
-        }
-        return limpia.substring(0, 2) + "******" + limpia.substring(limpia.length() - 2);
-    }
 }

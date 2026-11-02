@@ -1,7 +1,5 @@
 package com.grupob.bancobanquito.originacion.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +14,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice(basePackages = "com.grupob.bancobanquito.originacion.internal")
-public class SolicitudExceptionHandler {
+public class ManejadorExcepcionSolicitud {
 
-    private static final Logger log = LoggerFactory.getLogger(SolicitudExceptionHandler.class);
-
-    @ExceptionHandler(ExcepcionReglaDecisionPrestamo.class)
-    public ProblemDetail handleDecisionConflict(ExcepcionReglaDecisionPrestamo exception) {
+    @ExceptionHandler(ReglaDecisionPrestamoException.class)
+    public ProblemDetail handleDecisionConflict(ReglaDecisionPrestamoException exception) {
         return problem(HttpStatus.CONFLICT, "No se puede resolver la solicitud", exception.getMessage());
     }
 
@@ -46,7 +42,6 @@ public class SolicitudExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpectedFailure(Exception exception) {
-        log.error("Loan request failed: {}", exception.getClass().getSimpleName());
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo completar la operación",
                 "Ocurrió un error al procesar la solicitud. Actualiza el detalle e intenta nuevamente.");
     }
@@ -59,7 +54,6 @@ public class SolicitudExceptionHandler {
 
     @ExceptionHandler(SolicitudNoEncontradaException.class)
     public ResponseEntity<ProblemDetail> manejarSolicitudNoEncontrada(SolicitudNoEncontradaException ex) {
-        log.warn("Solicitud no encontrada: {}", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Solicitud de crédito no encontrada");
         problem.setType(URI.create("urn:banquito:error:solicitud-no-encontrada"));
@@ -68,7 +62,6 @@ public class SolicitudExceptionHandler {
 
     @ExceptionHandler(AccesoDenegadoAnalistaException.class)
     public ResponseEntity<ProblemDetail> manejarAccesoDenegado(AccesoDenegadoAnalistaException ex) {
-        log.warn("Acceso denegado: {}", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
         problem.setTitle("Acceso no autorizado");
         problem.setType(URI.create("urn:banquito:error:acceso-denegado"));
@@ -77,7 +70,6 @@ public class SolicitudExceptionHandler {
 
     @ExceptionHandler(CabeceraFaltanteException.class)
     public ResponseEntity<ProblemDetail> manejarCabeceraFaltante(CabeceraFaltanteException ex) {
-        log.warn("Cabecera requerida faltante: {}", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Cabecera de autenticación requerida");
         problem.setType(URI.create("urn:banquito:error:cabecera-requerida"));

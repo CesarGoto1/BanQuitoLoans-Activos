@@ -21,7 +21,7 @@ class LoanApprovalPolicyTest {
     @Test
     void shouldRejectAlreadyApprovedApplication() {
         assertThrows(
-                ExcepcionReglaDecisionPrestamo.class,
+                ReglaDecisionPrestamoException.class,
                 () -> policy.ensureRegistered("APROBADA")
         );
     }
@@ -29,7 +29,7 @@ class LoanApprovalPolicyTest {
     @Test
     void shouldRejectAlreadyRejectedApplication() {
         assertThrows(
-                ExcepcionReglaDecisionPrestamo.class,
+                ReglaDecisionPrestamoException.class,
                 () -> policy.ensureRegistered("RECHAZADA")
         );
     }
@@ -47,7 +47,7 @@ class LoanApprovalPolicyTest {
     @Test
     void shouldRejectRateAboveMaximum() {
         assertThrows(
-                ExcepcionReglaDecisionPrestamo.class,
+                ReglaDecisionPrestamoException.class,
                 () -> policy.validateAnnualEffectiveRate(
                         new BigDecimal("0.1800"),
                         new BigDecimal("0.1677")
@@ -74,7 +74,7 @@ class LoanApprovalPolicyTest {
     @Test
     void shouldRejectGermanInstallment() {
         assertThrows(
-                ExcepcionReglaDecisionPrestamo.class,
+                ReglaDecisionPrestamoException.class,
                 () -> policy.validatePaymentCapacity(
                         new BigDecimal("3500.00"),
                         new BigDecimal("1200.00"),
@@ -87,7 +87,7 @@ class LoanApprovalPolicyTest {
     @Test
     void shouldRejectWhenRemainingIncomeIsZero() {
         assertThrows(
-                ExcepcionReglaDecisionPrestamo.class,
+                ReglaDecisionPrestamoException.class,
                 () -> policy.validatePaymentCapacity(
                         new BigDecimal("1000.00"),
                         new BigDecimal("1000.00"),

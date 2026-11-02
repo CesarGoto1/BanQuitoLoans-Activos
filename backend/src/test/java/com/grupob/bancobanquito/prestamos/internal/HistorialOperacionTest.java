@@ -113,8 +113,8 @@ class HistorialOperacionTest {
     @Test
     void respondeNoEncontradoSiLaOperacionNoExiste() {
         assertThatThrownBy(() -> servicio.buscarHistorial("OP-20261031-999999"))
-                .isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+                .isInstanceOf(PrestamoException.class)
+                .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     private Cuota cuota(int id, int numero, LocalDate vencimiento) {

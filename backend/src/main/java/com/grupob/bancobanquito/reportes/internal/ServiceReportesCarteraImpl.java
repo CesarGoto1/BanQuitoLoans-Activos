@@ -1,41 +1,45 @@
 package com.grupob.bancobanquito.reportes.internal;
 
-import com.grupob.bancobanquito.prestamos.EstadoCartera;
-import com.grupob.bancobanquito.prestamos.ConsultaPrestamoService;
-import java.util.HashSet;
-import com.grupob.bancobanquito.cierre.ServiceCierreDia;
+import com.grupob.bancobanquito.cierre.EjecucionEtapaCierre;
 import com.grupob.bancobanquito.cierre.PasoCierre;
 import com.grupob.bancobanquito.cierre.ResultadoCierreDia;
+import com.grupob.bancobanquito.cierre.ServiceCierreDia;
+import com.grupob.bancobanquito.cobranza.ResumenFotoCartera;
+import com.grupob.bancobanquito.cobranza.ResumenTramoCartera;
+import com.grupob.bancobanquito.cobranza.ServiceFotografiaCartera;
+import com.grupob.bancobanquito.prestamos.ConsultaPrestamoService;
+import com.grupob.bancobanquito.prestamos.DatosOperacionCartera;
+import com.grupob.bancobanquito.prestamos.EstadoCartera;
 import com.grupob.bancobanquito.reportes.CorteCartera;
-import com.grupob.bancobanquito.reportes.ResultadoSaludCartera;
 import com.grupob.bancobanquito.reportes.DatosOperacionReporte;
-import com.grupob.bancobanquito.reportes.ResultadoConcentracion;
 import com.grupob.bancobanquito.reportes.ResultadoComposicionCartera;
+import com.grupob.bancobanquito.reportes.ResultadoConcentracion;
 import com.grupob.bancobanquito.reportes.ResultadoMorosidad;
 import com.grupob.bancobanquito.reportes.ResultadoRollRate;
+import com.grupob.bancobanquito.reportes.ResultadoSaludCartera;
 import com.grupob.bancobanquito.reportes.ServiceReportesCartera;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import com.grupob.bancobanquito.cobranza.ServicioFotografiaCartera;
-import com.grupob.bancobanquito.cobranza.ResumenFotoCartera;
-import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class ServiceReportesCarteraImpl implements ServiceReportesCartera {
 
-    private final ServicioFotografiaCartera servicioFotografia;
+    private final ServiceFotografiaCartera servicioFotografia;
 
     private final ServiceCierreDia servicioCierre;
 
     private final ConsultaPrestamoService consultaPrestamo;
 
-    ServiceReportesCarteraImpl(ServicioFotografiaCartera servicioFotografia, ServiceCierreDia servicioCierre,
+    ServiceReportesCarteraImpl(ServiceFotografiaCartera servicioFotografia, ServiceCierreDia servicioCierre,
                               ConsultaPrestamoService consultaPrestamo) {
         this.servicioFotografia = servicioFotografia;
         this.servicioCierre = servicioCierre;
@@ -46,18 +50,18 @@ class ServiceReportesCarteraImpl implements ServiceReportesCartera {
     @Transactional(readOnly = true)
     public ResultadoSaludCartera consultarSalud(LocalDate fechaCorte) {
         CorteCartera corte = consultarCorte(fechaCorte);
-        var identificadores = corte.operaciones().stream().map(CorteCartera.Operacion::idOperacion).toList();
+        List<Integer> identificadores = corte.operaciones().stream().map(CorteCartera.Operacion::idOperacion).toList();
         if (identificadores.isEmpty()) {
             return calcularSalud(corte, List.of());
         }
-        var originales = consultaPrestamo.buscarDatosPorIds(identificadores);
+        List<DatosOperacionCartera> originales = consultaPrestamo.buscarDatosPorIds(identificadores);
         if (originales == null) {
             throw new IllegalArgumentException("No se recibieron los datos originales de las operaciones.");
         }
-        var esperados = new HashSet<>(identificadores);
-        var recibidos = new HashSet<Integer>();
+        Set<Integer> esperados = new HashSet<>(identificadores);
+        Set<Integer> recibidos = new HashSet<>();
         List<DatosOperacionReporte> datos = new ArrayList<>();
-        for (var original : originales) {
+        for (DatosOperacionCartera original : originales) {
             if (original == null || !esperados.contains(original.idOperacion())
                     || !recibidos.add(original.idOperacion()) || original.idCliente() == null
                     || original.idCliente() <= 0 || original.montoAprobado() == null
@@ -129,14 +133,14 @@ class ServiceReportesCarteraImpl implements ServiceReportesCartera {
                 || cierre.ejecuciones().stream().anyMatch(ejecucion -> ejecucion == null)) {
             throw new IllegalStateException(mensaje + "El cierre no está completado o sus datos son inválidos.");
         }
-        var intentos = cierre.ejecuciones().stream()
+        List<EjecucionEtapaCierre> intentos = cierre.ejecuciones().stream()
                 .filter(ejecucion -> ejecucion.etapa() == PasoCierre.FOTOGRAFIA).toList();
         int ultimo = intentos.stream().mapToInt(ejecucion -> ejecucion.numeroIntento()).max().orElse(0);
-        var finales = intentos.stream().filter(ejecucion -> ejecucion.numeroIntento() == ultimo).toList();
+        List<EjecucionEtapaCierre> finales = intentos.stream().filter(ejecucion -> ejecucion.numeroIntento() == ultimo).toList();
         if (ultimo <= 0 || finales.size() != 1) {
             throw new IllegalStateException(mensaje + "No existe un último intento de fotografía inequívoco.");
         }
-        var ejecucion = finales.getFirst();
+        EjecucionEtapaCierre ejecucion = finales.getFirst();
         if (ejecucion.numeroEtapa() != PasoCierre.FOTOGRAFIA.numeroEtapa()
                 || !"EXITOSA".equals(ejecucion.estadoEtapa())
                 || ejecucion.fechaHoraInicio() == null || ejecucion.fechaHoraFin() == null
@@ -149,8 +153,8 @@ class ServiceReportesCarteraImpl implements ServiceReportesCartera {
 
     private CorteCartera consultarCorte(LocalDate fecha) {
         validarFecha(fecha);
-        var fotos = servicioFotografia.consultarFotosPorFecha(fecha);
-        var tramos = servicioFotografia.consultarTramosVigentes(fecha);
+        List<ResumenFotoCartera> fotos = servicioFotografia.consultarFotosPorFecha(fecha);
+        List<ResumenTramoCartera> tramos = servicioFotografia.consultarTramosVigentes(fecha);
         if (fotos == null || tramos == null || tramos.isEmpty()) {
             throw new IllegalArgumentException("La fuente no proporciona fotografías o configuración de tramos válida.");
         }

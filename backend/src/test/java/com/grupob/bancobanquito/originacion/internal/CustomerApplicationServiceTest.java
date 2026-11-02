@@ -88,9 +88,9 @@ class CustomerApplicationServiceTest {
     @Test
     void doesNotRegisterAnAmountOutOfRange() {
         assertThatThrownBy(() -> customerApplicationService.register(cliente, request("40000.00", 12, MetodoAmortizacion.FRANCES)))
-                .isInstanceOf(ExcepcionOriginacion.class)
+                .isInstanceOf(OriginacionException.class)
                 .hasMessageContaining("30.000,00")
-                .extracting(e -> ((ExcepcionOriginacion) e).getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
+                .extracting(e -> ((OriginacionException) e).getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
     }
 
     @Test
@@ -98,7 +98,7 @@ class CustomerApplicationServiceTest {
         customerApplicationService.register(otroCliente, request("5000.00", 24, MetodoAmortizacion.FRANCES));
 
         assertThatThrownBy(() -> customerApplicationService.register(otroCliente, request("3000.00", 12, MetodoAmortizacion.FRANCES)))
-                .isInstanceOf(ExcepcionOriginacion.class)
+                .isInstanceOf(OriginacionException.class)
                 .hasMessageContaining("pendiente");
     }
 
@@ -111,15 +111,15 @@ class CustomerApplicationServiceTest {
                 .setParameter("estado", EstadoCartera.VENCIDA).setParameter("id", solicitud).executeUpdate();
         entityManager.clear();
         assertThatThrownBy(() -> customerApplicationService.register(clienteMora, request("1000.00", 12, MetodoAmortizacion.FRANCES)))
-                .isInstanceOf(ExcepcionOriginacion.class)
+                .isInstanceOf(OriginacionException.class)
                 .hasMessageContaining("mora");
     }
 
     @Test
     void doesNotRegisterForAnUnknownCustomer() {
         assertThatThrownBy(() -> customerApplicationService.register(77, request("1000.00", 12, MetodoAmortizacion.FRANCES)))
-                .isInstanceOf(ExcepcionOriginacion.class)
-                .extracting(e -> ((ExcepcionOriginacion) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+                .isInstanceOf(OriginacionException.class)
+                .extracting(e -> ((OriginacionException) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -169,7 +169,7 @@ class CustomerApplicationServiceTest {
     void doesNotSimulateATermOutOfRange() {
         assertThatThrownBy(() -> customerApplicationService.simulate(
                 new PeticionSimulacionPrestamo(new BigDecimal("10000.00"), 3, MetodoAmortizacion.FRANCES)))
-                .isInstanceOf(ExcepcionOriginacion.class)
+                .isInstanceOf(OriginacionException.class)
                 .hasMessageContaining("entre 6 y 60 meses");
     }
 

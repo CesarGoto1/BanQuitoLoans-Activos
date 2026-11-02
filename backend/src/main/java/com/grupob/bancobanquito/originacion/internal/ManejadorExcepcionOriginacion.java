@@ -16,8 +16,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
         ControllerLimitesCredito.class})
 class ManejadorExcepcionOriginacion {
 
-    @ExceptionHandler(ExcepcionOriginacion.class)
-    ProblemDetail originacion(ExcepcionOriginacion e) {
+    @ExceptionHandler(OriginacionException.class)
+    ProblemDetail originacion(OriginacionException e) {
         return problem(e.getStatus(), "No se pudo procesar", e.getMessage());
     }
 

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import com.grupob.bancobanquito.prestamos.DatosOperacionCartera;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
@@ -46,12 +47,12 @@ class ConsultaPrestamoServiceImpl implements ConsultaPrestamoService {
     public List<DatosOperacionCartera> buscarDatosPorIds(Collection<Integer> identificadores) {
         if (identificadores == null || identificadores.stream().anyMatch(id -> id == null || id <= 0)
                 || new HashSet<>(identificadores).size() != identificadores.size()) {
-            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST, "Los identificadores de operaciones son inválidos o están duplicados.");
+            throw new PrestamoException(HttpStatus.BAD_REQUEST, "Los identificadores de operaciones son inválidos o están duplicados.");
         }
         if (identificadores.isEmpty()) {
             return List.of();
         }
-        var solicitados = new HashSet<>(identificadores);
+        Set<Integer> solicitados = new HashSet<>(identificadores);
         Map<Integer, DatosOperacionCartera> datos = new HashMap<>();
         for (Prestamo prestamo : prestamoRepository.findAllById(identificadores)) {
             if (prestamo == null || prestamo.getId() == null || !solicitados.contains(prestamo.getId())
@@ -61,13 +62,13 @@ class ConsultaPrestamoServiceImpl implements ConsultaPrestamoService {
                     || prestamo.getApprovedAmount().stripTrailingZeros().scale() > 2
                     || prestamo.getTermMonths() == null || prestamo.getTermMonths() <= 0
                     || prestamo.getAmortizationMethod() == null) {
-                throw new ExcepcionPrestamo(HttpStatus.CONFLICT, "Las operaciones consultadas contienen datos originales incompletos o inválidos.");
+                throw new PrestamoException(HttpStatus.CONFLICT, "Las operaciones consultadas contienen datos originales incompletos o inválidos.");
             }
             datos.put(prestamo.getId(), new DatosOperacionCartera(prestamo.getId(), prestamo.getCustomerId(),
                     prestamo.getApprovedAmount(), prestamo.getTermMonths(), prestamo.getAmortizationMethod()));
         }
         if (datos.size() != identificadores.size()) {
-            throw new ExcepcionPrestamo(HttpStatus.NOT_FOUND, "No se encontraron todas las operaciones solicitadas.");
+            throw new PrestamoException(HttpStatus.NOT_FOUND, "No se encontraron todas las operaciones solicitadas.");
         }
         return identificadores.stream().map(datos::get).toList();
     }
@@ -140,7 +141,7 @@ class ConsultaPrestamoServiceImpl implements ConsultaPrestamoService {
 
     private Prestamo prestamoExistente(String numeroOperacion) {
         return prestamoRepository.findByNumeroOperacion(numeroOperacion)
-                .orElseThrow(() -> new ExcepcionPrestamo(HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new PrestamoException(HttpStatus.NOT_FOUND,
                         "La operación " + numeroOperacion + " no existe."));
     }
 

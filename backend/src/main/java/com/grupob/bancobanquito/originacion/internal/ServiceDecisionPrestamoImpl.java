@@ -46,7 +46,7 @@ class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
                 servicioParametro.getValue("PAR-05", fechaNegocio));
         if (teaAsignada.stripTrailingZeros().scale() > 4
                 || teaAsignada.compareTo(BigDecimal.TEN) >= 0) {
-            throw new ExcepcionReglaDecisionPrestamo("La tasa debe tener máximo un entero y cuatro decimales.");
+            throw new ReglaDecisionPrestamoException("La tasa debe tener máximo un entero y cuatro decimales.");
         }
         BigDecimal installment = calculateInstallment(application, teaAsignada, fechaNegocio);
         politicaAprobacion.validatePaymentCapacity(application.getMonthlyIncome(), application.getMonthlyExpenses(),
@@ -62,7 +62,7 @@ class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
     public ResultadoDecisionPrestamo rejectApplication(Integer idSolicitud, String identification, String motivoRechazo) {
         Integer idAnalista = resolveAnalyst(identification);
         if (motivoRechazo == null || motivoRechazo.isBlank() || motivoRechazo.length() > 200) {
-            throw new ExcepcionReglaDecisionPrestamo("El motivo del rechazo es obligatorio y no puede superar los 200 caracteres.");
+            throw new ReglaDecisionPrestamoException("El motivo del rechazo es obligatorio y no puede superar los 200 caracteres.");
         }
         Solicitud application = loadRegisteredApplication(idSolicitud);
         LocalDate fechaNegocio = servicioFechaNegocio.getCurrentBusinessDate();

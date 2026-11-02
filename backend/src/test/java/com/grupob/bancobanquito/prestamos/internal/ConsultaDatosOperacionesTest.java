@@ -49,10 +49,10 @@ class ConsultaDatosOperacionesTest {
 
     @Test
     void rechazaIdentificadoresInvalidosODuplicadosSinConsultar() {
-        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(1, 1))).isInstanceOf(ExcepcionPrestamo.class);
-        assertThatThrownBy(() -> servicio.buscarDatosPorIds(Arrays.asList(1, null))).isInstanceOf(ExcepcionPrestamo.class);
-        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(0))).isInstanceOf(ExcepcionPrestamo.class);
-        assertThatThrownBy(() -> servicio.buscarDatosPorIds(null)).isInstanceOf(ExcepcionPrestamo.class);
+        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(1, 1))).isInstanceOf(PrestamoException.class);
+        assertThatThrownBy(() -> servicio.buscarDatosPorIds(Arrays.asList(1, null))).isInstanceOf(PrestamoException.class);
+        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(0))).isInstanceOf(PrestamoException.class);
+        assertThatThrownBy(() -> servicio.buscarDatosPorIds(null)).isInstanceOf(PrestamoException.class);
         verifyNoInteractions(prestamos);
     }
 
@@ -65,8 +65,8 @@ class ConsultaDatosOperacionesTest {
     @Test
     void rechazaOperacionesInexistentesSinDevolverResultadosParciales() {
         when(prestamos.findAllById(List.of(1, 2))).thenReturn(List.of(prestamo(1)));
-        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(1, 2))).isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(1, 2))).isInstanceOf(PrestamoException.class)
+                .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @ParameterizedTest
@@ -83,14 +83,14 @@ class ConsultaDatosOperacionesTest {
             case "sistema" -> operacion.setAmortizationMethod(null);
         }
         when(prestamos.findAllById(List.of(1))).thenReturn(List.of(operacion));
-        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(1))).isInstanceOf(ExcepcionPrestamo.class)
-                .extracting(e -> ((ExcepcionPrestamo) e).getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(1))).isInstanceOf(PrestamoException.class)
+                .extracting(e -> ((PrestamoException) e).getStatus()).isEqualTo(HttpStatus.CONFLICT);
     }
 
     @Test
     void rechazaFilasDuplicadasEnLaRespuesta() {
         when(prestamos.findAllById(List.of(1))).thenReturn(List.of(prestamo(1), prestamo(1)));
-        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(1))).isInstanceOf(ExcepcionPrestamo.class);
+        assertThatThrownBy(() -> servicio.buscarDatosPorIds(List.of(1))).isInstanceOf(PrestamoException.class);
     }
 
     private Prestamo prestamo(int id) {

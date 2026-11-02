@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.grupob.bancobanquito.cierre.EjecucionEtapaCierre;
 import com.grupob.bancobanquito.cierre.EtapaCierre;
-import com.grupob.bancobanquito.cierre.ExcepcionEtapaCierre;
+import com.grupob.bancobanquito.cierre.EtapaCierreException;
 import com.grupob.bancobanquito.cierre.PasoCierre;
 import com.grupob.bancobanquito.cierre.ResultadoCierreDia;
 import com.grupob.bancobanquito.parametros.ServiceFechaNegocio;
@@ -98,7 +98,7 @@ class ServiceCierreDiaTest {
         servicioCierre.ejecutarCierre(hoy, ANALISTA);
 
         assertThatThrownBy(() -> servicioCierre.ejecutarCierre(hoy, ANALISTA))
-                .isInstanceOfSatisfying(ExcepcionCierre.class,
+                .isInstanceOfSatisfying(CierreException.class,
                         e -> assertThat(e.getStatus()).isEqualTo(HttpStatus.CONFLICT))
                 .hasMessage("El día " + hoy + " ya fue cerrado.");
         assertThat(recaudaciones.fechas).containsExactly(hoy);
@@ -107,7 +107,7 @@ class ServiceCierreDiaTest {
     @Test
     void noPermiteCerrarUnaFechaDistintaALaVigente() {
         assertThatThrownBy(() -> servicioCierre.ejecutarCierre(hoy.plusDays(3), ANALISTA))
-                .isInstanceOf(ExcepcionCierre.class)
+                .isInstanceOf(CierreException.class)
                 .hasMessageStartingWith("La fecha de negocio vigente es " + hoy);
         assertThat(recaudaciones.fechas).isEmpty();
     }
@@ -160,7 +160,7 @@ class ServiceCierreDiaTest {
         cierre.cambiarEstado(EstadoCierre.EN_PROCESO, ANALISTA);
 
         assertThatThrownBy(() -> servicioCierre.ejecutarCierre(hoy, ANALISTA))
-                .isInstanceOf(ExcepcionCierre.class)
+                .isInstanceOf(CierreException.class)
                 .hasMessage("El cierre del día " + hoy + " ya está en ejecución.");
     }
 
@@ -184,7 +184,7 @@ class ServiceCierreDiaTest {
     @Test
     void consultarUnDiaSinCierreRespondeNoEncontrado() {
         assertThatThrownBy(() -> servicioCierre.consultarCierre(LocalDate.of(2020, 1, 1)))
-                .isInstanceOfSatisfying(ExcepcionCierre.class,
+                .isInstanceOfSatisfying(CierreException.class,
                         e -> assertThat(e.getStatus()).isEqualTo(HttpStatus.NOT_FOUND));
     }
 
@@ -245,7 +245,7 @@ class ServiceCierreDiaTest {
             orden.add(paso);
             fechas.add(fechaNegocio);
             if (falla) {
-                throw new ExcepcionEtapaCierre("Falla simulada en " + paso);
+                throw new EtapaCierreException("Falla simulada en " + paso);
             }
             if (fallaInesperada) {
                 throw new IllegalStateException("could not execute statement [ERROR: deadlock detected]");

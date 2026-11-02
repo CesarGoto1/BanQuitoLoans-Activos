@@ -166,7 +166,7 @@ class ServiceAbonoExtraordinarioImplTest {
 
         assertThatThrownBy(() -> servicioAbono.simular(OPERACION, new BigDecimal("2000.00"),
                 ModalidadAbono.DISMINUIR_CUOTA))
-                .isInstanceOf(ExcepcionPrestamo.class)
+                .isInstanceOf(PrestamoException.class)
                 .hasMessageContaining("cuotas vencidas");
     }
 
