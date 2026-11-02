@@ -1,5 +1,7 @@
 package com.grupob.bancobanquito.cobranza.internal;
 
+import com.grupob.bancobanquito.cobranza.ResumenFotoCartera;
+import com.grupob.bancobanquito.cobranza.ResumenTramoCartera;
 import com.grupob.bancobanquito.cobranza.ServicioFotografiaCartera;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,38 @@ public class ServicioFotografiaCarteraImpl implements ServicioFotografiaCartera 
         }
 
         return procesadas;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResumenFotoCartera> consultarFotosPorFecha(LocalDate fechaCorte) {
+        return this.fotoRepository.findByFechaFoto(fechaCorte).stream()
+                .map(this::mapearAFotoDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResumenFotoCartera> consultarFotosEntreFechas(LocalDate fechaInicio, LocalDate fechaFin) {
+        return this.fotoRepository.findByFechaFotoBetween(fechaInicio, fechaFin).stream()
+                .map(this::mapearAFotoDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResumenTramoCartera> consultarTramos() {
+        return this.tramoRepository.findAll().stream()
+                .map(this::mapearATramoDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResumenTramoCartera> consultarTramosVigentes(LocalDate fechaCorte) {
+        return this.tramoRepository.findTramosVigentes(fechaCorte).stream()
+                .map(this::mapearATramoDto)
+                .toList();
     }
 
     private void procesarFotoOperacion(OperacionCobranza operacion, LocalDate fechaNegocio) {
@@ -117,5 +151,34 @@ public class ServicioFotografiaCarteraImpl implements ServicioFotografiaCartera 
             return mora.setScale(2, RoundingMode.HALF_UP);
         }
         return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private ResumenFotoCartera mapearAFotoDto(FotoCartera foto) {
+        return new ResumenFotoCartera(
+                foto.getIdOperacion(),
+                foto.getFechaFoto(),
+                foto.getIdTramo(),
+                foto.getEstadoCartera(),
+                foto.getDiasMora(),
+                foto.getSaldoCapital(),
+                foto.getValorProvision(),
+                foto.getInteresDevengadoAcumulado(),
+                foto.getInteresMoraAcumulado()
+        );
+    }
+
+    private ResumenTramoCartera mapearATramoDto(TramoCartera tramo) {
+        return new ResumenTramoCartera(
+                tramo.getIdTramo(),
+                tramo.getNumeroTramo(),
+                tramo.getDiasMoraDesde(),
+                tramo.getDiasMoraHasta(),
+                tramo.getEstadoCartera(),
+                tramo.getDevengaIngresos(),
+                tramo.getTratamientoMora(),
+                tramo.getPorcentajeProvision(),
+                tramo.getFechaVigenciaDesde(),
+                tramo.getFechaVigenciaHasta()
+        );
     }
 }

@@ -1,5 +1,7 @@
 package com.grupob.bancobanquito.cobranza.internal;
 
+import com.grupob.bancobanquito.cobranza.ResumenFotoCartera;
+import com.grupob.bancobanquito.cobranza.ResumenTramoCartera;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +17,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -130,6 +131,47 @@ class ServicioFotografiaCarteraTest {
 
         assertThat(total).isEqualTo(0);
         verify(fotoRepository, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe consultar fotografias de cartera por fecha de corte para reportes")
+    void debeConsultarFotosPorFecha() {
+        LocalDate fechaCorte = LocalDate.of(2026, 10, 31);
+        FotoCartera f = new FotoCartera();
+        f.setIdOperacion(1);
+        f.setFechaFoto(fechaCorte);
+        f.setIdTramo(1);
+        f.setEstadoCartera("POR_VENCER");
+        f.setDiasMora(0);
+        f.setSaldoCapital(new BigDecimal("5000.00"));
+        f.setValorProvision(new BigDecimal("50.00"));
+        f.setInteresDevengadoAcumulado(new BigDecimal("25.00"));
+        f.setInteresMoraAcumulado(BigDecimal.ZERO);
+
+        when(fotoRepository.findByFechaFoto(fechaCorte)).thenReturn(List.of(f));
+
+        List<ResumenFotoCartera> resultados = servicio.consultarFotosPorFecha(fechaCorte);
+
+        assertThat(resultados).hasSize(1);
+        ResumenFotoCartera r = resultados.getFirst();
+        assertThat(r.idOperacion()).isEqualTo(1);
+        assertThat(r.saldoCapital()).isEqualByComparingTo(new BigDecimal("5000.00"));
+        assertThat(r.valorProvision()).isEqualByComparingTo(new BigDecimal("50.00"));
+    }
+
+    @Test
+    @DisplayName("Debe consultar tramos vigentes para el modulo de reportes")
+    void debeConsultarTramosVigentes() {
+        LocalDate fechaCorte = LocalDate.of(2026, 10, 31);
+        TramoCartera t = crearTramo(1, 0, 0, "POR_VENCER", new BigDecimal("0.0100"));
+
+        when(tramoRepository.findTramosVigentes(fechaCorte)).thenReturn(List.of(t));
+
+        List<ResumenTramoCartera> tramos = servicio.consultarTramosVigentes(fechaCorte);
+
+        assertThat(tramos).hasSize(1);
+        assertThat(tramos.getFirst().estadoCartera()).isEqualTo("POR_VENCER");
+        assertThat(tramos.getFirst().porcentajeProvision()).isEqualByComparingTo(new BigDecimal("0.0100"));
     }
 
     private OperacionCobranza crearOperacion(Integer id, String numero, String estado, BigDecimal saldo, int diasMora) {

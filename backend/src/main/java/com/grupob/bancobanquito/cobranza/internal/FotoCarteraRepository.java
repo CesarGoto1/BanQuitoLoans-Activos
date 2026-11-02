@@ -11,5 +11,7 @@ public interface FotoCarteraRepository extends JpaRepository<FotoCartera, FotoCa
 
     List<FotoCartera> findByFechaFoto(LocalDate fechaFoto);
 
+    List<FotoCartera> findByFechaFotoBetween(LocalDate fechaInicio, LocalDate fechaFin);
+
     List<FotoCartera> findByIdOperacionOrderByFechaFotoDesc(Integer idOperacion);
 }

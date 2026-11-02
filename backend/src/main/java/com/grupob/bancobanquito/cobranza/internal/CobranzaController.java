@@ -1,6 +1,5 @@
 package com.grupob.bancobanquito.cobranza.internal;
 
-import com.grupob.bancobanquito.cobranza.ResumenClasificacion;
 import com.grupob.bancobanquito.cobranza.ResumenFotoCartera;
 import com.grupob.bancobanquito.cobranza.ServicioClasificacionCartera;
 import com.grupob.bancobanquito.cobranza.ServicioFotografiaCartera;
@@ -26,17 +25,14 @@ public class CobranzaController {
     private final ServicioClasificacionCartera servicioClasificacionCartera;
     private final ServicioFotografiaCartera servicioFotografiaCartera;
     private final CambioEstadoOperacionRepository cambioEstadoRepository;
-    private final FotoCarteraRepository fotoRepository;
 
     public CobranzaController(
             ServicioClasificacionCartera servicioClasificacionCartera,
             ServicioFotografiaCartera servicioFotografiaCartera,
-            CambioEstadoOperacionRepository cambioEstadoRepository,
-            FotoCarteraRepository fotoRepository) {
+            CambioEstadoOperacionRepository cambioEstadoRepository) {
         this.servicioClasificacionCartera = servicioClasificacionCartera;
         this.servicioFotografiaCartera = servicioFotografiaCartera;
         this.cambioEstadoRepository = cambioEstadoRepository;
-        this.fotoRepository = fotoRepository;
     }
 
     @PostMapping("/clasificacion")
@@ -74,13 +70,13 @@ public class CobranzaController {
     }
 
     @GetMapping("/fotos")
-    public ResponseEntity<List<FotoCartera>> listarFotosPorFecha(
+    public ResponseEntity<List<ResumenFotoCartera>> listarFotosPorFecha(
             @RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
             @RequestHeader(name = "X-Rol", required = false) String rol,
             @RequestHeader(name = "X-Identificacion", required = false) String identificacion) {
 
         validarCabeceras(rol, identificacion);
-        List<FotoCartera> fotos = this.fotoRepository.findByFechaFoto(fecha);
+        List<ResumenFotoCartera> fotos = this.servicioFotografiaCartera.consultarFotosPorFecha(fecha);
         return ResponseEntity.ok(fotos);
     }
 
