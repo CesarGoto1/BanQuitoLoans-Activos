@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { MorosidadPagina, ComposicionCarteraPagina, ProvisionesPagina, SaludCarteraPagina, RollRatePagina } from './ReportesCarteraPagina.jsx'
 import InicioDesembolsoPage from './InicioDesembolsoPage.jsx'
 import ConsultaOperacionPagina from './ConsultaOperacionPagina.jsx'
 import AbonoExtraordinarioPagina from './AbonoExtraordinarioPagina.jsx'
@@ -16,7 +17,13 @@ const SECTIONS = [
   { id: 'prepayment', label: 'Abono extraordinario', page: AbonoExtraordinarioPagina },
   { id: 'payoff', label: 'Cancelación anticipada', page: CancelacionAnticipadaPagina },
   { id: 'closing', label: 'Cierre de día', page: CierreDiaPagina },
-  { id: 'accounting-balance', label: 'Cuadre contable', page: CuadreContablePagina },]
+  { id: 'accounting-balance', label: 'Cuadre contable', page: CuadreContablePagina },
+  { id: 'provisions', label: 'Provisiones', page: ProvisionesPagina },
+  { id: 'delinquency', label: 'Morosidad', page: MorosidadPagina },
+  { id: 'composition', label: 'Composición de cartera', page: ComposicionCarteraPagina },
+  { id: 'health', label: 'Salud de cartera', page: SaludCarteraPagina },
+  { id: 'roll-rate', label: 'Roll-Rate', page: RollRatePagina },
+]
 
 export default function PortalPage() {
   const [analyst, setAnalyst] = useState(getAnalystSession)
