@@ -22,8 +22,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 
-// Las etapas DEVENGO y MORA reales (módulo prestamos) se reemplazan por etapas falsas con el mismo nombre de bean,
-// para probar el orquestador sin depender de la cartera cargada en la base.
 @SpringBootTest(properties = "spring.main.allow-bean-definition-overriding=true")
 @Transactional
 class ServiceCierreDiaTest {

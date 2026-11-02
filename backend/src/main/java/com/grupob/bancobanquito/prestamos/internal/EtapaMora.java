@@ -6,7 +6,6 @@ import com.grupob.bancobanquito.prestamos.ServiceDevengoMora;
 import java.time.LocalDate;
 import org.springframework.stereotype.Component;
 
-// Paso 3 del cierre de día: interés de mora sobre el capital de las cuotas vencidas e impagas.
 @Component
 class EtapaMora implements EtapaCierre {
 

@@ -16,7 +16,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-// Prueba contra la base real que el orquestador del cierre ejecuta el devengo (paso 2) y la mora (paso 3).
 @SpringBootTest
 @Transactional
 @Sql("/test-data-pagos.sql")
@@ -46,7 +45,6 @@ class DevengoMoraEnCierreTest {
         assertThat(devengos(9104, DESEMBOLSO.plusDays(1))).isEqualTo(1);
         assertThat(devengos(9102, DESEMBOLSO.plusDays(1))).isZero();
         assertThat(devengos(9103, DESEMBOLSO.plusDays(1))).isZero();
-        // 10000.00 x TEA 16.77% convertida a nominal / 360
         assertThat(jdbc.queryForObject("""
                 select "interesDevengado" from "devengosDiarios"
                 where "idOperacion" = 9101 and "fechaDevengo" = ?""", BigDecimal.class, DESEMBOLSO.plusDays(1)))

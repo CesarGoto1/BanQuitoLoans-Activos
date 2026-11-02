@@ -6,7 +6,6 @@ import com.grupob.bancobanquito.prestamos.ServiceDevengoMora;
 import java.time.LocalDate;
 import org.springframework.stereotype.Component;
 
-// Paso 2 del cierre de día: devengo diario de intereses y ajuste de las cuotas que vencen ese día.
 @Component
 class EtapaDevengo implements EtapaCierre {
 

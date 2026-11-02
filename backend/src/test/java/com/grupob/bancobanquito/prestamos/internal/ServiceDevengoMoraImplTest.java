@@ -66,7 +66,6 @@ class ServiceDevengoMoraImplTest {
 
         ArgumentCaptor<DevengoDiario> devengo = ArgumentCaptor.forClass(DevengoDiario.class);
         verify(devengoRepository).save(devengo.capture());
-        // 9224.59 x (0.0130035 x 12) / 360
         assertThat(devengo.getValue().getInteresDevengado()).isEqualByComparingTo("3.9984");
         verify(servicioContabilidad).registrarAsiento(any(MovimientoContable.class));
     }
@@ -114,7 +113,6 @@ class ServiceDevengoMoraImplTest {
         when(cuotaRepository.findByLoanIdOrderByNumeroCuotaAsc(1)).thenReturn(List.of(cuota));
         when(pagoRepository.findByOrigenAndFechaPago(OrigenPago.ABONO_EXTRAORDINARIO, fechaAbono))
                 .thenReturn(List.of(abono(1, fechaAbono, new BigDecimal("59.98"))));
-        // Del 1 al 14 de noviembre ya se devengaron 14 días de 3.9985.
         when(devengoRepository.sumarInteresDevengado(1, DESEMBOLSO.plusDays(1), fechaAbono.minusDays(1)))
                 .thenReturn(new BigDecimal("55.9790"));
 
@@ -176,7 +174,6 @@ class ServiceDevengoMoraImplTest {
 
     @Test
     void laMoraEmpiezaElDiaSiguienteAlVencimientoAunqueLaCarteraSigaPorVencer() {
-        // La clasificación (paso 4) corre después de la mora, así que el primer día el estado sigue POR_VENCER.
         Prestamo prestamo = prestamo(1, EstadoCartera.POR_VENCER);
         Cuota cuota = cuota(10, prestamo, FECHA_NEGOCIO, new BigDecimal("130.03"));
         when(prestamoRepository.findByPortfolioStatusNotIn(anyList())).thenReturn(List.of(prestamo));

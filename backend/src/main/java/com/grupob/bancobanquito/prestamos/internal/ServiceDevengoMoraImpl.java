@@ -50,9 +50,6 @@ class ServiceDevengoMoraImpl implements ServiceDevengoMora {
         this.servicioContabilidad = servicioContabilidad;
     }
 
-    // Devenga un día de interés por operación vigente. El devengo empieza el día siguiente al desembolso.
-    // Si la operación recibió un abono extraordinario ese día, el abono ya liquidó el interés hasta la fecha
-    // inclusive, así que solo se devenga la diferencia entre lo liquidado y lo ya devengado en el periodo.
     @Override
     @Transactional
     public int ejecutarDevengo(LocalDate fechaNegocio) {
@@ -78,7 +75,6 @@ class ServiceDevengoMoraImpl implements ServiceDevengoMora {
         return procesados;
     }
 
-    // En la fecha de vencimiento ajusta la diferencia entre el interés de la cuota y lo devengado en su periodo.
     @Override
     @Transactional
     public int ejecutarAjustesDevengo(LocalDate fechaNegocio) {
@@ -111,7 +107,6 @@ class ServiceDevengoMoraImpl implements ServiceDevengoMora {
         return procesados;
     }
 
-    // La mora corre desde el día siguiente al vencimiento sobre el capital impago de cada cuota vencida.
     @Override
     @Transactional
     public int ejecutarMora(LocalDate fechaNegocio) {
@@ -157,7 +152,6 @@ class ServiceDevengoMoraImpl implements ServiceDevengoMora {
         return interesPorOperacion;
     }
 
-    // Mismo periodo que usa el abono: desde el último vencimiento (o abono anterior) hasta la fecha del abono.
     private BigDecimal diferenciaConAbono(Prestamo prestamo, LocalDate fechaNegocio, BigDecimal interesAbono) {
         LocalDate ultimoVencimiento = cuotaRepository.findByLoanIdOrderByNumeroCuotaAsc(prestamo.getId()).stream()
                 .map(Cuota::getDueDate)

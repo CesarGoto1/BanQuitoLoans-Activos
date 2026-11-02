@@ -10,7 +10,6 @@ interface DevengoDiarioRepository extends JpaRepository<DevengoDiario, Integer> 
 
     boolean existsByPrestamoIdAndFechaDevengo(Integer idPrestamo, LocalDate fechaDevengo);
 
-    // Interés devengado de una operación entre dos fechas, ambas inclusive.
     @Query("""
             select coalesce(sum(d.interesDevengado), 0) from DevengoDiario d
             where d.prestamo.id = :idPrestamo and d.fechaDevengo between :desde and :hasta""")
