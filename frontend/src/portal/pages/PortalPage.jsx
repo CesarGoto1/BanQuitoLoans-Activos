@@ -10,24 +10,59 @@ import InicioSesionPage from './InicioSesionPage.jsx'
 import SolicitudesPagina from './SolicitudesPagina.jsx'
 import { clearAnalystSession, getAnalystSession } from '../services/sesionAnalista.js'
 
-const SECTIONS = [
-  { id: 'applications', label: 'Solicitudes', page: SolicitudesPagina },
-  { id: 'disbursement', label: 'Desembolsar', page: InicioDesembolsoPage },
-  { id: 'inquiry', label: 'Consultar operaciones', page: ConsultaOperacionPagina },
-  { id: 'prepayment', label: 'Abono extraordinario', page: AbonoExtraordinarioPagina },
-  { id: 'payoff', label: 'Cancelación anticipada', page: CancelacionAnticipadaPagina },
-  { id: 'closing', label: 'Cierre de día', page: CierreDiaPagina },
-  { id: 'accounting-balance', label: 'Cuadre contable', page: CuadreContablePagina },
-  { id: 'provisions', label: 'Provisiones', page: ProvisionesPagina },
-  { id: 'delinquency', label: 'Morosidad', page: MorosidadPagina },
-  { id: 'composition', label: 'Composición de cartera', page: ComposicionCarteraPagina },
-  { id: 'health', label: 'Salud de cartera', page: SaludCarteraPagina },
-  { id: 'roll-rate', label: 'Roll-Rate', page: RollRatePagina },
+const GROUPS = [
+  {
+    label: 'Originación',
+    sections: [
+      { id: 'applications', label: 'Solicitudes', page: SolicitudesPagina },
+      { id: 'disbursement', label: 'Desembolsar', page: InicioDesembolsoPage },
+    ],
+  },
+  {
+    label: 'Operaciones',
+    sections: [
+      { id: 'inquiry', label: 'Consultar operaciones', page: ConsultaOperacionPagina },
+      { id: 'prepayment', label: 'Abono extraordinario', page: AbonoExtraordinarioPagina },
+      { id: 'payoff', label: 'Cancelación anticipada', page: CancelacionAnticipadaPagina },
+    ],
+  },
+  {
+    label: 'Cierre y contabilidad',
+    sections: [
+      { id: 'closing', label: 'Cierre de día', page: CierreDiaPagina },
+      { id: 'accounting-balance', label: 'Cuadre contable', page: CuadreContablePagina },
+      { id: 'provisions', label: 'Provisiones', page: ProvisionesPagina },
+    ],
+  },
+  {
+    label: 'Reportes',
+    sections: [
+      { id: 'delinquency', label: 'Morosidad', page: MorosidadPagina },
+      { id: 'composition', label: 'Composición de cartera', page: ComposicionCarteraPagina },
+      { id: 'health', label: 'Salud de cartera', page: SaludCarteraPagina },
+      { id: 'roll-rate', label: 'Roll-Rate', page: RollRatePagina },
+    ],
+  },
 ]
+
+const SECTIONS = GROUPS.flatMap((group) => group.sections)
 
 export default function PortalPage() {
   const [analyst, setAnalyst] = useState(getAnalystSession)
   const [sectionId, setSectionId] = useState(SECTIONS[0].id)
+  const [openGroups, setOpenGroups] = useState(() => new Set([GROUPS[0].label]))
+
+  function toggleGroup(label) {
+    setOpenGroups((current) => {
+      const next = new Set(current)
+      if (next.has(label)) {
+        next.delete(label)
+      } else {
+        next.add(label)
+      }
+      return next
+    })
+  }
 
   function logout() {
     clearAnalystSession()
@@ -55,20 +90,42 @@ export default function PortalPage() {
           </button>
         </div>
       </header>
-      <nav className="bq-menu">
-        {SECTIONS.map((section) => (
-          <button
-            key={section.id}
-            type="button"
-            className="bq-menu-item"
-            aria-current={section.id === sectionId ? 'page' : undefined}
-            onClick={() => setSectionId(section.id)}
-          >
-            {section.label}
-          </button>
-        ))}
-      </nav>
-      <Page />
+      <div className="bq-portal">
+        <nav className="bq-menu-lateral" aria-label="Menú del portal">
+          {GROUPS.map((group) => {
+            const open = openGroups.has(group.label)
+            return (
+              <div key={group.label} className="bq-menu-grupo">
+                <button
+                  type="button"
+                  className="bq-menu-grupo-titulo"
+                  aria-expanded={open}
+                  onClick={() => toggleGroup(group.label)}
+                >
+                  {group.label}
+                  <span className="bq-menu-grupo-flecha" aria-hidden="true">▾</span>
+                </button>
+                <div className="bq-menu-grupo-items" data-abierto={open}>
+                  {group.sections.map((section) => (
+                    <button
+                      key={section.id}
+                      type="button"
+                      className="bq-menu-lateral-item"
+                      aria-current={section.id === sectionId ? 'page' : undefined}
+                      onClick={() => setSectionId(section.id)}
+                    >
+                      {section.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </nav>
+        <main className="bq-portal-contenido">
+          <Page />
+        </main>
+      </div>
     </>
   )
 }

@@ -5,13 +5,15 @@ const dolares = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'U
 const numero = new Intl.NumberFormat('es-EC', { maximumFractionDigits: 2 })
 const dinero = valor => valor == null ? 'No disponible' : dolares.format(valor)
 const porcentaje = valor => valor == null ? 'No calculable' : `${numero.format(valor)} %`
-const estado = valor => valor.replaceAll('_', ' ')
+const ESTADOS_CARTERA = { POR_VENCER: 'Por vencer', VENCIDA: 'Vencida', EN_LITIGIO: 'En litigio', CASTIGADA: 'Castigada', CANCELADA: 'Cancelada', VIGENTE: 'Vigente' }
+const estado = valor => ESTADOS_CARTERA[valor] ?? String(valor).replaceAll('_', ' ').toLowerCase()
+const fechaCorta = iso => { const [a, m, d] = String(iso).split('-'); return d ? `${d}/${m}/${a}` : iso }
 
 function Tabla({ titulo, columnas, filas }) {
   return <section className="bq-tarjeta">
     <h2>{titulo}</h2>
     {filas.length === 0 ? <p>Sin registros para la fecha consultada.</p> : <div className="bq-tabla-contenedor">
-      <table className="bq-tabla"><caption>{titulo}</caption>
+      <table className="bq-tabla" aria-label={titulo}>
         <thead><tr>{columnas.map(columna => <th key={columna} scope="col">{columna}</th>)}</tr></thead>
         <tbody>{filas.map((fila, i) => <tr key={i}>{fila.map((valor, j) => <td key={j}>{valor}</td>)}</tr>)}</tbody>
       </table>
@@ -48,7 +50,7 @@ function Salud({ datos }) {
       ['Exposición de los diez mayores', dinero(datos.concentracion.saldoMayoresClientes)],
       ['Concentración de los diez mayores', porcentaje(datos.concentracion.concentracionDiezMayores)],
     ]} />
-    <Tabla titulo="Clientes con mayor exposición" columnas={['Identificador de cliente', 'Operaciones', 'Capital', 'Participación']}
+    <Tabla titulo="Clientes con mayor exposición" columnas={['Cliente', 'Operaciones', 'Capital', 'Participación']}
       filas={datos.concentracion.mayoresClientes.map(c => [c.idCliente, c.cantidadOperaciones, dinero(c.saldoCapital), porcentaje(c.participacionCarteraBruta)])} />
     {[['Monto original aprobado', datos.porMontoOriginal], ['Plazo original', datos.porPlazo], ['Sistema de amortización', datos.porSistemaAmortizacion]].map(([titulo, categorias]) =>
       <Tabla key={titulo} titulo={titulo} columnas={['Categoría', 'Operaciones', 'Capital', 'Participación sobre cartera bruta']}
@@ -109,7 +111,7 @@ function ReportesCarteraPagina({ tipo, titulo }) {
     </form>
     {error ? <div className="bq-alerta bq-alerta-peligro" role="alert"><strong>No se pudo consultar el reporte</strong><p>{error}</p></div> : null}
     {cargando ? <p role="status">Consultando la cartera…</p> : null}
-    {resultado ? <div aria-live="polite"><p>Fecha consultada: {fecha}{rollRate ? ` a ${fin}` : ''}</p>
+    {resultado ? <div aria-live="polite"><p>Fecha consultada: {fechaCorta(fecha)}{rollRate ? ` a ${fechaCorta(fin)}` : ''}</p>
       {tipo === 'morosidad' ? <Morosidad datos={resultado} /> : tipo === 'salud' ? <Salud datos={resultado} /> : rollRate ? <RollRate datos={resultado} /> : <Composicion datos={resultado} />}
     </div> : null}
   </main>
