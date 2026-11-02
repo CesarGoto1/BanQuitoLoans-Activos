@@ -15,13 +15,14 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.main.allow-bean-definition-overriding=true")
 @Transactional
 class ServiceCierreDiaTest {
 
@@ -43,9 +44,11 @@ class ServiceCierreDiaTest {
     EtapaFalsa recaudaciones;
 
     @Autowired
+    @Qualifier("etapaDevengo")
     EtapaFalsa devengo;
 
     @Autowired
+    @Qualifier("etapaMora")
     EtapaFalsa mora;
 
     LocalDate hoy;
@@ -200,12 +203,12 @@ class ServiceCierreDiaTest {
         }
 
         @Bean
-        EtapaFalsa devengo() {
+        EtapaFalsa etapaDevengo() {
             return new EtapaFalsa(PasoCierre.DEVENGO, 0);
         }
 
         @Bean
-        EtapaFalsa mora() {
+        EtapaFalsa etapaMora() {
             return new EtapaFalsa(PasoCierre.MORA, 0);
         }
     }
