@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface MoraDiariaRepository extends JpaRepository<MoraDiaria, Integer> {
 
-    boolean existsByInstallmentIdAndDefaultDate(Integer installmentId, LocalDate defaultDate);
+    boolean existsByCuotaIdAndFechaMora(Integer idCuota, LocalDate fechaMora);
 }

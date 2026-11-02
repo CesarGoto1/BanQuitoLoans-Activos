@@ -28,73 +28,73 @@ class MoraDiaria {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idCuota")
-    private Cuota installment;
+    private Cuota cuota;
 
     @NotNull
     @Column(name = "fechaMora")
-    private LocalDate defaultDate;
+    private LocalDate fechaMora;
 
     @NotNull
     @Digits(integer = 6, fraction = 4)
     @Column(name = "interesMora")
-    private BigDecimal defaultInterest;
+    private BigDecimal interesMora;
 
     @NotNull
     @Size(max = 50)
     @Column(name = "usuarioCreacion", updatable = false)
-    private String createdBy;
+    private String usuarioCreacion;
 
     @NotNull
     @Column(name = "fechaCreacion", updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime fechaCreacion;
 
     @Size(max = 50)
     @Column(name = "usuarioModificacion")
-    private String lastModifiedBy;
+    private String usuarioModificacion;
 
     @Column(name = "fechaModificacion")
-    private LocalDateTime lastModifiedAt;
+    private LocalDateTime fechaModificacion;
 
     MoraDiaria() {
     }
 
-    MoraDiaria(Cuota installment, LocalDate defaultDate, BigDecimal defaultInterest, String createdBy) {
-        this.installment = installment;
-        this.defaultDate = defaultDate;
-        this.defaultInterest = defaultInterest;
-        this.createdBy = createdBy;
-        this.createdAt = LocalDateTime.now();
+    MoraDiaria(Cuota cuota, LocalDate fechaMora, BigDecimal interesMora, String usuarioCreacion) {
+        this.cuota = cuota;
+        this.fechaMora = fechaMora;
+        this.interesMora = interesMora;
+        this.usuarioCreacion = usuarioCreacion;
+        this.fechaCreacion = LocalDateTime.now();
     }
 
     Integer getId() {
         return id;
     }
 
-    Cuota getInstallment() {
-        return installment;
+    Cuota getCuota() {
+        return cuota;
     }
 
-    LocalDate getDefaultDate() {
-        return defaultDate;
+    LocalDate getFechaMora() {
+        return fechaMora;
     }
 
-    BigDecimal getDefaultInterest() {
-        return defaultInterest;
+    BigDecimal getInteresMora() {
+        return interesMora;
     }
 
-    String getCreatedBy() {
-        return createdBy;
+    String getUsuarioCreacion() {
+        return usuarioCreacion;
     }
 
-    LocalDateTime getCreatedAt() {
-        return createdAt;
+    LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
     }
 
-    String getLastModifiedBy() {
-        return lastModifiedBy;
+    String getUsuarioModificacion() {
+        return usuarioModificacion;
     }
 
-    LocalDateTime getLastModifiedAt() {
-        return lastModifiedAt;
+    LocalDateTime getFechaModificacion() {
+        return fechaModificacion;
     }
 }

@@ -28,73 +28,73 @@ class DevengoDiario {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idOperacion")
-    private Prestamo loan;
+    private Prestamo prestamo;
 
     @NotNull
     @Column(name = "fechaDevengo")
-    private LocalDate accrualDate;
+    private LocalDate fechaDevengo;
 
     @NotNull
     @Digits(integer = 6, fraction = 4)
     @Column(name = "interesDevengado")
-    private BigDecimal accruedInterest;
+    private BigDecimal interesDevengado;
 
     @NotNull
     @Size(max = 50)
     @Column(name = "usuarioCreacion", updatable = false)
-    private String createdBy;
+    private String usuarioCreacion;
 
     @NotNull
     @Column(name = "fechaCreacion", updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime fechaCreacion;
 
     @Size(max = 50)
     @Column(name = "usuarioModificacion")
-    private String lastModifiedBy;
+    private String usuarioModificacion;
 
     @Column(name = "fechaModificacion")
-    private LocalDateTime lastModifiedAt;
+    private LocalDateTime fechaModificacion;
 
     DevengoDiario() {
     }
 
-    DevengoDiario(Prestamo loan, LocalDate accrualDate, BigDecimal accruedInterest, String createdBy) {
-        this.loan = loan;
-        this.accrualDate = accrualDate;
-        this.accruedInterest = accruedInterest;
-        this.createdBy = createdBy;
-        this.createdAt = LocalDateTime.now();
+    DevengoDiario(Prestamo prestamo, LocalDate fechaDevengo, BigDecimal interesDevengado, String usuarioCreacion) {
+        this.prestamo = prestamo;
+        this.fechaDevengo = fechaDevengo;
+        this.interesDevengado = interesDevengado;
+        this.usuarioCreacion = usuarioCreacion;
+        this.fechaCreacion = LocalDateTime.now();
     }
 
     Integer getId() {
         return id;
     }
 
-    Prestamo getLoan() {
-        return loan;
+    Prestamo getPrestamo() {
+        return prestamo;
     }
 
-    LocalDate getAccrualDate() {
-        return accrualDate;
+    LocalDate getFechaDevengo() {
+        return fechaDevengo;
     }
 
-    BigDecimal getAccruedInterest() {
-        return accruedInterest;
+    BigDecimal getInteresDevengado() {
+        return interesDevengado;
     }
 
-    String getCreatedBy() {
-        return createdBy;
+    String getUsuarioCreacion() {
+        return usuarioCreacion;
     }
 
-    LocalDateTime getCreatedAt() {
-        return createdAt;
+    LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
     }
 
-    String getLastModifiedBy() {
-        return lastModifiedBy;
+    String getUsuarioModificacion() {
+        return usuarioModificacion;
     }
 
-    LocalDateTime getLastModifiedAt() {
-        return lastModifiedAt;
+    LocalDateTime getFechaModificacion() {
+        return fechaModificacion;
     }
 }

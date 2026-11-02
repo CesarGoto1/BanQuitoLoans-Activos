@@ -11,194 +11,227 @@ import com.grupob.bancobanquito.prestamos.ServiceDevengoMora;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class ServiceDevengoMoraImpl implements ServiceDevengoMora {
 
-    private static final String PARAMETER_MORA_FACTOR = "PAR-10";
-    private static final String PARAMETER_DAY_BASE = "PAR-11";
-    private static final String AUDIT_USER = "proceso-cierre";
-    private static final BigDecimal MONTHS_PER_YEAR = BigDecimal.valueOf(12);
-    private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(4);
+    private static final String PARAMETRO_FACTOR_MORA = "PAR-10";
+    private static final String PARAMETRO_BASE_DIAS = "PAR-11";
+    private static final String USUARIO_CIERRE = "proceso-cierre";
+    private static final BigDecimal MESES_POR_ANIO = BigDecimal.valueOf(12);
+    private static final int ESCALA_DIARIA = 4;
+    private static final BigDecimal CERO = BigDecimal.ZERO.setScale(ESCALA_DIARIA);
 
-    private final PrestamoRepository loanRepository;
-    private final CuotaRepository installmentRepository;
-    private final DevengoDiarioRepository accrualRepository;
-    private final MoraDiariaRepository defaultInterestRepository;
-    private final ServiceAmortizacion amortizationService;
-    private final ServiceParametro parameterService;
-    private final ServiceContabilidad accountingService;
+    private final PrestamoRepository prestamoRepository;
+    private final CuotaRepository cuotaRepository;
+    private final DevengoDiarioRepository devengoRepository;
+    private final MoraDiariaRepository moraRepository;
+    private final PagoRepository pagoRepository;
+    private final ServiceAmortizacion servicioAmortizacion;
+    private final ServiceParametro servicioParametro;
+    private final ServiceContabilidad servicioContabilidad;
 
-    ServiceDevengoMoraImpl(PrestamoRepository loanRepository, CuotaRepository installmentRepository,
-                           DevengoDiarioRepository accrualRepository,
-                           MoraDiariaRepository defaultInterestRepository,
-                           ServiceAmortizacion amortizationService, ServiceParametro parameterService,
-                           ServiceContabilidad accountingService) {
-        this.loanRepository = loanRepository;
-        this.installmentRepository = installmentRepository;
-        this.accrualRepository = accrualRepository;
-        this.defaultInterestRepository = defaultInterestRepository;
-        this.amortizationService = amortizationService;
-        this.parameterService = parameterService;
-        this.accountingService = accountingService;
+    ServiceDevengoMoraImpl(PrestamoRepository prestamoRepository, CuotaRepository cuotaRepository,
+                           DevengoDiarioRepository devengoRepository, MoraDiariaRepository moraRepository,
+                           PagoRepository pagoRepository, ServiceAmortizacion servicioAmortizacion,
+                           ServiceParametro servicioParametro, ServiceContabilidad servicioContabilidad) {
+        this.prestamoRepository = prestamoRepository;
+        this.cuotaRepository = cuotaRepository;
+        this.devengoRepository = devengoRepository;
+        this.moraRepository = moraRepository;
+        this.pagoRepository = pagoRepository;
+        this.servicioAmortizacion = servicioAmortizacion;
+        this.servicioParametro = servicioParametro;
+        this.servicioContabilidad = servicioContabilidad;
     }
 
+    // Devenga un día de interés por operación vigente. El devengo empieza el día siguiente al desembolso.
+    // Si la operación recibió un abono extraordinario ese día, el abono ya liquidó el interés hasta la fecha
+    // inclusive, así que solo se devenga la diferencia entre lo liquidado y lo ya devengado en el periodo.
     @Override
     @Transactional
-    public int executeAccrual(LocalDate businessDate) {
-        int processed = 0;
-        for (Prestamo loan : activeLoans()) {
-            if (!businessDate.isAfter(loan.getDisbursementDate())
-                    || accrualRepository.existsByLoanIdAndAccrualDate(loan.getId(), businessDate)) {
+    public int ejecutarDevengo(LocalDate fechaNegocio) {
+        int baseDias = baseDias(fechaNegocio);
+        Map<Integer, BigDecimal> interesAbonosDelDia = interesLiquidadoPorAbonos(fechaNegocio);
+        Map<BigDecimal, BigDecimal> tasasNominales = new HashMap<>();
+        int procesados = 0;
+        for (Prestamo prestamo : prestamosVigentes()) {
+            if (!fechaNegocio.isAfter(prestamo.getDisbursementDate())
+                    || devengoRepository.existsByPrestamoIdAndFechaDevengo(prestamo.getId(), fechaNegocio)) {
                 continue;
             }
 
-            int dayBase = parameterService.getValue(PARAMETER_DAY_BASE, businessDate).intValueExact();
-            BigDecimal dailyInterest = CalculoDevengo.interesDiario(
-                    loan.getPrincipalBalance(), nominalRate(loan), dayBase);
-            DevengoDiario accrual = new DevengoDiario(loan, businessDate, dailyInterest, AUDIT_USER);
-            accrualRepository.save(accrual);
-            registerAccrualEntry(loan, businessDate, dailyInterest, accrualType(loan));
-            processed++;
+            BigDecimal interesAbono = interesAbonosDelDia.get(prestamo.getId());
+            BigDecimal interesDia = interesAbono == null
+                    ? CalculoDevengo.interesDiario(prestamo.getPrincipalBalance(),
+                            tasaNominal(prestamo, tasasNominales), baseDias)
+                    : diferenciaConAbono(prestamo, fechaNegocio, interesAbono);
+            devengoRepository.save(new DevengoDiario(prestamo, fechaNegocio, interesDia, USUARIO_CIERRE));
+            registrarAsientoDevengo(prestamo, fechaNegocio, interesDia);
+            procesados++;
         }
-        return processed;
+        return procesados;
     }
 
+    // En la fecha de vencimiento ajusta la diferencia entre el interés de la cuota y lo devengado en su periodo.
     @Override
     @Transactional
-    public int executeAccrualAdjustments(LocalDate businessDate) {
-        int processed = 0;
-        for (Prestamo loan : activeLoans()) {
-            List<Cuota> installments = installmentRepository.findByLoanIdOrderByNumeroCuotaAsc(loan.getId());
-            for (int index = 0; index < installments.size(); index++) {
-                Cuota installment = installments.get(index);
-                if (!businessDate.equals(installment.getDueDate())) {
+    public int ejecutarAjustesDevengo(LocalDate fechaNegocio) {
+        int procesados = 0;
+        for (Prestamo prestamo : prestamosVigentes()) {
+            List<Cuota> cuotas = cuotaRepository.findByLoanIdOrderByNumeroCuotaAsc(prestamo.getId());
+            for (int indice = 0; indice < cuotas.size(); indice++) {
+                Cuota cuota = cuotas.get(indice);
+                if (!fechaNegocio.equals(cuota.getDueDate())) {
                     continue;
                 }
 
-                LocalDate periodStart = index == 0
-                        ? loan.getDisbursementDate()
-                        : installments.get(index - 1).getDueDate();
-                BigDecimal accrued = accrualRepository
-                        .findByLoanIdAndAccrualDateBetweenOrderByAccrualDateAsc(
-                                loan.getId(), periodStart.plusDays(1), businessDate)
-                        .stream()
-                        .map(DevengoDiario::getAccruedInterest)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-                BigDecimal adjustment = installment.getInterestAmount().subtract(accrued)
+                LocalDate vencimientoAnterior = indice == 0
+                        ? prestamo.getDisbursementDate()
+                        : cuotas.get(indice - 1).getDueDate();
+                LocalDate inicioPeriodo = pagoRepository
+                        .findUltimaFechaAntesDe(prestamo.getId(), OrigenPago.ABONO_EXTRAORDINARIO, fechaNegocio)
+                        .filter(fechaAbono -> fechaAbono.isAfter(vencimientoAnterior))
+                        .orElse(vencimientoAnterior);
+                BigDecimal devengado = devengoRepository.sumarInteresDevengado(
+                        prestamo.getId(), inicioPeriodo.plusDays(1), fechaNegocio);
+                BigDecimal ajuste = cuota.getInterestAmount().subtract(devengado)
                         .setScale(2, RoundingMode.HALF_UP);
-                installment.setInterestAccrualAdjustment(adjustment);
-                installmentRepository.save(installment);
-                registerAccrualAdjustmentEntry(loan, installment, businessDate, adjustment);
-                processed++;
+                cuota.setInterestAccrualAdjustment(ajuste);
+                cuotaRepository.save(cuota);
+                registrarAsientoAjuste(prestamo, cuota, fechaNegocio, ajuste);
+                procesados++;
             }
         }
-        return processed;
+        return procesados;
     }
 
+    // La mora corre desde el día siguiente al vencimiento sobre el capital impago de cada cuota vencida.
     @Override
     @Transactional
-    public int executeDefaultInterest(LocalDate businessDate) {
-        int processed = 0;
-        BigDecimal delinquencyFactor = parameterService.getValue(PARAMETER_MORA_FACTOR, businessDate);
-        int dayBase = parameterService.getValue(PARAMETER_DAY_BASE, businessDate).intValueExact();
-        for (Prestamo loan : activeLoans()) {
-            if (loan.getPortfolioStatus() == EstadoCartera.POR_VENCER) {
-                continue;
-            }
-            for (Cuota installment : installmentRepository.findByLoanIdOrderByNumeroCuotaAsc(loan.getId())) {
-                if (!isOverdueUnpaid(installment, businessDate)
-                        || defaultInterestRepository.existsByInstallmentIdAndDefaultDate(installment.getId(), businessDate)) {
+    public int ejecutarMora(LocalDate fechaNegocio) {
+        BigDecimal factorMora = servicioParametro.getValue(PARAMETRO_FACTOR_MORA, fechaNegocio);
+        int baseDias = baseDias(fechaNegocio);
+        Map<BigDecimal, BigDecimal> tasasNominales = new HashMap<>();
+        int procesados = 0;
+        for (Prestamo prestamo : prestamosVigentes()) {
+            for (Cuota cuota : cuotaRepository.findByLoanIdOrderByNumeroCuotaAsc(prestamo.getId())) {
+                if (!estaVencidaImpaga(cuota, fechaNegocio)
+                        || moraRepository.existsByCuotaIdAndFechaMora(cuota.getId(), fechaNegocio)) {
                     continue;
                 }
 
-                BigDecimal overdueCapital = installment.getPrincipalAmount()
-                        .subtract(installment.getPrincipalPaid()).max(BigDecimal.ZERO);
-                BigDecimal dailyInterest = overdueCapital.signum() == 0
-                        ? ZERO
-                        : CalculoMora.interesDiario(overdueCapital, nominalRate(loan), delinquencyFactor, dayBase);
-                MoraDiaria defaultInterest = new MoraDiaria(installment, businessDate, dailyInterest, AUDIT_USER);
-                defaultInterestRepository.save(defaultInterest);
-                installment.setAccruedDefaultInterest(installment.getAccruedDefaultInterest().add(dailyInterest));
-                installmentRepository.save(installment);
-                registerDefaultInterestEntry(loan, installment, businessDate, dailyInterest);
-                processed++;
+                BigDecimal capitalVencido = cuota.getPrincipalAmount()
+                        .subtract(cuota.getPrincipalPaid()).max(BigDecimal.ZERO);
+                BigDecimal interesMora = capitalVencido.signum() == 0
+                        ? CERO
+                        : CalculoMora.interesDiario(capitalVencido, tasaNominal(prestamo, tasasNominales),
+                                factorMora, baseDias);
+                moraRepository.save(new MoraDiaria(cuota, fechaNegocio, interesMora, USUARIO_CIERRE));
+                cuota.setAccruedDefaultInterest(cuota.getAccruedDefaultInterest().add(interesMora));
+                cuotaRepository.save(cuota);
+                registrarAsientoMora(prestamo, cuota, fechaNegocio, interesMora);
+                procesados++;
             }
         }
-        return processed;
+        return procesados;
     }
 
-    private List<Prestamo> activeLoans() {
-        return loanRepository.findByPortfolioStatusNotIn(List.of(EstadoCartera.CASTIGADA, EstadoCartera.CANCELADA));
+    private List<Prestamo> prestamosVigentes() {
+        return prestamoRepository.findByPortfolioStatusNotIn(List.of(EstadoCartera.CASTIGADA, EstadoCartera.CANCELADA));
     }
 
-    private boolean isOverdueUnpaid(Cuota installment, LocalDate businessDate) {
-        return installment.getDueDate().isBefore(businessDate)
-                && installment.getStatus() != EstadoCuota.PAGADA;
+    private Map<Integer, BigDecimal> interesLiquidadoPorAbonos(LocalDate fechaNegocio) {
+        Map<Integer, BigDecimal> interesPorOperacion = new HashMap<>();
+        for (Pago abono : pagoRepository.findByOrigenAndFechaPago(OrigenPago.ABONO_EXTRAORDINARIO, fechaNegocio)) {
+            BigDecimal interes = abono.getDetalles().stream()
+                    .map(DetallePago::getAplicadoInteres)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            interesPorOperacion.merge(abono.getIdOperacion(), interes, BigDecimal::add);
+        }
+        return interesPorOperacion;
     }
 
-    private BigDecimal nominalRate(Prestamo loan) {
-        return amortizationService.monthlyRate(loan.getEffectiveAnnualRate()).multiply(MONTHS_PER_YEAR);
+    // Mismo periodo que usa el abono: desde el último vencimiento (o abono anterior) hasta la fecha del abono.
+    private BigDecimal diferenciaConAbono(Prestamo prestamo, LocalDate fechaNegocio, BigDecimal interesAbono) {
+        LocalDate ultimoVencimiento = cuotaRepository.findByLoanIdOrderByNumeroCuotaAsc(prestamo.getId()).stream()
+                .map(Cuota::getDueDate)
+                .filter(vencimiento -> !vencimiento.isAfter(fechaNegocio))
+                .max(LocalDate::compareTo)
+                .orElse(prestamo.getDisbursementDate());
+        LocalDate inicioPeriodo = pagoRepository
+                .findUltimaFechaAntesDe(prestamo.getId(), OrigenPago.ABONO_EXTRAORDINARIO, fechaNegocio)
+                .filter(abonoAnterior -> abonoAnterior.isAfter(ultimoVencimiento))
+                .orElse(ultimoVencimiento);
+        BigDecimal yaDevengado = devengoRepository.sumarInteresDevengado(
+                prestamo.getId(), inicioPeriodo.plusDays(1), fechaNegocio.minusDays(1));
+        return interesAbono.subtract(yaDevengado).max(BigDecimal.ZERO).setScale(ESCALA_DIARIA, RoundingMode.HALF_UP);
     }
 
-    private TipoAsiento accrualType(Prestamo loan) {
-        return loan.getPortfolioStatus() == EstadoCartera.EN_LITIGIO
-                ? TipoAsiento.DEVENGO_SUSPENSO : TipoAsiento.DEVENGO;
+    private boolean estaVencidaImpaga(Cuota cuota, LocalDate fechaNegocio) {
+        return cuota.getDueDate().isBefore(fechaNegocio) && cuota.getStatus() != EstadoCuota.PAGADA;
     }
 
-    private void registerAccrualEntry(Prestamo loan, LocalDate businessDate, BigDecimal dailyInterest,
-                                      TipoAsiento type) {
-        BigDecimal amount = dailyInterest.setScale(2, RoundingMode.HALF_UP);
-        if (amount.signum() == 0) {
+    private int baseDias(LocalDate fechaNegocio) {
+        return servicioParametro.getValue(PARAMETRO_BASE_DIAS, fechaNegocio).intValueExact();
+    }
+
+    private BigDecimal tasaNominal(Prestamo prestamo, Map<BigDecimal, BigDecimal> tasasNominales) {
+        return tasasNominales.computeIfAbsent(prestamo.getEffectiveAnnualRate(),
+                tea -> servicioAmortizacion.monthlyRate(tea).multiply(MESES_POR_ANIO));
+    }
+
+    private static boolean enSuspenso(Prestamo prestamo) {
+        return prestamo.getPortfolioStatus() == EstadoCartera.EN_LITIGIO;
+    }
+
+    private void registrarAsientoDevengo(Prestamo prestamo, LocalDate fechaNegocio, BigDecimal interesDia) {
+        BigDecimal monto = interesDia.setScale(2, RoundingMode.HALF_UP);
+        if (monto.signum() == 0) {
             return;
         }
-        CodigoCuentaContable debit = type == TipoAsiento.DEVENGO
-                ? CodigoCuentaContable.INTERESES_POR_COBRAR
-                : CodigoCuentaContable.INTERESES_EN_SUSPENSO;
-        CodigoCuentaContable credit = type == TipoAsiento.DEVENGO
-                ? CodigoCuentaContable.INGRESOS_INTERESES
-                : CodigoCuentaContable.CONTRA_CUENTAS_ORDEN;
-        accountingService.registrarAsiento(new MovimientoContable(loan.getId(), businessDate, type,
-                debit, credit, amount, "DEVENGO:" + loan.getId() + ":" + businessDate));
+        boolean suspenso = enSuspenso(prestamo);
+        servicioContabilidad.registrarAsiento(new MovimientoContable(prestamo.getId(), fechaNegocio,
+                suspenso ? TipoAsiento.DEVENGO_SUSPENSO : TipoAsiento.DEVENGO,
+                suspenso ? CodigoCuentaContable.INTERESES_EN_SUSPENSO : CodigoCuentaContable.INTERESES_POR_COBRAR,
+                suspenso ? CodigoCuentaContable.CONTRA_CUENTAS_ORDEN : CodigoCuentaContable.INGRESOS_INTERESES,
+                monto, "DEVENGO:" + prestamo.getId() + ":" + fechaNegocio));
     }
 
-    private void registerDefaultInterestEntry(Prestamo loan, Cuota installment, LocalDate businessDate,
-                                              BigDecimal dailyInterest) {
-        BigDecimal amount = dailyInterest.setScale(2, RoundingMode.HALF_UP);
-        if (amount.signum() == 0) {
+    private void registrarAsientoMora(Prestamo prestamo, Cuota cuota, LocalDate fechaNegocio,
+                                      BigDecimal interesMora) {
+        BigDecimal monto = interesMora.setScale(2, RoundingMode.HALF_UP);
+        if (monto.signum() == 0) {
             return;
         }
-        boolean suspense = loan.getPortfolioStatus() == EstadoCartera.EN_LITIGIO;
-        CodigoCuentaContable debit = suspense
-                ? CodigoCuentaContable.INTERESES_EN_SUSPENSO
-                : CodigoCuentaContable.INTERESES_MORA_POR_COBRAR;
-        CodigoCuentaContable credit = suspense
-                ? CodigoCuentaContable.CONTRA_CUENTAS_ORDEN
-                : CodigoCuentaContable.INGRESOS_MORA;
-        accountingService.registrarAsiento(new MovimientoContable(loan.getId(), businessDate, TipoAsiento.MORA,
-                debit, credit, amount, "MORA:" + installment.getId() + ":" + businessDate));
+        boolean suspenso = enSuspenso(prestamo);
+        servicioContabilidad.registrarAsiento(new MovimientoContable(prestamo.getId(), fechaNegocio, TipoAsiento.MORA,
+                suspenso ? CodigoCuentaContable.INTERESES_EN_SUSPENSO : CodigoCuentaContable.INTERESES_MORA_POR_COBRAR,
+                suspenso ? CodigoCuentaContable.CONTRA_CUENTAS_ORDEN : CodigoCuentaContable.INGRESOS_MORA,
+                monto, "MORA:" + cuota.getId() + ":" + fechaNegocio));
     }
 
-    private void registerAccrualAdjustmentEntry(Prestamo loan, Cuota installment, LocalDate businessDate,
-                                                BigDecimal adjustment) {
-        if (adjustment.signum() == 0) {
+    private void registrarAsientoAjuste(Prestamo prestamo, Cuota cuota, LocalDate fechaNegocio, BigDecimal ajuste) {
+        if (ajuste.signum() == 0) {
             return;
         }
-        boolean suspense = loan.getPortfolioStatus() == EstadoCartera.EN_LITIGIO;
-        CodigoCuentaContable incomeDebit = suspense
+        boolean suspenso = enSuspenso(prestamo);
+        CodigoCuentaContable cuentaDeudora = suspenso
                 ? CodigoCuentaContable.INTERESES_EN_SUSPENSO
                 : CodigoCuentaContable.INTERESES_POR_COBRAR;
-        CodigoCuentaContable incomeCredit = suspense
+        CodigoCuentaContable cuentaAcreedora = suspenso
                 ? CodigoCuentaContable.CONTRA_CUENTAS_ORDEN
                 : CodigoCuentaContable.INGRESOS_INTERESES;
-        BigDecimal amount = adjustment.abs();
-        CodigoCuentaContable debit = adjustment.signum() > 0 ? incomeDebit : incomeCredit;
-        CodigoCuentaContable credit = adjustment.signum() > 0 ? incomeCredit : incomeDebit;
-        accountingService.registrarAsiento(new MovimientoContable(loan.getId(), businessDate,
-                TipoAsiento.AJUSTE_DEVENGO, debit, credit, amount,
-                "AJUSTE_DEVENGO:" + installment.getId() + ":" + businessDate));
+        boolean positivo = ajuste.signum() > 0;
+        servicioContabilidad.registrarAsiento(new MovimientoContable(prestamo.getId(), fechaNegocio,
+                TipoAsiento.AJUSTE_DEVENGO,
+                positivo ? cuentaDeudora : cuentaAcreedora,
+                positivo ? cuentaAcreedora : cuentaDeudora,
+                ajuste.abs(), "AJUSTE_DEVENGO:" + cuota.getId() + ":" + fechaNegocio));
     }
 }
