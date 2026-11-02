@@ -343,6 +343,7 @@ a.bq-tarjeta:hover, button.bq-tarjeta:hover { text-decoration: none; transform: 
 .bq-tabla tbody tr:hover td { background: var(--bq-fondo); }
 .bq-tabla tfoot td { background: var(--bq-superficie-2); font-weight: 600; border-bottom: 0; }
 .bq-tabla .bq-num { text-align: right; }
+.bq-tabla .bq-texto-largo { white-space: normal; min-width: 18rem; overflow-wrap: anywhere; }
 
 .bq-estado {
   display: inline-flex;
