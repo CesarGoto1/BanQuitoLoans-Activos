@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "operaciones")
-public class Prestamo {
+class Prestamo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -129,7 +129,7 @@ public class Prestamo {
         this.id = id;
     }
 
-    public Integer getId() {
+    Integer getId() {
         return id;
     }
 
@@ -169,7 +169,7 @@ public class Prestamo {
         this.metodoAmortizacion = metodoAmortizacion;
     }
 
-    public String getLoanNumber() {
+    String getLoanNumber() {
         return numeroOperacion;
     }
 
@@ -249,7 +249,7 @@ public class Prestamo {
         this.disbursementInstructionStatus = disbursementInstructionStatus;
     }
 
-    public EstadoCartera getPortfolioStatus() {
+    EstadoCartera getPortfolioStatus() {
         return portfolioStatus;
     }
 
@@ -257,7 +257,7 @@ public class Prestamo {
         this.portfolioStatus = portfolioStatus;
     }
 
-    public BigDecimal getPrincipalBalance() {
+    BigDecimal getPrincipalBalance() {
         return principalBalance;
     }
 
@@ -265,7 +265,7 @@ public class Prestamo {
         this.principalBalance = principalBalance;
     }
 
-    public Integer getDaysPastDue() {
+    Integer getDaysPastDue() {
         return daysPastDue;
     }
 
