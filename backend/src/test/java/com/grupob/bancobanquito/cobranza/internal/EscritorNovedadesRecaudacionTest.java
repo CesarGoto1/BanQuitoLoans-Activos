@@ -27,6 +27,20 @@ class EscritorNovedadesRecaudacionTest {
     }
 
     @Test
+    void pagoAplicadoSinCodigoSeDescribeComoAplicado() {
+        UUID uuid = UUID.fromString("3f6c2a1e-8b4d-4c7a-9e2f-1a2b3c4d5e01");
+        ResultadoPago pago = new ResultadoPago(EstadoAplicacionPago.APLICADO, null, new BigDecimal("6.00"),
+                BigDecimal.ZERO, new BigDecimal("50.00"), new BigDecimal("44.00"), BigDecimal.ZERO, BigDecimal.ZERO);
+        ResultadoRecaudacion resultado = new ResultadoRecaudacion(1, "REC_20261031_001.csv", "PROCESADO", null, List.of(
+                new ResultadoRegistroRecaudacion(1, 1, uuid, "PRE-0001", new BigDecimal("100.00"), "APLICADO", null, pago)));
+
+        assertThat(escritor.contenido(resultado, FECHA).split("\n")).containsExactly(
+                "H,REC_20261031_001,2026-10-31,PROCESADO,",
+                "D,1," + uuid + ",PRE-0001,APLICADO,,Pago aplicado,100.00,6.00,0.00,50.00,44.00,0.00,0.00",
+                "T,1,1,0,0,100.00,0.00");
+    }
+
+    @Test
     void archivoProcesadoDetallaImputacionYCuadraMontos() {
         UUID primero = UUID.fromString("3f6c2a1e-8b4d-4c7a-9e2f-1a2b3c4d5e01");
         UUID segundo = UUID.fromString("7a9d4e2b-1c3f-4b6a-8d5e-2b3c4d5e6f02");
