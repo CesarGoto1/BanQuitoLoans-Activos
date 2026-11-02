@@ -38,3 +38,10 @@ export async function buscarTablaAmortizacion(numeroOperacion, pagina) {
   })
   return leerRespuesta(respuesta)
 }
+
+export async function buscarHistorial(numeroOperacion) {
+  const respuesta = await fetch(`${API}/prestamos/${encodeURIComponent(numeroOperacion)}/historial`, {
+    headers: cabeceras(),
+  })
+  return leerRespuesta(respuesta)
+}

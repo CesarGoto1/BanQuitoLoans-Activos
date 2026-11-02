@@ -10,4 +10,8 @@ public interface ServiceAmortizacion {
                                           MetodoAmortizacion metodo, LocalDate fechaDesembolso);
 
     BigDecimal monthlyRate(BigDecimal teaAsignada);
+
+    BigDecimal interesPorDias(BigDecimal saldoCapital, BigDecimal teaAsignada, long dias, Integer baseDias);
+
+    List<CuotaCalculada> recalcular(RecalculoTabla recalculo);
 }
