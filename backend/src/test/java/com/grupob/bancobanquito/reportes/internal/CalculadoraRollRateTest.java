@@ -16,7 +16,10 @@ import org.junit.jupiter.api.Test;
 class CalculadoraRollRateTest {
 
     private static final LocalDate FECHA = LocalDate.of(2026, 10, 31);
-    private final ServiceReportesCarteraImpl servicio = new ServiceReportesCarteraImpl();
+    private final ServiceReportesCarteraImpl servicio = new ServiceReportesCarteraImpl(org.mockito.Mockito.mock(
+            com.grupob.bancobanquito.cobranza.ServicioFotografiaCartera.class),
+            org.mockito.Mockito.mock(com.grupob.bancobanquito.cierre.ServiceCierreDia.class),
+            org.mockito.Mockito.mock(com.grupob.bancobanquito.prestamos.ConsultaPrestamoService.class));
     private final List<CorteCartera.Tramo> tramos = List.of(
             tramo(1, 1, EstadoCartera.POR_VENCER), tramo(2, 2, EstadoCartera.VENCIDA));
 
