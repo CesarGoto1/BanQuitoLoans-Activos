@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 public record SolicitudDetalleResponse(
         Integer idSolicitud,
         Integer idCliente,
+        String cedulaCliente,
+        String nombreCliente,
         String estadoSolicitud,
         LocalDate fechaSolicitud,
         LocalDateTime fechaHoraRegistro,

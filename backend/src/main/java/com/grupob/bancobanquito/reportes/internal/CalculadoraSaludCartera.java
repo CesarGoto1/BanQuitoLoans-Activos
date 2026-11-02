@@ -27,7 +27,7 @@ class CalculadoraSaludCartera {
             if (dato.montoOriginal().signum() == 0 || dato.montoOriginal().compareTo(new BigDecimal("30000")) > 0
                     || dato.plazoMeses() == null || dato.plazoMeses() < 1 || dato.plazoMeses() > 60
                     || dato.sistemaAmortizacion() == null) {
-                throw new IllegalArgumentException("Los datos de la operación no corresponden a las categorías de RF-23.");
+                throw new IllegalArgumentException("Los datos de la operación no corresponden a las categorías del reporte.");
             }
         }
         BigDecimal provisiones = CalculosCartera.provision(bruta);

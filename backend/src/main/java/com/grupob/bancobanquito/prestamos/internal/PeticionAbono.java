@@ -13,6 +13,6 @@ record PeticionAbono(
         @Digits(integer = 8, fraction = 2, message = "El valor del abono tiene máximo dos decimales.")
         BigDecimal monto,
 
-        @NotNull(message = "Elige la modalidad: DISMINUIR_CUOTA o DISMINUIR_PLAZO.")
+        @NotNull(message = "Elige si el abono disminuye la cuota o el plazo.")
         ModalidadAbono modalidad) {
 }

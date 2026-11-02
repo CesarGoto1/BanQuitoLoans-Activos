@@ -67,7 +67,7 @@ class ControllerSolicitudAnalistaTest {
     @DisplayName("Debe retornar 200 con la bandeja de solicitudes cuando las cabeceras son válidas")
     void debeRetornarBandejaCon200() throws Exception {
         SolicitudBandejaResponse item = new SolicitudBandejaResponse(
-                1, 101, new BigDecimal("5000.00"), 12, "FRANCES",
+                1, 101, "1711000073", "Luis Herrera", new BigDecimal("5000.00"), 12, "FRANCES",
                 "EDUCACION", new BigDecimal("450.00"), LocalDate.of(2026, 10, 24),
                 LocalDateTime.of(2026, 10, 24, 10, 0), "REGISTRADA"
         );
@@ -82,6 +82,8 @@ class ControllerSolicitudAnalistaTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].idSolicitud").value(1))
                 .andExpect(jsonPath("$[0].estadoSolicitud").value("REGISTRADA"))
+                .andExpect(jsonPath("$[0].cedulaCliente").value("1711000073"))
+                .andExpect(jsonPath("$[0].nombreCliente").value("Luis Herrera"))
                 .andExpect(jsonPath("$[0].montoSolicitado").value(5000.00));
     }
 
@@ -89,7 +91,7 @@ class ControllerSolicitudAnalistaTest {
     @DisplayName("Debe retornar 200 con el detalle financiero de la solicitud")
     void debeRetornarDetalleCon200() throws Exception {
         SolicitudDetalleResponse detalle = new SolicitudDetalleResponse(
-                1, 101, "REGISTRADA", LocalDate.of(2026, 10, 24),
+                1, 101, "1711000073", "Luis Herrera", "REGISTRADA", LocalDate.of(2026, 10, 24),
                 LocalDateTime.of(2026, 10, 24, 10, 0),
                 new BigDecimal("5000.00"), 12, "FRANCES", "EDUCACION",
                 new BigDecimal("300.00"), new BigDecimal("1500.00"), new BigDecimal("500.00"),
