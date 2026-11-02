@@ -2,6 +2,7 @@ package com.grupob.bancobanquito.prestamos.internal;
 
 import com.grupob.bancobanquito.prestamos.EstadoCartera;
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,8 @@ interface PrestamoRepository extends JpaRepository<Prestamo, Integer> {
     Optional<Prestamo> findByIdSolicitud(Integer idSolicitud);
 
     Optional<Prestamo> findByNumeroOperacion(String numeroOperacion);
+
+    List<Prestamo> findByPortfolioStatusNotIn(List<EstadoCartera> portfolioStatuses);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Prestamo p where p.numeroOperacion = :numeroOperacion")
