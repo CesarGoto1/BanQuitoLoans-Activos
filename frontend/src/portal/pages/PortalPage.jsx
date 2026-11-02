@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import InicioDesembolsoPage from './InicioDesembolsoPage.jsx'
 import ConsultaOperacionPagina from './ConsultaOperacionPagina.jsx'
+import CierreDiaPagina from './CierreDiaPagina.jsx'
 import AbonoExtraordinarioPagina from './AbonoExtraordinarioPagina.jsx'
 import CancelacionAnticipadaPagina from './CancelacionAnticipadaPagina.jsx'
 import InicioSesionPage from './InicioSesionPage.jsx'
@@ -11,6 +12,7 @@ const SECTIONS = [
   { id: 'applications', label: 'Solicitudes', page: SolicitudesPagina },
   { id: 'disbursement', label: 'Desembolsar', page: InicioDesembolsoPage },
   { id: 'inquiry', label: 'Consultar operaciones', page: ConsultaOperacionPagina },
+  { id: 'closing', label: 'Cierre de día', page: CierreDiaPagina },]
   { id: 'prepayment', label: 'Abono extraordinario', page: AbonoExtraordinarioPagina },
   { id: 'payoff', label: 'Cancelación anticipada', page: CancelacionAnticipadaPagina },]
 
