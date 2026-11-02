@@ -46,7 +46,7 @@ class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
                 servicioParametro.getValue("PAR-05", fechaNegocio));
         if (teaAsignada.stripTrailingZeros().scale() > 4
                 || teaAsignada.compareTo(BigDecimal.TEN) >= 0) {
-            throw new ReglaDecisionPrestamoException("La tasa debe tener máximo un entero y cuatro decimales.");
+            throw new ReglaDecisionPrestamoException("La tasa debe ser menor al 1000 % y tener máximo dos decimales.");
         }
         BigDecimal installment = calculateInstallment(application, teaAsignada, fechaNegocio);
         politicaAprobacion.validatePaymentCapacity(application.getMonthlyIncome(), application.getMonthlyExpenses(),
@@ -94,14 +94,14 @@ class ServiceDecisionPrestamoImpl implements ServiceDecisionPrestamo {
     private BigDecimal calculateInstallment(Solicitud application, BigDecimal teaAsignada, LocalDate fechaNegocio) {
         BigDecimal insuranceFactor = servicioParametro.getValue("PAR-07", fechaNegocio);
         if (insuranceFactor == null || insuranceFactor.signum() < 0) {
-            throw new IllegalStateException("Invalid monthly insurance configuration.");
+            throw new IllegalStateException("La configuración del seguro mensual no es válida.");
         }
         BigDecimal seguro = application.getRequestedAmount().multiply(insuranceFactor).setScale(2, RoundingMode.HALF_UP);
         return servicioAmortizacion.calculate(application.getRequestedAmount(), teaAsignada,
                         application.getTermMonths(), application.getAmortizationMethod(), fechaNegocio).stream()
                 .map(installment -> installment.capital().add(installment.interes()).add(seguro))
                 .max(BigDecimal::compareTo)
-                .orElseThrow(() -> new IllegalStateException("The amortization schedule is empty."))
+                .orElseThrow(() -> new IllegalStateException("No se pudo generar la tabla de amortización."))
                 .setScale(2, RoundingMode.HALF_UP);
     }
 

@@ -86,12 +86,14 @@ class ServiceCierreDiaTest {
     }
 
     @Test
-    void lasEtapasSinImplementarSeRegistranSinProcesarRegistros() {
+    void lasEtapasRealesDelCierreSeRegistranComoExitosas() {
         ResultadoCierreDia resultado = servicioCierre.ejecutarCierre(hoy, ANALISTA);
 
-        EjecucionEtapaCierre fotografia = ejecucion(resultado, PasoCierre.FOTOGRAFIA, 1);
-        assertThat(fotografia.estadoEtapa()).isEqualTo("EXITOSA");
-        assertThat(fotografia.registrosProcesados()).isZero();
+        List.of(PasoCierre.CLASIFICACION, PasoCierre.PROVISIONES, PasoCierre.FOTOGRAFIA).forEach(paso -> {
+            EjecucionEtapaCierre ejecucion = ejecucion(resultado, paso, 1);
+            assertThat(ejecucion.estadoEtapa()).isEqualTo("EXITOSA");
+            assertThat(ejecucion.registrosProcesados()).isNotNegative();
+        });
     }
 
     @Test

@@ -2,6 +2,26 @@ import { useState, useEffect } from 'react';
 import { obtenerDetalleSolicitud } from '../services/prestamosApi.js';
 import PanelDecisionPrestamo from '../components/PanelDecisionPrestamo.jsx';
 
+const SISTEMAS = { FRANCES: 'Francés', ALEMAN: 'Alemán' };
+
+const DESTINOS = {
+  BIENES_DURADEROS: 'Bienes duraderos',
+  SALUD: 'Salud',
+  EDUCACION: 'Educación',
+  VIAJE: 'Viaje',
+  OTRO: 'Otro',
+};
+
+const ESTADOS = { REGISTRADA: 'Registrada', APROBADA: 'Aprobada', RECHAZADA: 'Rechazada' };
+
+function formatearFechaHora(valor) {
+  if (!valor) return '';
+  const fecha = new Date(valor);
+  return isNaN(fecha.getTime()) ? valor : fecha.toLocaleString('es-EC', {
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
+  });
+}
+
 export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
   const [detalle, setDetalle] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -30,9 +50,15 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
     return new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' }).format(monto);
   };
 
+  const formatearPorcentaje = (valor) => {
+    if (valor === null || valor === undefined) return '-';
+    return `${new Intl.NumberFormat('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor)} %`;
+  };
+
   const formatearFecha = (fechaStr) => {
     if (!fechaStr) return '-';
-    return fechaStr;
+    const [anio, mes, dia] = String(fechaStr).slice(0, 10).split('-');
+    return dia && mes && anio ? `${dia}/${mes}/${anio}` : fechaStr;
   };
 
   const obtenerClaseEstado = (estado) => {
@@ -77,11 +103,11 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
               <span className="bq-etiqueta-seccion">Evaluación de Solicitud</span>
               <h1>Solicitud #{detalle.idSolicitud}</h1>
               <p className="bq-pequeno bq-texto-2">
-                Cliente ID: <span className="bq-mono">{detalle.idCliente}</span> · Fecha de solicitud: {formatearFecha(detalle.fechaSolicitud)}
+                Cliente: {detalle.nombreCliente ?? 'No disponible'} · Cédula: <span className="bq-mono">{detalle.cedulaCliente ?? '—'}</span> · Fecha de solicitud: {formatearFecha(detalle.fechaSolicitud)}
               </p>
             </div>
             <span className={obtenerClaseEstado(detalle.estadoSolicitud)}>
-              {detalle.estadoSolicitud}
+              {ESTADOS[detalle.estadoSolicitud] ?? detalle.estadoSolicitud}
             </span>
           </div>
 
@@ -110,9 +136,9 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
                 <tbody>
                   <tr>
                     <td>{detalle.plazoMeses} meses</td>
-                    <td>{detalle.sistemaAmortizacion}</td>
-                    <td>{detalle.destinoCredito}</td>
-                    <td>{detalle.fechaHoraRegistro}</td>
+                    <td>{SISTEMAS[detalle.sistemaAmortizacion] ?? detalle.sistemaAmortizacion}</td>
+                    <td>{DESTINOS[detalle.destinoCredito] ?? detalle.destinoCredito}</td>
+                    <td>{formatearFechaHora(detalle.fechaHoraRegistro)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -161,21 +187,21 @@ export default function DetalleSolicitudPagina({ idSolicitud, onVolver }) {
                 <thead>
                   <tr>
                     <th className="bq-num">Impacto sobre Remanente</th>
-                    <th className="bq-num">Límite Regulatorio (PAR-09)</th>
+                    <th className="bq-num">Límite máximo permitido</th>
                     <th className="bq-num">Cuota Máxima Admisible</th>
                     <th>Resultado</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="bq-num">{detalle.porcentajeImpactoCuota} %</td>
-                    <td className="bq-num">{detalle.limiteImpactoMaximo} %</td>
+                    <td className="bq-num">{formatearPorcentaje(detalle.porcentajeImpactoCuota)}</td>
+                    <td className="bq-num">{formatearPorcentaje(detalle.limiteImpactoMaximo)}</td>
                     <td className="bq-num bq-monto">{formatearDinero(detalle.cuotaMaximaAdmisible)}</td>
                     <td>
                       {detalle.capacidadPagoValida ? (
-                        <span className="bq-estado bq-estado-exito">Requiere evaluación definitiva</span>
+                        <span className="bq-estado bq-estado-exito">Cumple capacidad de pago</span>
                       ) : (
-                        <span className="bq-estado bq-estado-peligro">No Cumple Capacidad</span>
+                        <span className="bq-estado bq-estado-peligro">No cumple capacidad de pago</span>
                       )}
                     </td>
                   </tr>

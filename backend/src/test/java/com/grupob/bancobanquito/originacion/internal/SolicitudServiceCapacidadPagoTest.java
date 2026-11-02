@@ -5,6 +5,7 @@ import com.grupob.bancobanquito.amortizacion.MetodoAmortizacion;
 import com.grupob.bancobanquito.originacion.SolicitudBandejaResponse;
 import com.grupob.bancobanquito.originacion.SolicitudDetalleResponse;
 import com.grupob.bancobanquito.parametros.ServiceParametro;
+import com.grupob.bancobanquito.pasivos.ServicePasivos;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ import static org.mockito.Mockito.when;
 class SolicitudServiceCapacidadPagoTest {
 
     @Mock
+    private ServicePasivos servicioPasivos;
+
+    @Mock
     private SolicitudRepository solicitudRepository;
 
     @Mock
@@ -35,7 +39,7 @@ class SolicitudServiceCapacidadPagoTest {
 
     @BeforeEach
     void setUp() {
-        this.solicitudService = new ServiceBandejaSolicitudImpl(solicitudRepository, servicioParametro);
+        this.solicitudService = new ServiceBandejaSolicitudImpl(solicitudRepository, servicioParametro, servicioPasivos);
     }
 
     @Test
@@ -57,7 +61,7 @@ class SolicitudServiceCapacidadPagoTest {
     }
 
     @Test
-    @DisplayName("Debe reprobar capacidad de pago cuando la cuota supera el 40% del remanente (RN-09)")
+    @DisplayName("Debe reprobar capacidad de pago cuando la cuota supera el 40% del remanente")
     void debeReprobarCapacidadDePagoCuandoSuperaCuarentaPorCiento() {
         Solicitud solicitud = crearSolicitudBase(2, new BigDecimal("1200.00"), new BigDecimal("400.00"), new BigDecimal("400.00"));
         when(solicitudRepository.findById(2)).thenReturn(Optional.of(solicitud));
@@ -70,11 +74,11 @@ class SolicitudServiceCapacidadPagoTest {
         assertThat(detalle.porcentajeImpactoCuota()).isEqualByComparingTo(new BigDecimal("50.00"));
         assertThat(detalle.cuotaMaximaAdmisible()).isEqualByComparingTo(new BigDecimal("320.00"));
         assertThat(detalle.capacidadPagoValida()).isFalse();
-        assertThat(detalle.mensajeCapacidadPago()).contains("ALERTA: La cuota referencial");
+        assertThat(detalle.mensajeCapacidadPago()).contains("supera el límite regulatorio del 40,00 %");
     }
 
     @Test
-    @DisplayName("Debe reprobar capacidad de pago si el remanente mensual es cero o negativo (RN-10)")
+    @DisplayName("Debe reprobar capacidad de pago si el remanente mensual es cero o negativo")
     void debeReprobarCuandoRemanenteEsNegativo() {
         Solicitud solicitud = crearSolicitudBase(3, new BigDecimal("800.00"), new BigDecimal("1000.00"), new BigDecimal("150.00"));
         when(solicitudRepository.findById(3)).thenReturn(Optional.of(solicitud));
@@ -84,7 +88,7 @@ class SolicitudServiceCapacidadPagoTest {
 
         assertThat(detalle.ingresoRemanente()).isEqualByComparingTo(new BigDecimal("-200.00"));
         assertThat(detalle.capacidadPagoValida()).isFalse();
-        assertThat(detalle.mensajeCapacidadPago()).contains("no dispone de remanente mensual positivo (RN-10)");
+        assertThat(detalle.mensajeCapacidadPago()).contains("no dispone de remanente mensual positivo");
     }
 
     @Test

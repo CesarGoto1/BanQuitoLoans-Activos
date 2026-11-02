@@ -38,6 +38,10 @@ const modosBusqueda = {
   CEDULA: { texto: 'Cédula del cliente', ejemplo: '1712345678' },
 }
 
+function usuarioVisible(usuario) {
+  return !usuario || usuario === 'system' ? 'Sistema' : usuario
+}
+
 function formatearFecha(iso) {
   const [anio, mes, dia] = iso.split('-')
   return `${dia}/${mes}/${anio}`
@@ -363,8 +367,8 @@ function HistorialPagos({ pagos }) {
                   <td className="bq-num"><strong>{numero.format(pago.aplicadoMora)}</strong></td>
                   <td className="bq-num"><strong>{numero.format(pago.aplicadoInteres)}</strong></td>
                   <td className="bq-num"><strong>{numero.format(pago.aplicadoCapital)}</strong></td>
-                  <td className="bq-num"><strong>{numero.format(pago.montoRecibido)}</strong></td>
-                  <td className="bq-mono">{pago.registradoPor}</td>
+                  <td className="bq-num"><strong>{numero.format(pago.montoRecibido ?? [pago.aplicadoSeguro, pago.aplicadoMora, pago.aplicadoInteres, pago.aplicadoCapital].reduce((total, valor) => total + Number(valor ?? 0), 0))}</strong></td>
+                  <td>{usuarioVisible(pago.registradoPor)}</td>
                 </tr>,
                 ...pago.detalles.map((detalle, indice) => (
                   <tr key={`${pago.idPago}-${indice}`}>
@@ -457,7 +461,7 @@ function MovimientosEstado({ movimientos }) {
                   <td><EstadoCartera estado={movimiento.estadoAnterior} /></td>
                   <td><EstadoCartera estado={movimiento.estadoNuevo} /></td>
                   <td className="bq-num">{movimiento.diasMora}</td>
-                  <td className="bq-mono">{movimiento.registradoPor}</td>
+                  <td>{usuarioVisible(movimiento.registradoPor)}</td>
                 </tr>
               ))}
             </tbody>

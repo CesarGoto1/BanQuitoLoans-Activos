@@ -35,7 +35,7 @@ public class PoliticaAprobacionPrestamo {
                 || maximumAnnualEffectiveRate.signum() <= 0) {
 
             throw new IllegalStateException(
-                    "Invalid maximum interest rate configuration."
+                    "La configuración de la tasa máxima no es válida."
             );
         }
 
@@ -78,7 +78,7 @@ public class PoliticaAprobacionPrestamo {
                 || maximumPaymentRatio.compareTo(BigDecimal.ONE) > 0) {
 
             throw new IllegalStateException(
-                    "Invalid payment capacity configuration."
+                    "La configuración de capacidad de pago no es válida."
             );
         }
 

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { obtenerBandejaSolicitudes } from '../services/prestamosApi.js';
 
+const SISTEMAS = { FRANCES: 'Francés', ALEMAN: 'Alemán' };
+const ESTADOS = { REGISTRADA: 'Registrada', APROBADA: 'Aprobada', RECHAZADA: 'Rechazada', DESEMBOLSADA: 'Desembolsada', ANULADA: 'Anulada' };
+
 export default function BandejaPagina({ onSeleccionarSolicitud }) {
   const [solicitudes, setSolicitudes] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -31,7 +34,7 @@ export default function BandejaPagina({ onSeleccionarSolicitud }) {
   const formatearFechaHora = (fechaHoraStr) => {
     if (!fechaHoraStr) return '-';
     const fecha = new Date(fechaHoraStr);
-    return isNaN(fecha.getTime()) ? fechaHoraStr : fecha.toLocaleString('es-EC');
+    return isNaN(fecha.getTime()) ? fechaHoraStr : fecha.toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -40,7 +43,7 @@ export default function BandejaPagina({ onSeleccionarSolicitud }) {
         <div>
           <h1>Bandeja de Solicitudes de Crédito</h1>
           <p className="bq-pequeno bq-texto-2">
-            Solicitudes pendientes ordenadas por antigüedad (RF-04)
+            Solicitudes pendientes de evaluación, de la más antigua a la más reciente
           </p>
         </div>
         <div className="bq-acciones">
@@ -80,7 +83,7 @@ export default function BandejaPagina({ onSeleccionarSolicitud }) {
               <tr>
                 <th># Solicitud</th>
                 <th>Fecha de Registro</th>
-                <th>Cód. Cliente</th>
+                <th>Cliente</th>
                 <th className="bq-num">Monto Solicitado</th>
                 <th>Plazo</th>
                 <th>Sistema</th>
@@ -94,14 +97,17 @@ export default function BandejaPagina({ onSeleccionarSolicitud }) {
                 <tr key={sol.idSolicitud}>
                   <td className="bq-mono">#{sol.idSolicitud}</td>
                   <td>{formatearFechaHora(sol.fechaHoraRegistro)}</td>
-                  <td className="bq-mono">{sol.idCliente}</td>
+                  <td>
+                    <div>{sol.nombreCliente ?? 'Cliente no disponible'}</div>
+                    <div className="bq-mono bq-texto-3 bq-pequeno">{sol.cedulaCliente ?? ''}</div>
+                  </td>
                   <td className="bq-num bq-monto">{formatearDinero(sol.montoSolicitado)}</td>
                   <td>{sol.plazoMeses} meses</td>
-                  <td>{sol.sistemaAmortizacion}</td>
+                  <td>{SISTEMAS[sol.sistemaAmortizacion] ?? sol.sistemaAmortizacion}</td>
                   <td className="bq-num">{formatearDinero(sol.cuotaEvaluacionReferencial)}</td>
                   <td>
                     <span className="bq-estado bq-estado-info">
-                      {sol.estadoSolicitud}
+                      {ESTADOS[sol.estadoSolicitud] ?? sol.estadoSolicitud}
                     </span>
                   </td>
                   <td>

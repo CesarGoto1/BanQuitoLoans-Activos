@@ -74,7 +74,7 @@ class EscritorNovedadesRecaudacion {
                     texto(registro.numeroOperacion()),
                     registro.estado(),
                     texto(registro.codigoRechazo()),
-                    DESCRIPCIONES.getOrDefault(registro.codigoRechazo(), "Pago aplicado"),
+                    descripcion(registro.codigoRechazo()),
                     monto(recibido),
                     monto(pago == null ? null : pago.aplicadoSeguro()),
                     monto(pago == null ? null : pago.aplicadoMora()),
@@ -91,6 +91,10 @@ class EscritorNovedadesRecaudacion {
                 monto(montoAplicado),
                 monto(montoTotal.subtract(montoAplicado)))).append('\n');
         return salida.toString();
+    }
+
+    private String descripcion(String codigo) {
+        return codigo == null ? "Pago aplicado" : DESCRIPCIONES.getOrDefault(codigo, codigo);
     }
 
     private String texto(String valor) {

@@ -44,7 +44,7 @@ export default function PanelDecisionPrestamo({ application, onResolved }) {
     setSuccess('');
     try {
       const result = decision === 'approve'
-        ? await approveLoanApplication(application.idSolicitud, Number(annualEffectiveRate))
+        ? await approveLoanApplication(application.idSolicitud, Number((Number(String(annualEffectiveRate).replace(',', '.')) / 100).toFixed(4)))
         : await rejectLoanApplication(application.idSolicitud, rejectionReason.trim());
       onResolved(result);
       setSuccess(decision === 'approve' ? 'Solicitud aprobada correctamente.' : 'Solicitud rechazada correctamente.');
@@ -87,12 +87,12 @@ export default function PanelDecisionPrestamo({ application, onResolved }) {
           <form className="bq-formulario" onSubmit={(event) => submit(event, 'approve')}>
             <h3>Aprobar solicitud</h3>
             <div className="bq-campo">
-              <label className="bq-label" htmlFor="annual-effective-rate">Tasa efectiva anual (fracción decimal)</label>
+              <label className="bq-label" htmlFor="annual-effective-rate">Tasa efectiva anual (%)</label>
               <input id="annual-effective-rate" className="bq-input" type="number" inputMode="decimal"
-                min="0.0001" max="9.9999" step="0.0001" required disabled={disabled}
+                min="0.01" max="99.99" step="0.01" required disabled={disabled}
                 aria-describedby="annual-effective-rate-help" value={annualEffectiveRate}
                 onChange={(event) => setAnnualEffectiveRate(event.target.value)} />
-              <p id="annual-effective-rate-help" className="bq-ayuda">Ejemplo: 0,1650 equivale a 16,50 %. El servidor valida el máximo vigente y recalcula la cuota con seguro.</p>
+              <p id="annual-effective-rate-help" className="bq-ayuda">Ingrese la tasa en porcentaje, por ejemplo 15,50. No puede superar la tasa máxima vigente.</p>
             </div>
             <button className="bq-btn bq-btn-primario" type="submit" disabled={disabled}>{busy ? 'Procesando…' : 'Aprobar solicitud'}</button>
           </form>
