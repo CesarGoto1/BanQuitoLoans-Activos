@@ -1,7 +1,5 @@
 package com.grupob.bancobanquito.contabilidad.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -12,7 +10,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice(assignableTypes = ControllerCuadreContable.class)
 class ManejadorExcepcionCuadre {
 
-    private static final Logger log = LoggerFactory.getLogger(ManejadorExcepcionCuadre.class);
 
     @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class})
     ProblemDetail fechaInvalida(Exception e) {
@@ -22,7 +19,6 @@ class ManejadorExcepcionCuadre {
 
     @ExceptionHandler(RuntimeException.class)
     ProblemDetail errorConsulta(RuntimeException e) {
-        log.error("No se pudo consultar el cuadre contable", e);
         return problema(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo consultar el cuadre",
                 "Ocurrió un error al consultar la contabilidad. Intenta nuevamente.");
     }
