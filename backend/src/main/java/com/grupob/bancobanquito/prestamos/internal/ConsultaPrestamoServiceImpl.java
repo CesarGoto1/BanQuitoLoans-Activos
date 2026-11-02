@@ -11,6 +11,10 @@ import com.grupob.bancobanquito.prestamos.ResumenCuota;
 import com.grupob.bancobanquito.prestamos.ResumenPrestamo;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.HashMap;
+import com.grupob.bancobanquito.prestamos.DatosOperacionCartera;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -36,6 +40,36 @@ class ConsultaPrestamoServiceImpl implements ConsultaPrestamoService {
         this.cuotaRepository = cuotaRepository;
         this.pagoRepository = pagoRepository;
         this.cambioEstadoRepository = cambioEstadoRepository;
+    }
+
+    @Override
+    public List<DatosOperacionCartera> buscarDatosPorIds(Collection<Integer> identificadores) {
+        if (identificadores == null || identificadores.stream().anyMatch(id -> id == null || id <= 0)
+                || new HashSet<>(identificadores).size() != identificadores.size()) {
+            throw new ExcepcionPrestamo(HttpStatus.BAD_REQUEST, "Los identificadores de operaciones son inválidos o están duplicados.");
+        }
+        if (identificadores.isEmpty()) {
+            return List.of();
+        }
+        var solicitados = new HashSet<>(identificadores);
+        Map<Integer, DatosOperacionCartera> datos = new HashMap<>();
+        for (Prestamo prestamo : prestamoRepository.findAllById(identificadores)) {
+            if (prestamo == null || prestamo.getId() == null || !solicitados.contains(prestamo.getId())
+                    || datos.containsKey(prestamo.getId()) || prestamo.getCustomerId() == null
+                    || prestamo.getCustomerId() <= 0 || prestamo.getApprovedAmount() == null
+                    || prestamo.getApprovedAmount().signum() <= 0
+                    || prestamo.getApprovedAmount().stripTrailingZeros().scale() > 2
+                    || prestamo.getTermMonths() == null || prestamo.getTermMonths() <= 0
+                    || prestamo.getAmortizationMethod() == null) {
+                throw new ExcepcionPrestamo(HttpStatus.CONFLICT, "Las operaciones consultadas contienen datos originales incompletos o inválidos.");
+            }
+            datos.put(prestamo.getId(), new DatosOperacionCartera(prestamo.getId(), prestamo.getCustomerId(),
+                    prestamo.getApprovedAmount(), prestamo.getTermMonths(), prestamo.getAmortizationMethod()));
+        }
+        if (datos.size() != identificadores.size()) {
+            throw new ExcepcionPrestamo(HttpStatus.NOT_FOUND, "No se encontraron todas las operaciones solicitadas.");
+        }
+        return identificadores.stream().map(datos::get).toList();
     }
 
     @Override
