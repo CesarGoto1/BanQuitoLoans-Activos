@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,6 +24,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -100,10 +105,11 @@ class SolicitudServiceCapacidadPagoTest {
         Solicitud sol2 = crearSolicitudBase(11, new BigDecimal("1800.00"), new BigDecimal("700.00"), new BigDecimal("220.00"));
         sol2.setRegisteredAt(LocalDateTime.of(2026, 10, 22, 14, 30));
 
-        when(solicitudRepository.findByStatusOrderByFechaHoraRegistroAsc(EstadoSolicitud.REGISTRADA))
-                .thenReturn(List.of(sol1, sol2));
+        when(solicitudRepository.findByStatus(eq(EstadoSolicitud.REGISTRADA), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sol1, sol2)));
 
-        List<SolicitudBandejaResponse> bandeja = solicitudService.listarBandejaAnalista("REGISTRADA");
+        List<SolicitudBandejaResponse> bandeja = solicitudService
+                .listarBandejaAnalista("REGISTRADA", PageRequest.of(0, 10)).getContent();
 
         assertThat(bandeja).hasSize(2);
         assertThat(bandeja.get(0).idSolicitud()).isEqualTo(10);

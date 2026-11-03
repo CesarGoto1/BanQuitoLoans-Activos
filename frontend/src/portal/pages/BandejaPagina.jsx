@@ -6,6 +6,8 @@ const ESTADOS = { REGISTRADA: 'Registrada', APROBADA: 'Aprobada', RECHAZADA: 'Re
 
 export default function BandejaPagina({ onSeleccionarSolicitud }) {
   const [solicitudes, setSolicitudes] = useState([]);
+  const [pagina, setPagina] = useState(0);
+  const [infoPagina, setInfoPagina] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
@@ -13,8 +15,9 @@ export default function BandejaPagina({ onSeleccionarSolicitud }) {
     setCargando(true);
     setError(null);
     try {
-      const datos = await obtenerBandejaSolicitudes('REGISTRADA');
-      setSolicitudes(datos);
+      const datos = await obtenerBandejaSolicitudes('REGISTRADA', pagina);
+      setSolicitudes(datos.content ?? []);
+      setInfoPagina(datos.page ?? null);
     } catch (err) {
       setError(err.message || 'Error al recuperar la bandeja de solicitudes');
     } finally {
@@ -24,7 +27,7 @@ export default function BandejaPagina({ onSeleccionarSolicitud }) {
 
   useEffect(() => {
     cargarBandeja();
-  }, []);
+  }, [pagina]);
 
   const formatearDinero = (monto) => {
     if (monto === null || monto === undefined) return '$ 0,00';
@@ -123,8 +126,34 @@ export default function BandejaPagina({ onSeleccionarSolicitud }) {
               ))}
             </tbody>
           </table>
+          <Paginacion pagina={infoPagina} onPagina={setPagina} />
         </div>
       )}
+    </div>
+  );
+}
+
+function Paginacion({ pagina, onPagina }) {
+  if (!pagina || pagina.totalPages <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="bq-acciones">
+      <span className="bq-pequeno bq-texto-2">
+        Página {pagina.number + 1} de {pagina.totalPages} · {pagina.totalElements} registros
+      </span>
+      <button className="bq-btn bq-btn-secundario bq-btn-sm" type="button" disabled={pagina.number === 0} onClick={() => onPagina(pagina.number - 1)}>
+        Anterior
+      </button>
+      <button
+        className="bq-btn bq-btn-secundario bq-btn-sm"
+        type="button"
+        disabled={pagina.number + 1 >= pagina.totalPages}
+        onClick={() => onPagina(pagina.number + 1)}
+      >
+        Siguiente
+      </button>
     </div>
   );
 }

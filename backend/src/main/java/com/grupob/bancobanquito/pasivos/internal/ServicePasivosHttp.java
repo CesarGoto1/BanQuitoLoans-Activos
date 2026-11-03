@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -87,20 +86,19 @@ class ServicePasivosHttp implements ServicePasivos {
         if (customer.isEmpty()) {
             return List.of();
         }
-        List<CuentaPasivos> cuentas;
+        PaginaCuentasPasivos pagina;
         try {
-            cuentas = restClient.get()
-                    .uri("/api/clientes/{cedula}/cuentas", customer.get().cedula())
+            pagina = restClient.get()
+                    .uri("/api/clientes/{cedula}/cuentas?size=20", customer.get().cedula())
                     .retrieve()
-                    .body(new ParameterizedTypeReference<List<CuentaPasivos>>() {
-                    });
+                    .body(PaginaCuentasPasivos.class);
         } catch (RestClientException e) {
             throw new PasivosNoDisponibleException(e);
         }
-        if (cuentas == null) {
+        if (pagina == null || pagina.content() == null) {
             return List.of();
         }
-        return cuentas.stream()
+        return pagina.content().stream()
                 .filter(account -> ACTIVE_ACCOUNT.equals(account.estado()))
                 .map(account -> new Cuenta(account.numeroCuenta(), account.tipo()))
                 .toList();

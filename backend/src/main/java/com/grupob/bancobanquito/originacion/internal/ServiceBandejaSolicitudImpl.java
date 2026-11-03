@@ -7,13 +7,14 @@ import com.grupob.bancobanquito.parametros.ServiceParametro;
 import com.grupob.bancobanquito.pasivos.Cliente;
 import com.grupob.bancobanquito.pasivos.PasivosNoDisponibleException;
 import com.grupob.bancobanquito.pasivos.ServicePasivos;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,12 +35,11 @@ public class ServiceBandejaSolicitudImpl implements ServiceBandejaSolicitud {
     }
 
     @Override
-    public List<SolicitudBandejaResponse> listarBandejaAnalista(String estado) {
+    public Page<SolicitudBandejaResponse> listarBandejaAnalista(String estado, Pageable paginacion) {
         Map<Integer, Optional<Cliente>> clientes = new HashMap<>();
-        return this.solicitudRepository.findByStatusOrderByFechaHoraRegistroAsc(parsearEstado(estado)).stream()
+        return this.solicitudRepository.findByStatus(parsearEstado(estado), paginacion)
                 .map(solicitud -> mapearABandejaResponse(solicitud,
-                        clientes.computeIfAbsent(solicitud.getCustomerId(), this::buscarCliente)))
-                .toList();
+                        clientes.computeIfAbsent(solicitud.getCustomerId(), this::buscarCliente)));
     }
 
     @Override

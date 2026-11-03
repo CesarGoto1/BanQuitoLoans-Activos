@@ -3,6 +3,10 @@ package com.grupob.bancobanquito.originacion.internal;
 import com.grupob.bancobanquito.originacion.SolicitudBandejaResponse;
 import com.grupob.bancobanquito.originacion.SolicitudDetalleResponse;
 import com.grupob.bancobanquito.originacion.ServiceBandejaSolicitud;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
@@ -26,13 +28,14 @@ public class ControllerSolicitudAnalista {
     }
 
     @GetMapping
-    public ResponseEntity<List<SolicitudBandejaResponse>> listarBandeja(
+    public ResponseEntity<Page<SolicitudBandejaResponse>> listarBandeja(
             @RequestParam(name = "estado", defaultValue = "REGISTRADA") String estado,
             @RequestHeader(name = "X-Rol", required = false) String rol,
-            @RequestHeader(name = "X-Identificacion", required = false) String identificacion) {
+            @RequestHeader(name = "X-Identificacion", required = false) String identificacion,
+            @PageableDefault(size = 10, sort = "fechaHoraRegistro", direction = Sort.Direction.ASC) Pageable paginacion) {
 
         validarCabecerasSeguridad(rol, identificacion);
-        List<SolicitudBandejaResponse> bandeja = this.solicitudService.listarBandejaAnalista(estado);
+        Page<SolicitudBandejaResponse> bandeja = this.solicitudService.listarBandejaAnalista(estado, paginacion);
         return ResponseEntity.ok(bandeja);
     }
 

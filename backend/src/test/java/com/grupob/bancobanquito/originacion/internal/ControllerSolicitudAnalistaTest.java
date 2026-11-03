@@ -9,6 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -18,6 +22,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,6 +43,7 @@ class ControllerSolicitudAnalistaTest {
         this.mockMvc = MockMvcBuilders
                 .standaloneSetup(controller)
                 .setControllerAdvice(new ManejadorExcepcionSolicitud())
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .build();
     }
 
@@ -72,7 +79,7 @@ class ControllerSolicitudAnalistaTest {
                 LocalDateTime.of(2026, 10, 24, 10, 0), "REGISTRADA"
         );
 
-        when(solicitudService.listarBandejaAnalista("REGISTRADA")).thenReturn(List.of(item));
+        when(solicitudService.listarBandejaAnalista(eq("REGISTRADA"), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 10), 1));
 
         mockMvc.perform(get("/api/analista/solicitudes")
                         .header("X-Rol", "ANALISTA")
@@ -80,11 +87,11 @@ class ControllerSolicitudAnalistaTest {
                         .param("estado", "REGISTRADA")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].idSolicitud").value(1))
-                .andExpect(jsonPath("$[0].estadoSolicitud").value("REGISTRADA"))
-                .andExpect(jsonPath("$[0].cedulaCliente").value("1711000073"))
-                .andExpect(jsonPath("$[0].nombreCliente").value("Luis Herrera"))
-                .andExpect(jsonPath("$[0].montoSolicitado").value(5000.00));
+                .andExpect(jsonPath("$.content[0].idSolicitud").value(1))
+                .andExpect(jsonPath("$.content[0].estadoSolicitud").value("REGISTRADA"))
+                .andExpect(jsonPath("$.content[0].cedulaCliente").value("1711000073"))
+                .andExpect(jsonPath("$.content[0].nombreCliente").value("Luis Herrera"))
+                .andExpect(jsonPath("$.content[0].montoSolicitado").value(5000.00));
     }
 
     @Test
