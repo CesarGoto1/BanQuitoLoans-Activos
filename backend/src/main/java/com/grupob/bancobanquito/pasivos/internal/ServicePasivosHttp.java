@@ -1,11 +1,14 @@
 package com.grupob.bancobanquito.pasivos.internal;
 
+import com.grupob.bancobanquito.pasivos.ArchivoRecaudacionGenerado;
 import com.grupob.bancobanquito.pasivos.Cuenta;
 import com.grupob.bancobanquito.pasivos.Cliente;
 import com.grupob.bancobanquito.pasivos.InstruccionDesembolso;
 import com.grupob.bancobanquito.pasivos.ServicePasivos;
 import com.grupob.bancobanquito.pasivos.PasivosNoDisponibleException;
+import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
@@ -116,6 +119,26 @@ class ServicePasivosHttp implements ServicePasivos {
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientException e) {
+            throw new PasivosNoDisponibleException(e);
+        }
+    }
+
+    @Override
+    public ArchivoRecaudacionGenerado generarArchivoRecaudacion(LocalDate fechaProceso) {
+        try {
+            String contenido = restClient.get()
+                    .uri("/api/recaudaciones/archivo?fechaProceso={fechaProceso}", fechaProceso)
+                    .retrieve()
+                    .body(String.class);
+            String[] encabezado = contenido.lines()
+                    .filter(linea -> linea.startsWith("H,"))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("El archivo de recaudación no trae encabezado."))
+                    .split(",");
+            return new ArchivoRecaudacionGenerado(encabezado[1] + ".csv", Integer.parseInt(encabezado[4]),
+                    new BigDecimal(encabezado[5]));
+        } catch (RestClientException | IllegalStateException | ArrayIndexOutOfBoundsException
+                 | NumberFormatException e) {
             throw new PasivosNoDisponibleException(e);
         }
     }

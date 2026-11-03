@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { listDayClosings, runDayClosing } from '../services/cierreDiaApi.js'
+import { listDayClosings, runDayClosing, solicitarArchivoRecaudacion } from '../services/cierreDiaApi.js'
 
 const closingStates = {
   PENDIENTE: { texto: 'Pendiente', clase: 'bq-estado-neutro' },
@@ -48,6 +48,8 @@ function nextDay(iso) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
+const dolares = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' })
+
 export default function CierreDiaPagina() {
   const [page, setPage] = useState(0)
   const [closings, setClosings] = useState(null)
@@ -57,6 +59,9 @@ export default function CierreDiaPagina() {
   const [result, setResult] = useState(null)
   const [selected, setSelected] = useState(null)
   const [reload, setReload] = useState(0)
+  const [archivo, setArchivo] = useState(null)
+  const [solicitandoArchivo, setSolicitandoArchivo] = useState(false)
+  const [errorArchivo, setErrorArchivo] = useState('')
 
   useEffect(() => {
     let current = true
@@ -79,6 +84,19 @@ export default function CierreDiaPagina() {
     const timer = setInterval(() => setReload((value) => value + 1), 5000)
     return () => clearInterval(timer)
   }, [inProgress])
+
+  async function pedirArchivo() {
+    setSolicitandoArchivo(true)
+    setErrorArchivo('')
+    setArchivo(null)
+    try {
+      setArchivo(await solicitarArchivoRecaudacion())
+    } catch (e) {
+      setErrorArchivo(e.message)
+    } finally {
+      setSolicitandoArchivo(false)
+    }
+  }
 
   async function closeDay() {
     setConfirming(false)
@@ -138,6 +156,44 @@ export default function CierreDiaPagina() {
                 <p className="bq-pequeno bq-texto-2">
                   El último intento falló. Al reintentar se saltan las etapas que ya terminaron con éxito.
                 </p>
+              ) : null}
+              {open.estadoCierre !== 'EN_PROCESO' ? (
+                <div className="bq-alerta bq-alerta-info">
+                  <strong>Archivo de recaudación</strong>
+                  <p>
+                    Pídelo antes del cierre para que el Core de Pasivos entregue los cobros del{' '}
+                    {formatDate(open.fechaNegocio)}. El cierre los aplica en su primera etapa.
+                  </p>
+                  <div className="bq-acciones">
+                    <button
+                      type="button"
+                      className="bq-btn bq-btn-secundario bq-btn-sm"
+                      disabled={solicitandoArchivo || running}
+                      onClick={pedirArchivo}
+                    >
+                      {solicitandoArchivo ? 'Solicitando…' : 'Solicitar archivo de recaudación'}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+              {errorArchivo ? (
+                <div className="bq-alerta bq-alerta-peligro" role="alert">
+                  <strong>No se pudo solicitar el archivo</strong>
+                  <p>{errorArchivo}</p>
+                </div>
+              ) : null}
+              {archivo ? (
+                <div
+                  className={`bq-alerta ${archivo.cantidadCobros === 0 ? 'bq-alerta-aviso' : 'bq-alerta-exito'}`}
+                  role="status"
+                >
+                  <strong>Archivo {archivo.nombreArchivo} generado</strong>
+                  <p>
+                    {archivo.cantidadCobros === 0
+                      ? `No hay cobros para el ${formatDate(archivo.fechaProceso)}. El día se puede cerrar igualmente.`
+                      : `${archivo.cantidadCobros} ${archivo.cantidadCobros === 1 ? 'cobro' : 'cobros'} por ${dolares.format(archivo.montoTotal)} para el ${formatDate(archivo.fechaProceso)}.`}
+                  </p>
+                </div>
               ) : null}
               {confirming ? (
                 <div className="bq-alerta bq-alerta-aviso" role="alert">

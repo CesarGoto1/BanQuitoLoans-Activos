@@ -1,9 +1,13 @@
 package com.grupob.bancobanquito.pasivos.internal;
 
+import com.grupob.bancobanquito.pasivos.ArchivoRecaudacionGenerado;
 import com.grupob.bancobanquito.pasivos.Cuenta;
 import com.grupob.bancobanquito.pasivos.Cliente;
 import com.grupob.bancobanquito.pasivos.InstruccionDesembolso;
 import com.grupob.bancobanquito.pasivos.ServicePasivos;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,5 +51,11 @@ class ServicePasivosSimulado implements ServicePasivos {
         if (FAILING_ACCOUNT.equals(instruction.cuentaDestino())) {
             throw new IllegalStateException("El core de pasivos no respondió.");
         }
+    }
+
+    @Override
+    public ArchivoRecaudacionGenerado generarArchivoRecaudacion(LocalDate fechaProceso) {
+        return new ArchivoRecaudacionGenerado("REC_" + DateTimeFormatter.BASIC_ISO_DATE.format(fechaProceso) + "_001.csv",
+                0, BigDecimal.ZERO);
     }
 }
