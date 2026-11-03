@@ -115,7 +115,7 @@ export default function DesembolsoPage({ idSolicitud }) {
               </option>
             ))}
           </select>
-          <span className="bq-ayuda">Cuentas activas del cliente en el Core de Pasivos.</span>
+          <span className="bq-ayuda">Cuentas activas del cliente.</span>
         </div>
 
         {error ? (

@@ -50,7 +50,7 @@ export default function MisOperacionesPage({ customer }) {
       <div className="bq-titulo-pagina">
         <div>
           <h1>Mis operaciones</h1>
-          <p className="bq-pequeno bq-texto-2">Revisa tus créditos, su saldo de capital y el estado de cartera.</p>
+          <p className="bq-pequeno bq-texto-2">Revisa tus créditos, su saldo y el estado de cada uno.</p>
         </div>
       </div>
 

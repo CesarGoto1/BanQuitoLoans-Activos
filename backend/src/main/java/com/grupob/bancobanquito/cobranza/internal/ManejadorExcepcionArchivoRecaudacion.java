@@ -12,7 +12,7 @@ class ManejadorExcepcionArchivoRecaudacion {
     @ExceptionHandler(PasivosNoDisponibleException.class)
     ProblemDetail pasivosNoDisponible(PasivosNoDisponibleException e) {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
-        problema.setTitle("Core de Pasivos no disponible");
+        problema.setTitle("Servicio no disponible");
         return problema;
     }
 }

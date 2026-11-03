@@ -161,7 +161,7 @@ export default function CierreDiaPagina() {
                 <div className="bq-alerta bq-alerta-info">
                   <strong>Archivo de recaudación</strong>
                   <p>
-                    Pídelo antes del cierre para que el Core de Pasivos entregue los cobros del{' '}
+                    Pídelo antes del cierre para incluir los cobros del{' '}
                     {formatDate(open.fechaNegocio)}. El cierre los aplica en su primera etapa.
                   </p>
                   <div className="bq-acciones">
