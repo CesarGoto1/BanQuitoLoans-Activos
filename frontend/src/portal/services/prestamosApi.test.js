@@ -59,9 +59,9 @@ test('invalid success payload cannot be mistaken for a saved decision', async ()
 
 test('inbox queries registered applications without caching', async () => {
   globalThis.fetch = async (url, options) => {
-    assert.equal(url, '/api/analista/solicitudes?estado=REGISTRADA');
+    assert.equal(url, '/api/analista/solicitudes?estado=REGISTRADA&page=0');
     assert.equal(options.cache, 'no-store');
-    return Response.json([]);
+    return Response.json({ content: [], page: { number: 0, totalPages: 0, totalElements: 0 } });
   };
-  assert.deepEqual(await obtenerBandejaSolicitudes(), []);
+  assert.deepEqual((await obtenerBandejaSolicitudes()).content, []);
 });

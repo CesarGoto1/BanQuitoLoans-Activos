@@ -22,7 +22,7 @@ interface SolicitudRepository extends JpaRepository<Solicitud, Integer> {
 
     Page<Solicitud> findByIdClienteAndStatus(Integer idCliente, EstadoSolicitud status, Pageable paginacion);
 
-    List<Solicitud> findByStatusOrderByFechaHoraRegistroAsc(EstadoSolicitud status);
+    Page<Solicitud> findByStatus(EstadoSolicitud status, Pageable paginacion);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))

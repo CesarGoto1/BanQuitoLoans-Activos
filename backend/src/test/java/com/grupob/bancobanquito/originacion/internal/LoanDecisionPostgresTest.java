@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -104,7 +105,7 @@ class LoanDecisionPostgresTest {
     @Test
     void persistsFrenchApprovalAndKeepsReviewAndInboxConsistent() {
         Integer id = registerApplication("FRANCES", "3500.00");
-        assertThat(review.listarBandejaAnalista("REGISTRADA")).anyMatch(item -> item.idSolicitud().equals(id));
+        assertThat(review.listarBandejaAnalista("REGISTRADA", PageRequest.of(0, 1000)).getContent()).anyMatch(item -> item.idSolicitud().equals(id));
         decisions.approveApplication(id, "1799999901", new BigDecimal("0.1677"));
         Solicitud stored = applications.findById(id).orElseThrow();
         assertThat(stored.getAssignedRate()).isEqualByComparingTo("0.1677");
@@ -116,7 +117,7 @@ class LoanDecisionPostgresTest {
         assertThat(stored.getCreatedBy()).isEqualTo("rf05-test-customer");
         assertThat(stored.getRejectionReason()).isNull();
         assertThat(review.obtenerDetalleParaEvaluacion(id).estadoSolicitud()).isEqualTo("APROBADA");
-        assertThat(review.listarBandejaAnalista("REGISTRADA")).noneMatch(item -> item.idSolicitud().equals(id));
+        assertThat(review.listarBandejaAnalista("REGISTRADA", PageRequest.of(0, 1000)).getContent()).noneMatch(item -> item.idSolicitud().equals(id));
         assertThat(operationCount(id)).isZero();
     }
 

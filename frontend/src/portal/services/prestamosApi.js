@@ -38,8 +38,8 @@ async function request(path, { method = 'GET', body } = {}) {
   return payload;
 }
 
-export function obtenerBandejaSolicitudes(estado = 'REGISTRADA') {
-  return request(`?estado=${encodeURIComponent(estado)}`);
+export function obtenerBandejaSolicitudes(estado = 'REGISTRADA', pagina = 0) {
+  return request(`?estado=${encodeURIComponent(estado)}&page=${encodeURIComponent(pagina)}`);
 }
 
 export function obtenerDetalleSolicitud(idSolicitud) {

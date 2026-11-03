@@ -1,10 +1,11 @@
 package com.grupob.bancobanquito.originacion;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ServiceBandejaSolicitud {
 
-    List<SolicitudBandejaResponse> listarBandejaAnalista(String estado);
+    Page<SolicitudBandejaResponse> listarBandejaAnalista(String estado, Pageable paginacion);
 
     SolicitudDetalleResponse obtenerDetalleParaEvaluacion(Integer idSolicitud);
 }
