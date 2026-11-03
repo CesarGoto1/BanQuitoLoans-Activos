@@ -87,14 +87,13 @@ class ServiceSolicitudCliente {
         application.setCreatedAt(LocalDateTime.now());
 
         if (remaining.signum() <= 0) {
-            reject(application, fechaNegocio, "Tu remanente mensual (ingresos menos gastos) es cero o negativo.");
+            reject(application, fechaNegocio, "Tus gastos mensuales son iguales o mayores que tus ingresos, por eso no podemos aprobar un crédito en este momento.");
         } else {
             BigDecimal maxInstallment = remaining.multiply(limit).setScale(2, RoundingMode.DOWN);
             if (installment.compareTo(maxInstallment) > 0) {
-                reject(application, fechaNegocio, "La cuota proyectada de USD " + money(installment)
-                        + " supera la cuota máxima admisible de USD " + money(maxInstallment) + " ("
-                        + limit.movePointRight(2).stripTrailingZeros().toPlainString()
-                        + " % de tu remanente mensual).");
+                reject(application, fechaNegocio, "La cuota de $" + money(installment)
+                        + " es mayor a lo que puedes pagar cada mes según tus ingresos y gastos (hasta $"
+                        + money(maxInstallment) + "). Prueba con un monto menor o un plazo más largo.");
             }
         }
         return loanApplicationRepository.save(application);
