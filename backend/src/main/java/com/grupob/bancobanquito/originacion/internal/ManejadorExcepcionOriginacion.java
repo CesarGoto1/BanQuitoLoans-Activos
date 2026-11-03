@@ -23,7 +23,7 @@ class ManejadorExcepcionOriginacion {
 
     @ExceptionHandler(PasivosNoDisponibleException.class)
     ProblemDetail liabilitiesUnavailable(PasivosNoDisponibleException e) {
-        return problem(HttpStatus.SERVICE_UNAVAILABLE, "Core de Pasivos no disponible", e.getMessage());
+        return problem(HttpStatus.SERVICE_UNAVAILABLE, "Servicio no disponible", e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

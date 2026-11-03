@@ -136,7 +136,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
                     loan.getNetAmount(), fechaDesembolso));
         } catch (RuntimeException e) {
             throw new PrestamoException(HttpStatus.BAD_GATEWAY,
-                    "No se pudo acreditar en el Core de Pasivos; el desembolso no se realizó. Intenta de nuevo.");
+                    "No se pudo acreditar en la cuenta del cliente; el desembolso no se realizó. Intenta de nuevo.");
         }
         loan.setDisbursementInstructionStatus(EstadoInstruccionDesembolso.ENTREGADA);
         loan.setLastModifiedBy(AUDIT_USER);
@@ -180,7 +180,7 @@ class ServicePrestamoImpl implements ServicePrestamo {
     private Cliente customer(Integer idCliente) {
         return servicioPasivos.findCustomer(idCliente)
                 .orElseThrow(() -> new PrestamoException(HttpStatus.NOT_FOUND,
-                        "El cliente " + idCliente + " no existe en el Core de Pasivos."));
+                        "No se encontró al cliente de la solicitud."));
     }
 
     private BigDecimal seguroMensual(BigDecimal montoAprobado) {
