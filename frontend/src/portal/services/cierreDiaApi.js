@@ -41,3 +41,13 @@ export async function runDayClosing(fechaNegocio) {
   }
   return readResponse(response)
 }
+
+export async function solicitarArchivoRecaudacion() {
+  let respuesta
+  try {
+    respuesta = await fetch(`${API}/analista/archivos-recaudacion`, { method: 'POST', headers: headers() })
+  } catch {
+    throw new Error('No se pudo conectar con el servidor. Intenta nuevamente.')
+  }
+  return readResponse(respuesta)
+}
